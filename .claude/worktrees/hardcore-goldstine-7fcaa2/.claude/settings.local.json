@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude mcp *)",
+      "PowerShell(claude mcp add resend -e RESEND_API_KEY=re_ZFdpU8gD_D89bJN6Deh3NfABLVbsBvzNQ -- npx -y resend-mcp)",
+      "Bash(find /mnt/c/Users/roberto/.claude -name \"*.json\" 2>/dev/null | head -20)",
+      "PowerShell(Get-ChildItem \"$env:USERPROFILE\\\\.claude\" -Recurse -Name | Select-Object -First 30)",
+      "PowerShell(Test-Path \"$env:USERPROFILE\\\\.claude.json\"; if \\(Test-Path \"$env:USERPROFILE\\\\.claude.json\"\\) { \\(Get-Content \"$env:USERPROFILE\\\\.claude.json\" | Select-String \"mcpServer\"\\).Line | Select-Object -First 5 })"
+    ]
+  }
+}
