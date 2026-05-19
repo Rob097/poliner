@@ -1,0 +1,44 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(superpowers:writing-plans)",
+      "Skill(superpowers:writing-plans:*)",
+      "Bash(unzip -l Poliner-handoff.zip)",
+      "Bash(unzip -o Poliner-handoff.zip -d handoff/)",
+      "mcp__claude_ai_Supabase__list_projects",
+      "mcp__claude_ai_Supabase__list_tables",
+      "mcp__claude_ai_Supabase__list_migrations",
+      "Bash(npm --version)",
+      "Read(//home/roberto/.nvm/**)",
+      "Bash(command -v fnm)",
+      "Bash(command -v volta)",
+      "mcp__claude_ai_Supabase__apply_migration",
+      "mcp__claude_ai_Supabase__execute_sql",
+      "mcp__claude_ai_Supabase__get_advisors",
+      "mcp__claude_ai_Supabase__generate_typescript_types",
+      "mcp__claude_ai_Supabase__get_project_url",
+      "mcp__claude_ai_Supabase__get_publishable_keys",
+      "Bash(ls -la /home/roberto/personal-projects/claude-code/poliner/public/icons/ && rm -f /tmp/gen-icons.mjs)",
+      "Bash(curl -s -o /tmp/login.html -w \"HTTP %{http_code}\\\\nSize: %{size_download}\\\\nRedirect: %{redirect_url}\\\\n\" -L http://localhost:3030/)",
+      "Bash(curl -s -o /dev/null -w \"/login: HTTP %{http_code}\\\\n\" http://localhost:3030/login)",
+      "Bash(curl -s -o /dev/null -w \"/registrazione: HTTP %{http_code}\\\\n\" http://localhost:3030/registrazione)",
+      "Bash(curl -s -o /dev/null -w \"/manifest.webmanifest: HTTP %{http_code}\\\\n\" http://localhost:3030/manifest.webmanifest)",
+      "Bash(curl -s -o /dev/null -w \"/icons/icon-192.png: HTTP %{http_code}\\\\n\" http://localhost:3030/icons/icon-192.png)",
+      "Bash(curl -s http://localhost:3030/manifest.webmanifest)",
+      "Bash(curl -s http://localhost:3030/login)",
+      "Bash(curl -s http://localhost:3030/registrazione)",
+      "Bash(curl -s -o /dev/null -w \"Status: %{http_code}, Final: %{url_effective}\\\\n\" -L http://localhost:3030/onboarding)",
+      "Bash(curl -s -o /dev/null -w '__TRACKED_VAR__: %{http_code}\\\\n' http://localhost:3030__TRACKED_VAR__)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' -L --max-redirs 5 http://localhost:3030__TRACKED_VAR__)",
+      "Bash(curl -s -o /dev/null -w '%{url_effective}' -L --max-redirs 5 http://localhost:3030__TRACKED_VAR__)",
+      "Bash(curl -s -o /dev/null -w '%{url_effective}' -L --max-redirs 3 http://localhost:3030__TRACKED_VAR__)",
+      "Bash(curl -s \"https://api.open-meteo.com/v1/forecast?latitude=43.7&longitude=11.25&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max&forecast_days=2&timezone=auto\")",
+      "mcp__claude_ai_Supabase__deploy_edge_function",
+      "Bash(node -e ' *)",
+      "mcp__claude_ai_Supabase__get_logs"
+    ],
+    "additionalDirectories": [
+      "/tmp"
+    ]
+  }
+}

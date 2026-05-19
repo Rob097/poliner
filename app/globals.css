@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Brand colors */
+    --primary: #E8678A;
+    --primary-light: #FFD6E0;
+    --primary-lighter: #FFF0F3;
+
+    /* Neutrals */
+    --bg: #FAF8F6;
+    --bg-warm: #FAF8F6;
+    --border: #F0EDE8;
+    --text: #2E2924;
+    --text-secondary: #9E968C;
+
+    /* Sizing */
+    --radius: 16px;
+    --radius-sm: 12px;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--font-nunito), Nunito, system-ui, sans-serif;
+  }
+
+  /* Hide scrollbar inside scroll regions */
+  .screen-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .screen-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Better-looking selects on iOS */
+  select {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+}
+
+@layer utilities {
+  .select-arrow {
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%239E968C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 12px 8px;
+    padding-right: 36px;
+  }
+}
+
+@layer components {
+  /* App frame: max 430px on desktop, full width on mobile.
+     padding-top con safe-area-inset-top per evitare la notch iOS. */
+  .app-frame {
+    width: 100%;
+    max-width: 430px;
+    height: 100dvh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(0, 0, 0, 0.08);
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  @media (min-width: 500px) {
+    .app-frame-desktop {
+      background: #e8e4df;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .app-frame {
+      height: 90dvh;
+      max-height: 844px;
+      border-radius: 32px;
+      border: 1px solid #ddd;
+      /* In desktop view non c'è notch */
+      padding-top: 0;
+    }
+  }
+
+  /* La spaziatura inferiore è gestita da .screen-scroll-pad (sotto)
+     perché Tailwind utilities vincono sui componenti. */
+  .screen-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@layer utilities {
+  /* Padding-bottom dinamico per evitare contenuto sotto il TabBar
+     (80px tab bar + 16px safe-area + 24px breathing).
+     Applicato di default a .screen-scroll dal componente ScreenContainer. */
+  .pad-tab {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
+}
