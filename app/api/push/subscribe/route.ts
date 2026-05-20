@@ -22,19 +22,55 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Upsert: stesso endpoint → aggiorna
+  const nextSubscription = {
+    user_id: user.id,
+    endpoint: body.endpoint,
+    p256dh: body.keys.p256dh,
+    auth: body.keys.auth,
+    user_agent: body.userAgent ?? null,
+  };
+
+  const { data: existing, error: selectError } = await supabase
+    .from("push_subscriptions")
+    .select("endpoint, p256dh, auth, user_agent")
+    .eq("user_id", user.id)
+    .eq("endpoint", body.endpoint)
+    .maybeSingle();
+
+  if (selectError) {
+    return NextResponse.json(
+      { ok: false, error: selectError.message },
+      { status: 500 },
+    );
+  }
+
+  if (
+    existing &&
+    existing.p256dh === nextSubscription.p256dh &&
+    existing.auth === nextSubscription.auth &&
+    existing.user_agent === nextSubscription.user_agent
+  ) {
+    return NextResponse.json({ ok: true });
+  }
+
+  if (existing) {
+    const { error: deleteError } = await supabase
+      .from("push_subscriptions")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("endpoint", body.endpoint);
+
+    if (deleteError) {
+      return NextResponse.json(
+        { ok: false, error: deleteError.message },
+        { status: 500 },
+      );
+    }
+  }
+
   const { error } = await supabase
     .from("push_subscriptions")
-    .upsert(
-      {
-        user_id: user.id,
-        endpoint: body.endpoint,
-        p256dh: body.keys.p256dh,
-        auth: body.keys.auth,
-        user_agent: body.userAgent ?? null,
-      },
-      { onConflict: "endpoint" },
-    );
+    .insert(nextSubscription);
 
   if (error) {
     return NextResponse.json(

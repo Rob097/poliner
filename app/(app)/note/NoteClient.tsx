@@ -369,7 +369,7 @@ function NotaFormModal({
               </Select>
             </FormField>
             <p className="text-[11px] text-[var(--text-secondary)] italic m-0">
-              Le notifiche push e email verranno consegnate dalla Fase 8 (in arrivo).
+              Il promemoria verra inviato all'orario scelto se i canali sono attivi nelle impostazioni.
             </p>
           </div>
         )}

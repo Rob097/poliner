@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Avatar } from "@/components/ui/Avatar";
@@ -261,8 +261,9 @@ function NotificheSection({
   const { show } = useToast();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [browserPushAttivo, setBrowserPushAttivo] = useState(false);
+  const [browserPushAttivo, setBrowserPushAttivo] = useState(hasPushSubscription);
   const [supported, setSupported] = useState(false);
+  const pushSyncVersion = useRef(0);
 
   const [pushAttivo, setPushAttivo] = useState(preferenze.pushAttivo);
   const [emailAttivo, setEmailAttivo] = useState(preferenze.emailAttivo);
@@ -272,9 +273,22 @@ function NotificheSection({
   });
 
   useEffect(() => {
-    setSupported(isPushSupported());
-    isSubscribed().then(setBrowserPushAttivo);
-  }, []);
+    const supportedNow = isPushSupported();
+    setSupported(supportedNow);
+    if (!supportedNow) return;
+
+    const syncVersion = ++pushSyncVersion.current;
+
+    isSubscribed()
+      .then((subscribed) => {
+        if (pushSyncVersion.current !== syncVersion) return;
+        setBrowserPushAttivo(subscribed || hasPushSubscription);
+      })
+      .catch(() => {
+        if (pushSyncVersion.current !== syncVersion) return;
+        setBrowserPushAttivo(hasPushSubscription);
+      });
+  }, [hasPushSubscription]);
 
   function persistChanges(next: {
     pushAttivo?: boolean;
@@ -295,6 +309,8 @@ function NotificheSection({
   }
 
   async function onTogglePushBrowser() {
+    pushSyncVersion.current += 1;
+
     if (browserPushAttivo) {
       const res = await disablePushNotifications();
       if (res.ok) {

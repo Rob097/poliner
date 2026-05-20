@@ -7,14 +7,25 @@
 
 import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import webpush from "npm:web-push@3.6.7";
+import { trovaRazza } from "../../../lib/data/razze.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SECRET_KEYS = (Deno.env.get("SUPABASE_SECRET_KEYS") ?? "")
+  .split(",")
+  .map((value: string) => value.trim())
+  .filter(Boolean);
 const VAPID_PUBLIC = Deno.env.get("VAPID_PUBLIC_KEY")!;
 const VAPID_PRIVATE = Deno.env.get("VAPID_PRIVATE_KEY")!;
 const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "mailto:info@rdlabs.digital";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const RESEND_FROM = Deno.env.get("RESEND_FROM") ?? "Poliner <info@rdlabs.digital>";
+const ACCEPTED_FUNCTION_KEYS = [...new Set([...SECRET_KEYS, SERVICE_ROLE].filter(Boolean))];
+const OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast";
+const ITALY_TIME_ZONE = "Europe/Rome";
+const HOURLY_SWEEP_MINUTE = "05";
+const FINE_PRODUZIONE_WARNING_DAYS = 30;
+const MUTA_LUNGA_GIORNI = 70;
 
 webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
 
@@ -25,6 +36,7 @@ interface UserBase {
   emailAttivo: boolean;
   categorie: Record<string, boolean>;
   globaleAttivo: boolean;
+  oraMeteo: string;
 }
 
 interface NotificaInput extends UserBase {
@@ -33,6 +45,165 @@ interface NotificaInput extends UserBase {
   push: { title: string; body: string; url?: string; tag?: string };
   emailSubject: string;
   emailBody: string;
+}
+
+function getIncomingSecret(req: Request): string {
+  const apiKey = (req.headers.get("apikey") ?? "").trim();
+  if (apiKey) return apiKey;
+
+  const auth = req.headers.get("authorization") ?? "";
+  return auth.replace(/^Bearer\s+/i, "").trim();
+}
+
+function shouldSendReminderPush(channel: string | null | undefined): boolean {
+  return !channel || channel === "push" || channel === "entrambi";
+}
+
+function shouldSendReminderEmail(channel: string | null | undefined): boolean {
+  return channel === "email" || channel === "entrambi";
+}
+
+function getTimePartsInZone(
+  date: Date,
+  timeZone: string,
+): {
+  year: string;
+  month: string;
+  day: string;
+  hour: string;
+  minute: string;
+} {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+
+  const values = new Map(parts.map((part) => [part.type, part.value]));
+  return {
+    year: values.get("year") ?? "0000",
+    month: values.get("month") ?? "01",
+    day: values.get("day") ?? "01",
+    hour: values.get("hour") ?? "00",
+    minute: values.get("minute") ?? "00",
+  };
+}
+
+function getItalyDateKey(date: Date): string {
+  const parts = getTimePartsInZone(date, ITALY_TIME_ZONE);
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+function getItalyTimeKey(date: Date): string {
+  const parts = getTimePartsInZone(date, ITALY_TIME_ZONE);
+  return `${parts.hour}:${parts.minute}`;
+}
+
+function normalizeTimeKey(timeValue: string | null | undefined): string {
+  if (!timeValue) return "20:00";
+  return timeValue.slice(0, 5);
+}
+
+function parseDateOnly(dateValue: string): { year: number; month: number; day: number } {
+  const [year, month, day] = dateValue.split("-").map(Number);
+  return { year, month, day };
+}
+
+function daysBetweenDateOnly(startDate: string, endDate: string): number {
+  const start = parseDateOnly(startDate);
+  const end = parseDateOnly(endDate);
+  const startUtc = Date.UTC(start.year, start.month - 1, start.day);
+  const endUtc = Date.UTC(end.year, end.month - 1, end.day);
+  return Math.floor((endUtc - startUtc) / 86400000);
+}
+
+function addMonthsToDateOnly(dateValue: string, months: number): string {
+  const base = parseDateOnly(dateValue);
+  const threshold = new Date(Date.UTC(base.year, base.month - 1, base.day, 12));
+  threshold.setUTCMonth(threshold.getUTCMonth() + months);
+  return threshold.toISOString().slice(0, 10);
+}
+
+function getAgeInMonths(
+  dataNascita: string | null,
+  etaApprossimativaMesi: number | null,
+  todayKey: string,
+): number | null {
+  if (!dataNascita) return etaApprossimativaMesi;
+
+  const nascita = parseDateOnly(dataNascita);
+  const oggi = parseDateOnly(todayKey);
+  let months = (oggi.year - nascita.year) * 12 + (oggi.month - nascita.month);
+  if (oggi.day < nascita.day) months -= 1;
+  return Math.max(0, months);
+}
+
+interface WeatherNotification {
+  forecastDate: string;
+  body: string;
+  emailBody: string;
+}
+
+async function buildTomorrowWeatherNotification(
+  lat: number,
+  lng: number,
+  pollaioNome: string,
+): Promise<WeatherNotification | null> {
+  const url = new URL(OPEN_METEO_URL);
+  url.searchParams.set("latitude", lat.toString());
+  url.searchParams.set("longitude", lng.toString());
+  url.searchParams.set(
+    "daily",
+    "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max",
+  );
+  url.searchParams.set("forecast_days", "2");
+  url.searchParams.set("timezone", ITALY_TIME_ZONE);
+  url.searchParams.set("wind_speed_unit", "kmh");
+
+  try {
+    const res = await fetch(url.toString());
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    const forecastDate = json.daily?.time?.[1] as string | undefined;
+    if (!forecastDate) return null;
+
+    const weatherCode = Number(json.daily?.weather_code?.[1] ?? -1);
+    const tempMax = Number(json.daily?.temperature_2m_max?.[1] ?? NaN);
+    const tempMin = Number(json.daily?.temperature_2m_min?.[1] ?? NaN);
+    const precipitation = Number(json.daily?.precipitation_sum?.[1] ?? 0);
+    const windMax = Number(json.daily?.wind_speed_10m_max?.[1] ?? 0);
+
+    let body: string | null = null;
+    if (weatherCode >= 95 || (weatherCode >= 82 && weatherCode <= 86)) {
+      body = "⛈️ Attenzione! Temporale previsto domani — metti al riparo le galline per tempo";
+    } else if (tempMax > 35) {
+      body = "🌡️ Domani fa molto caldo — assicurati che le galline abbiano acqua fresca!";
+    } else if (tempMin < 0) {
+      body = "🥶 Domani si gela — controlla il ricovero notturno delle galline";
+    } else if (windMax > 40) {
+      body = "💨 Domani c'è molto vento — controlla che il pollaio sia ben chiuso";
+    } else if (precipitation > 5) {
+      body = "🌧️ Domani pioverà — ricordati di controllare che le galline abbiano riparo!";
+    } else if (weatherCode <= 1 && tempMax >= 18 && tempMax <= 28) {
+      body = "☀️ Domani splende il sole — giornata perfetta per far uscire le galline!";
+    }
+
+    if (!body) return null;
+
+    return {
+      forecastDate,
+      body,
+      emailBody: `${body}\n\nPrevisione riferita al pollaio "${pollaioNome}".`,
+    };
+  } catch (error) {
+    console.error("Weather notification error", error);
+    return null;
+  }
 }
 
 async function alreadySent(
@@ -179,14 +350,15 @@ async function loadUserBase(
     emailAttivo: pref.email_attivo,
     categorie: (pref.categorie as Record<string, boolean>) ?? {},
     globaleAttivo: pref.globale_attivo,
+    oraMeteo: normalizeTimeKey(pref.ora_notifiche_meteo),
   };
 }
 
 // ── MAIN ───────────────────────────────────────────────
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   // Auth: chiamabile solo con la service-role key nell'header
-  const auth = req.headers.get("authorization") ?? "";
-  if (!auth.includes(SERVICE_ROLE)) {
+  const incomingSecret = getIncomingSecret(req);
+  if (!incomingSecret || !ACCEPTED_FUNCTION_KEYS.includes(incomingSecret)) {
     return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
       status: 401,
     });
@@ -194,11 +366,15 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
   const now = new Date();
-  const today = now.toISOString().slice(0, 10);
+  const today = getItalyDateKey(now);
+  const currentTime = getItalyTimeKey(now);
+  const shouldRunHourlySweep = currentTime.endsWith(`:${HOURLY_SWEEP_MINUTE}`);
 
   const { data: pollai } = await supabase
     .from("pollai")
-    .select("id, nome, conservazione_ambiente_giorni, conservazione_frigo_giorni");
+    .select(
+      "id, nome, posizione_lat, posizione_lng, conservazione_ambiente_giorni, conservazione_frigo_giorni",
+    );
   if (!pollai) {
     return new Response(JSON.stringify({ ok: true, processed: 0 }), {
       headers: { "content-type": "application/json" },
@@ -207,10 +383,13 @@ Deno.serve(async (req) => {
 
   const stats = {
     promemoria: 0,
+    meteo: 0,
     uova_scadenza: 0,
     manutenzione: 0,
     trattamenti: 0,
     scorte: 0,
+    fine_produzione: 0,
+    muta_lunga: 0,
   };
 
   for (const p of pollai) {
@@ -220,7 +399,7 @@ Deno.serve(async (req) => {
       .select("user_id")
       .eq("pollaio_id", p.id)
       .eq("ruolo", "admin");
-    const adminIds = (members ?? []).map((m) => m.user_id as string);
+    const adminIds = (members ?? []).map((m: { user_id: string }) => m.user_id as string);
     if (adminIds.length === 0) continue;
 
     const adminBases: UserBase[] = [];
@@ -228,6 +407,17 @@ Deno.serve(async (req) => {
       const ub = await loadUserBase(supabase, id);
       if (ub) adminBases.push(ub);
     }
+
+    const shouldRunWeather =
+      p.posizione_lat !== null &&
+      p.posizione_lng !== null &&
+      adminBases.some(
+        (ub) =>
+          ub.oraMeteo === currentTime &&
+          ub.globaleAttivo &&
+          ub.pushAttivo &&
+          ub.categorie.meteo !== false,
+      );
 
     // ─── 1. PROMEMORIA ───
     const { data: promemoria } = await supabase
@@ -241,9 +431,14 @@ Deno.serve(async (req) => {
 
     for (const pr of promemoria ?? []) {
       let anyDispatched = false;
+      const allowPush = shouldSendReminderPush(pr.promemoria_canale);
+      const allowEmail = shouldSendReminderEmail(pr.promemoria_canale);
+
       for (const ub of adminBases) {
         const { push, email } = await dispatchNotifica(supabase, {
           ...ub,
+          pushAttivo: ub.pushAttivo && allowPush,
+          emailAttivo: ub.emailAttivo && allowEmail,
           category: "promemoria",
           riferimentoId: pr.id,
           push: { title: "🔔 Promemoria", body: pr.testo, url: "/note", tag: `prom-${pr.id}` },
@@ -256,6 +451,40 @@ Deno.serve(async (req) => {
         await supabase.from("note").update({ promemoria_inviato: true }).eq("id", pr.id);
         stats.promemoria++;
       }
+    }
+
+    if (shouldRunWeather) {
+      const weatherNotification = await buildTomorrowWeatherNotification(
+        Number(p.posizione_lat),
+        Number(p.posizione_lng),
+        p.nome,
+      );
+
+      if (weatherNotification) {
+        for (const ub of adminBases) {
+          if (ub.oraMeteo !== currentTime) continue;
+
+          const { push, email } = await dispatchNotifica(supabase, {
+            ...ub,
+            emailAttivo: false,
+            category: "meteo",
+            riferimentoId: `${p.id}-${weatherNotification.forecastDate}`,
+            push: {
+              title: "⛅ Meteo di domani",
+              body: weatherNotification.body,
+              url: "/meteo",
+              tag: `meteo-${weatherNotification.forecastDate}`,
+            },
+            emailSubject: "⛅ Meteo di domani · Poliner",
+            emailBody: weatherNotification.emailBody,
+          });
+          if (push || email) stats.meteo++;
+        }
+      }
+    }
+
+    if (!shouldRunHourlySweep) {
+      continue;
     }
 
     // ─── 2. UOVA IN SCADENZA ───
@@ -433,6 +662,102 @@ Deno.serve(async (req) => {
           emailBody: `La scorta di "${s.nome}" è scesa sotto la soglia di avviso. Quantità attuale: ${s.quantita}.`,
         });
         if (push || email) stats.scorte++;
+      }
+    }
+
+    const { data: animali } = await supabase
+      .from("animali")
+      .select("id, nome, tipo, razza_id, data_nascita, eta_approssimativa_mesi")
+      .eq("pollaio_id", p.id)
+      .eq("attivo", true)
+      .eq("tipo", "gallina");
+
+    const animaleNomeMap = new Map<string, string>();
+    for (const animale of animali ?? []) {
+      animaleNomeMap.set(animale.id, animale.nome);
+
+      const fineProduzioneMesi = trovaRazza(animale.razza_id)?.fineProduzioneMesi ?? 36;
+      const etaMesi = getAgeInMonths(
+        animale.data_nascita,
+        animale.eta_approssimativa_mesi,
+        today,
+      );
+      if (etaMesi === null) continue;
+
+      let riferimentoId: string | null = null;
+      let pushBody: string | null = null;
+
+      if (animale.data_nascita) {
+        const sogliaData = addMonthsToDateOnly(animale.data_nascita, fineProduzioneMesi);
+        const giorniAllaSoglia = daysBetweenDateOnly(today, sogliaData);
+        if (giorniAllaSoglia < 0 || giorniAllaSoglia > FINE_PRODUZIONE_WARNING_DAYS) {
+          continue;
+        }
+
+        riferimentoId = `${animale.id}-${sogliaData}`;
+        pushBody =
+          giorniAllaSoglia === 0
+            ? `${animale.nome} raggiunge oggi la soglia di fine produzione.`
+            : `${animale.nome} si avvicina alla fine della vita produttiva (${giorniAllaSoglia} giorni).`;
+      } else {
+        const mesiRimanenti = fineProduzioneMesi - etaMesi;
+        if (mesiRimanenti < 0 || mesiRimanenti > 1) continue;
+
+        riferimentoId = `${animale.id}-approx-${fineProduzioneMesi}`;
+        pushBody =
+          mesiRimanenti === 0
+            ? `${animale.nome} e ormai oltre il picco produttivo.`
+            : `${animale.nome} si avvicina alla fine della vita produttiva.`;
+      }
+
+      if (!riferimentoId || !pushBody) continue;
+
+      for (const ub of adminBases) {
+        const { push, email } = await dispatchNotifica(supabase, {
+          ...ub,
+          emailAttivo: false,
+          category: "fine_produzione",
+          riferimentoId,
+          push: {
+            title: "🐔 Fine produzione in arrivo",
+            body: pushBody,
+            url: "/galline",
+            tag: `fine-prod-${animale.id}`,
+          },
+          emailSubject: "🐔 Fine produzione in arrivo · Poliner",
+          emailBody: `${pushBody}\n\nControlla la scheda di ${animale.nome} per i dettagli.`,
+        });
+        if (push || email) stats.fine_produzione++;
+      }
+    }
+
+    const { data: muteAperte } = await supabase
+      .from("periodi_muta")
+      .select("animale_id, data_inizio")
+      .eq("pollaio_id", p.id)
+      .is("data_fine", null);
+
+    for (const muta of muteAperte ?? []) {
+      const giorniInMuta = daysBetweenDateOnly(muta.data_inizio, today);
+      if (giorniInMuta < MUTA_LUNGA_GIORNI) continue;
+
+      const nomeAnimale = animaleNomeMap.get(muta.animale_id) ?? "Una gallina";
+      for (const ub of adminBases) {
+        const { push, email } = await dispatchNotifica(supabase, {
+          ...ub,
+          emailAttivo: false,
+          category: "muta_lunga",
+          riferimentoId: `${muta.animale_id}-${muta.data_inizio}`,
+          push: {
+            title: "🪶 Muta lunga",
+            body: `${nomeAnimale} e in muta da ${giorniInMuta} giorni.`,
+            url: `/galline/${muta.animale_id}`,
+            tag: `muta-${muta.animale_id}`,
+          },
+          emailSubject: "🪶 Muta lunga · Poliner",
+          emailBody: `${nomeAnimale} e in muta da ${giorniInMuta} giorni. Controlla la sua scheda nell'app.`,
+        });
+        if (push || email) stats.muta_lunga++;
       }
     }
   }

@@ -44,6 +44,7 @@ VAPID_PRIVATE_KEY=<da .env.local>
 VAPID_SUBJECT=mailto:tuo@email.com
 RESEND_API_KEY=<da resend.com — opzionale>
 RESEND_FROM=Poliner <noreply@tuodominio.it>
+SUPABASE_SECRET_KEYS=<chiavi opzionali separate da virgola per scheduler o chiamate server-to-server>
 ```
 
 ## Struttura
@@ -71,7 +72,7 @@ Progetto Supabase: `sispxufbdmetaszlhurk` (eu-west-1).
 
 ## Schedule cron
 
-`pg_cron` job `poliner-notifications` esegue ogni ora al minuto 5, chiama l'edge function `cron-notifications` che scansiona promemoria, uova in scadenza, manutenzioni, trattamenti, scorte basse e invia push + email con dedup (`notifiche_inviate`).
+`pg_cron` job `poliner-notifications` esegue ogni minuto. I promemoria vengono processati al minuto; le scansioni piu pesanti restano cadenzate internamente al minuto 05 ora Italia e il meteo parte all'orario configurato nelle impostazioni. La function `cron-notifications` gestisce promemoria, meteo, uova in scadenza, manutenzioni, trattamenti, scorte basse, fine produzione e muta lunga con dedup su `notifiche_inviate`.
 
 ## Fasi di sviluppo
 
@@ -82,7 +83,7 @@ Progetto Supabase: `sispxufbdmetaszlhurk` (eu-west-1).
 5. ✅ Manutenzione, meteo (Open-Meteo), stagionalità, home dinamica
 6. ✅ Spese, scorte cibo, lista della spesa, share nativa
 7. ✅ Note + promemoria, dettaglio contatto, statistiche con Recharts
-8. ✅ Web Push, Edge Functions, cron giornaliera, /impostazioni
+8. ✅ Web Push, Edge Functions, cron notifiche, /impostazioni
 9. ✅ Rifinitura: offline support, install prompt, 404, polish iOS
 
 ## Test PWA in produzione

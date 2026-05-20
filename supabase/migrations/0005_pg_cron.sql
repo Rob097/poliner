@@ -1,5 +1,6 @@
--- Schedula la funzione cron-notifications via pg_cron + pg_net
--- Esegue ogni ora (al minuto 0).
+-- Schedula la funzione cron-notifications via pg_cron + pg_net.
+-- Il job gira ogni minuto: i promemoria vengono gestiti al minuto,
+-- mentre gli sweep piu pesanti restano cadenzati internamente dalla function.
 --
 -- Note: Vault è il modo consigliato per memorizzare la service-role key.
 -- Per semplicità qui usiamo direttamente la chiave (è già esposta solo
@@ -18,9 +19,9 @@ begin
   end if;
 end $$;
 
--- Schedula: ogni ora al minuto 0
--- Sostituisci '__SERVICE_ROLE_KEY__' e l'URL nel comando SQL applicato
--- (vedi script scripts/setup-pg-cron.sql nel repo per la versione con sostituzione)
+-- Schedula: ogni minuto
+-- Sostituisci '__SERVICE_ROLE_KEY__' nel comando SQL applicato
+-- (vedi scripts/setup-pg-cron.sql nel repo per il template pronto)
 --
 -- ATTENZIONE: questo file è informativo. La schedulazione effettiva avviene
 -- via il comando in scripts/setup-pg-cron.sql che inietta i secrets.
