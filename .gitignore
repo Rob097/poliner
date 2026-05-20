@@ -15,6 +15,7 @@ lerna-debug.log*
 # Dependencies & build
 node_modules
 .next/
+.open-next/
 out/
 dist
 dist-ssr

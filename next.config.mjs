@@ -2,6 +2,25 @@ import withPWAInit from "next-pwa";
 
 const isProd = process.env.NODE_ENV === "production";
 
+if (!isProd) {
+  try {
+    const { initOpenNextCloudflareForDev } = await import("@opennextjs/cloudflare");
+    initOpenNextCloudflareForDev();
+  } catch (error) {
+    const isMissingOpenNextPackage =
+      error?.code === "ERR_MODULE_NOT_FOUND" &&
+      String(error?.message ?? "").includes("@opennextjs/cloudflare");
+
+    if (!isMissingOpenNextPackage) {
+      throw error;
+    }
+
+    console.warn(
+      "next.config.mjs: @opennextjs/cloudflare non installato; continuo senza initOpenNextCloudflareForDev().",
+    );
+  }
+}
+
 const withPWA = withPWAInit({
   dest: "public",
   disable: !isProd,
