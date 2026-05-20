@@ -262,6 +262,7 @@ function NotificheSection({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [browserPushAttivo, setBrowserPushAttivo] = useState(hasPushSubscription);
+  const [browserPushPending, setBrowserPushPending] = useState(false);
   const [supported, setSupported] = useState(false);
   const pushSyncVersion = useRef(0);
 
@@ -295,40 +296,53 @@ function NotificheSection({
     emailAttivo?: boolean;
     categorie?: Record<string, boolean>;
   }) {
-    startTransition(async () => {
-      const res = await aggiornaPreferenzeNotifiche({
-        pushAttivo: next.pushAttivo ?? pushAttivo,
-        emailAttivo: next.emailAttivo ?? emailAttivo,
-        oraMeteo: preferenze.oraMeteo,
-        nonDisturbareInizio: preferenze.nonDisturbareInizio,
-        nonDisturbareFine: preferenze.nonDisturbareFine,
-        categorie: next.categorie ?? categorie,
-      });
-      if (!res.ok) show("Ops, riprova!");
+    startTransition(() => {
+      void (async () => {
+        const res = await aggiornaPreferenzeNotifiche({
+          pushAttivo: next.pushAttivo ?? pushAttivo,
+          emailAttivo: next.emailAttivo ?? emailAttivo,
+          oraMeteo: preferenze.oraMeteo,
+          nonDisturbareInizio: preferenze.nonDisturbareInizio,
+          nonDisturbareFine: preferenze.nonDisturbareFine,
+          categorie: next.categorie ?? categorie,
+        });
+        if (!res.ok) show("Ops, riprova!");
+      })();
     });
   }
 
   async function onTogglePushBrowser() {
-    pushSyncVersion.current += 1;
+    if (browserPushPending) return;
 
-    if (browserPushAttivo) {
-      const res = await disablePushNotifications();
-      if (res.ok) {
-        setBrowserPushAttivo(false);
-        show("Push disattivate");
-        router.refresh();
-      } else show(res.error ?? "Ops, riprova!");
-    } else {
-      if (!vapidPublicKey) {
-        show("VAPID keys non configurate sul server");
-        return;
+    pushSyncVersion.current += 1;
+    setBrowserPushPending(true);
+
+    try {
+      if (browserPushAttivo) {
+        const res = await disablePushNotifications();
+        if (res.ok) {
+          setBrowserPushAttivo(false);
+          show("Push disattivate");
+          router.refresh();
+        } else {
+          show(res.error ?? "Ops, riprova!");
+        }
+      } else {
+        if (!vapidPublicKey) {
+          show("VAPID keys non configurate sul server");
+          return;
+        }
+        const res = await enablePushNotifications(vapidPublicKey);
+        if (res.ok) {
+          setBrowserPushAttivo(true);
+          show("✓ Push notifiche attive!");
+          router.refresh();
+        } else {
+          show(res.error ?? "Ops, riprova!");
+        }
       }
-      const res = await enablePushNotifications(vapidPublicKey);
-      if (res.ok) {
-        setBrowserPushAttivo(true);
-        show("✓ Push notifiche attive!");
-        router.refresh();
-      } else show(res.error ?? "Ops, riprova!");
+    } finally {
+      setBrowserPushPending(false);
     }
   }
 
@@ -354,6 +368,10 @@ function NotificheSection({
           <div className="text-xs text-[var(--text-secondary)] mt-0.5">
             {!supported
               ? "Il tuo browser non supporta le push"
+              : browserPushPending
+                ? browserPushAttivo
+                  ? "Disattivazione in corso..."
+                  : "Attivazione in corso..."
               : browserPushAttivo
                 ? "Riceverai gli avvisi sul telefono/desktop"
                 : "Tap per attivarle"}
@@ -361,7 +379,7 @@ function NotificheSection({
         </div>
         <SwitchToggle
           on={browserPushAttivo}
-          disabled={!supported}
+          disabled={!supported || browserPushPending}
           onChange={onTogglePushBrowser}
         />
       </div>
@@ -499,12 +517,14 @@ function ModalProfilo({
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    startTransition(async () => {
-      const res = await aggiornaProfilo({ displayName: name });
-      if (res.ok) {
-        onSaved();
-        onClose();
-      } else show(res.error ?? "Ops, riprova!");
+    startTransition(() => {
+      void (async () => {
+        const res = await aggiornaProfilo({ displayName: name });
+        if (res.ok) {
+          onSaved();
+          onClose();
+        } else show(res.error ?? "Ops, riprova!");
+      })();
     });
   }
 
@@ -668,24 +688,26 @@ function ModalPollaio({
       return;
     }
 
-    startTransition(async () => {
-      const res = await aggiornaPollaio({
-        pollaioId: pollaio.id,
-        nome,
-        posizioneNome: posizioneTrimmed || null,
-        posizioneLat: posizioneTrimmed
-          ? (selectedLocation?.lat ?? pollaio.posizioneLat)
-          : null,
-        posizioneLng: posizioneTrimmed
-          ? (selectedLocation?.lng ?? pollaio.posizioneLng)
-          : null,
-        conservazioneAmbienteGiorni: pollaio.conservazioneAmbienteGiorni,
-        conservazioneFrigoGiorni: pollaio.conservazioneFrigoGiorni,
-      });
-      if (res.ok) {
-        onSaved();
-        onClose();
-      } else show(res.error ?? "Ops, riprova!");
+    startTransition(() => {
+      void (async () => {
+        const res = await aggiornaPollaio({
+          pollaioId: pollaio.id,
+          nome,
+          posizioneNome: posizioneTrimmed || null,
+          posizioneLat: posizioneTrimmed
+            ? (selectedLocation?.lat ?? pollaio.posizioneLat)
+            : null,
+          posizioneLng: posizioneTrimmed
+            ? (selectedLocation?.lng ?? pollaio.posizioneLng)
+            : null,
+          conservazioneAmbienteGiorni: pollaio.conservazioneAmbienteGiorni,
+          conservazioneFrigoGiorni: pollaio.conservazioneFrigoGiorni,
+        });
+        if (res.ok) {
+          onSaved();
+          onClose();
+        } else show(res.error ?? "Ops, riprova!");
+      })();
     });
   }
 
@@ -785,20 +807,22 @@ function ModalConservazione({
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    startTransition(async () => {
-      const res = await aggiornaPollaio({
-        pollaioId: pollaio.id,
-        nome: pollaio.nome,
-        posizioneNome: pollaio.posizioneNome,
-        posizioneLat: pollaio.posizioneLat,
-        posizioneLng: pollaio.posizioneLng,
-        conservazioneAmbienteGiorni: ambiente,
-        conservazioneFrigoGiorni: frigo,
-      });
-      if (res.ok) {
-        onSaved();
-        onClose();
-      } else show(res.error ?? "Ops, riprova!");
+    startTransition(() => {
+      void (async () => {
+        const res = await aggiornaPollaio({
+          pollaioId: pollaio.id,
+          nome: pollaio.nome,
+          posizioneNome: pollaio.posizioneNome,
+          posizioneLat: pollaio.posizioneLat,
+          posizioneLng: pollaio.posizioneLng,
+          conservazioneAmbienteGiorni: ambiente,
+          conservazioneFrigoGiorni: frigo,
+        });
+        if (res.ok) {
+          onSaved();
+          onClose();
+        } else show(res.error ?? "Ops, riprova!");
+      })();
     });
   }
 

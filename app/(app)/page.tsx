@@ -27,7 +27,7 @@ interface Alert {
 }
 
 export default async function HomePage() {
-  const { supabase, pollaio, pollaiConRuolo, ruolo } = await requirePollaio();
+  const { supabase, user, pollaio, pollaiConRuolo, ruolo } = await requirePollaio();
   const oggiIso = new Date().toISOString().slice(0, 10);
 
   // ── Dati in parallelo ───────────────────────────────────
@@ -43,6 +43,7 @@ export default async function HomePage() {
     scorteRes,
     promemoriaRes,
     uscitaOggiRes,
+    notificheNonLetteRes,
   ] = await Promise.all([
     supabase
       .from("uova")
@@ -106,6 +107,11 @@ export default async function HomePage() {
       .eq("pollaio_id", pollaio.id)
       .eq("data", oggiIso)
       .maybeSingle(),
+    supabase
+      .from("notifiche_inviate")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .is("letta_il", null),
   ]);
 
   // ── Manutenzioni: stati dalle voci attive ───────────────
@@ -260,6 +266,7 @@ export default async function HomePage() {
   const oggiUova = uovaOggiRes.count ?? 0;
   const gallineN = gallineCountRes.count ?? 0;
   const galloN = galloCountRes.count ?? 0;
+  const notificheDaLeggere = notificheNonLetteRes.count ?? 0;
   const dateStr = formatDataCompleta(new Date());
 
   return (
@@ -269,10 +276,19 @@ export default async function HomePage() {
         right={
           <Link
             href="/notifiche"
-            className="p-1.5 -mr-1.5"
-            aria-label="Notifiche"
+            className="relative p-1.5 -mr-1.5"
+            aria-label={
+              notificheDaLeggere > 0
+                ? `Notifiche, ${notificheDaLeggere} da leggere`
+                : "Notifiche"
+            }
           >
             <span className="text-xl">🔔</span>
+            {notificheDaLeggere > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E8678A] text-white text-[10px] font-bold leading-[18px] text-center shadow-[0_1px_3px_rgba(0,0,0,0.18)]">
+                {notificheDaLeggere > 99 ? "99+" : notificheDaLeggere}
+              </span>
+            )}
           </Link>
         }
       />

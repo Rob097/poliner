@@ -11,9 +11,13 @@ export type PushStatus =
   | "granted"
   | "subscribed";
 
+const PUSH_SERVICE_WORKER_URL = "/sw.js";
+const SERVICE_WORKER_READY_TIMEOUT_MS = 10_000;
+
 export function isPushSupported(): boolean {
   if (typeof window === "undefined") return false;
   return (
+    window.isSecureContext &&
     "serviceWorker" in navigator &&
     "PushManager" in window &&
     "Notification" in window
@@ -37,6 +41,36 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
   return arr;
 }
 
+async function waitForServiceWorkerReady(): Promise<ServiceWorkerRegistration> {
+  return await new Promise((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error("Service worker non pronto: ricarica la pagina e riprova"));
+    }, SERVICE_WORKER_READY_TIMEOUT_MS);
+
+    navigator.serviceWorker.ready
+      .then((registration) => {
+        window.clearTimeout(timeoutId);
+        resolve(registration);
+      })
+      .catch((error) => {
+        window.clearTimeout(timeoutId);
+        reject(error);
+      });
+  });
+}
+
+async function getExistingRegistration(): Promise<ServiceWorkerRegistration | null> {
+  return (await navigator.serviceWorker.getRegistration()) ?? null;
+}
+
+async function getOrCreatePushRegistration(): Promise<ServiceWorkerRegistration> {
+  const existingRegistration = await getExistingRegistration();
+  if (existingRegistration) return existingRegistration;
+
+  await navigator.serviceWorker.register(PUSH_SERVICE_WORKER_URL);
+  return await waitForServiceWorkerReady();
+}
+
 /**
  * Richiede il permesso (se necessario) e si iscrive al push manager.
  * Salva la subscription via API.
@@ -50,6 +84,12 @@ export async function enablePushNotifications(
   if (!vapidPublicKey) {
     return { ok: false, error: "VAPID public key non configurata" };
   }
+  if (Notification.permission === "denied") {
+    return {
+      ok: false,
+      error: "Permesso notifiche negato nelle impostazioni del browser",
+    };
+  }
 
   try {
     const permission = await Notification.requestPermission();
@@ -57,7 +97,7 @@ export async function enablePushNotifications(
       return { ok: false, error: "Permesso negato" };
     }
 
-    const registration = await navigator.serviceWorker.ready;
+    const registration = await getOrCreatePushRegistration();
 
     // Se esiste già una subscription, ricicliamo
     let subscription = await registration.pushManager.getSubscription();
@@ -94,7 +134,8 @@ export async function disablePushNotifications(): Promise<{
 }> {
   if (!isPushSupported()) return { ok: true };
   try {
-    const registration = await navigator.serviceWorker.ready;
+    const registration = await getExistingRegistration();
+    if (!registration) return { ok: true };
     const subscription = await registration.pushManager.getSubscription();
     if (!subscription) return { ok: true };
 
@@ -113,7 +154,8 @@ export async function disablePushNotifications(): Promise<{
 
 export async function isSubscribed(): Promise<boolean> {
   if (!isPushSupported()) return false;
-  const registration = await navigator.serviceWorker.ready;
+  const registration = await getExistingRegistration();
+  if (!registration) return false;
   const subscription = await registration.pushManager.getSubscription();
   return !!subscription;
 }

@@ -491,6 +491,7 @@ export type Database = {
           categoria: string
           id: string
           inviata_il: string
+          letta_il: string | null
           riferimento_id: string
           user_id: string
         }
@@ -498,6 +499,7 @@ export type Database = {
           categoria: string
           id?: string
           inviata_il?: string
+          letta_il?: string | null
           riferimento_id: string
           user_id: string
         }
@@ -505,6 +507,7 @@ export type Database = {
           categoria?: string
           id?: string
           inviata_il?: string
+          letta_il?: string | null
           riferimento_id?: string
           user_id?: string
         }

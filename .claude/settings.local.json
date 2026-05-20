@@ -49,7 +49,8 @@
       "Bash(grep -n \"manutenzioni_voci\\\\|manutenzioni: {$\\\\|voce_id\" /home/roberto/personal-projects/claude-code/poliner/lib/supabase/database.types.ts)",
       "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\('js',p.get\\('version'\\)\\)\")",
       "Bash(npx supabase *)",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "WebSearch"
     ],
     "additionalDirectories": [
       "/tmp"
