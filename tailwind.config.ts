@@ -34,8 +34,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        serif: ["var(--font-lora)", "Lora", "Georgia", "serif"],
-        sans: ["var(--font-nunito)", "Nunito", "system-ui", "sans-serif"],
+        serif: ["Comfortaa", "Trebuchet MS", "sans-serif"],
+        sans: ["Quicksand", "Trebuchet MS", "system-ui", "sans-serif"],
       },
       borderRadius: {
         DEFAULT: "var(--radius)",

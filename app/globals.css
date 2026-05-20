@@ -1,3 +1,11 @@
+@import "@fontsource/quicksand/400.css";
+@import "@fontsource/quicksand/500.css";
+@import "@fontsource/quicksand/600.css";
+@import "@fontsource/quicksand/700.css";
+@import "@fontsource/comfortaa/500.css";
+@import "@fontsource/comfortaa/600.css";
+@import "@fontsource/comfortaa/700.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -36,7 +44,7 @@
   }
 
   body {
-    font-family: var(--font-nunito), Nunito, system-ui, sans-serif;
+    font-family: "Quicksand", "Trebuchet MS", system-ui, sans-serif;
   }
 
   /* Hide scrollbar inside scroll regions */

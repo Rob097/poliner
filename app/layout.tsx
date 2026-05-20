@@ -1,20 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Lora, Nunito } from "next/font/google";
 import "./globals.css";
-
-const lora = Lora({
-  subsets: ["latin"],
-  variable: "--font-lora",
-  weight: ["400", "600", "700"],
-  display: "swap",
-});
-
-const nunito = Nunito({
-  subsets: ["latin"],
-  variable: "--font-nunito",
-  weight: ["400", "600", "700", "800"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Poliner — Il tuo pollaio digitale",
@@ -46,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="it" className={`${lora.variable} ${nunito.variable}`}>
+    <html lang="it">
       <body>
         <div className="app-frame-desktop h-dvh flex justify-center">
           <div className="app-frame">{children}</div>

@@ -59,7 +59,7 @@ function buildInvitoEmailHtml(params: {
   const subject = `${params.invitanteNome} ti ha invitata/o nel pollaio "${params.pollaioNome}"`;
   const html = `
     <p style="margin:0 0 12px 0;font-size:17px"><b>${escapeHtml(params.invitanteNome)}</b> ti invita ${ruoloVerbo} nel pollaio</p>
-    <p style="margin:0 0 16px 0;font-size:22px;font-weight:700;color:#E8678A;font-family:'Lora',Georgia,serif">${escapeHtml(params.pollaioNome)}</p>
+    <p style="margin:0 0 16px 0;font-size:22px;font-weight:700;color:#E8678A;font-family:'Trebuchet MS','Arial Rounded MT Bold','Segoe UI',sans-serif">${escapeHtml(params.pollaioNome)}</p>
     <p style="margin:0 0 8px 0;font-size:14px;color:#9E968C">Ti unirai come <b>${ruoloLabel}</b>.</p>
     ${messaggioBlock}
     <p style="margin:24px 0;text-align:center">

@@ -482,7 +482,7 @@ function tooltipProps(suffix = "") {
       borderRadius: 12,
       border: "1px solid #F0EDE8",
       fontSize: 13,
-      fontFamily: "var(--font-nunito), Nunito, sans-serif",
+      fontFamily: '"Quicksand", "Trebuchet MS", sans-serif',
       boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
     },
     labelStyle: { fontWeight: 700, color: "#2E2924" },
