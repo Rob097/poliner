@@ -55,6 +55,28 @@ function getIncomingSecret(req: Request): string {
   return auth.replace(/^Bearer\s+/i, "").trim();
 }
 
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+
+  try {
+    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+    return JSON.parse(atob(padded)) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+function hasAcceptedServiceRoleJwt(req: Request): boolean {
+  const auth = req.headers.get("authorization") ?? "";
+  const token = auth.replace(/^Bearer\s+/i, "").trim();
+  if (!token) return false;
+
+  const payload = decodeJwtPayload(token);
+  return payload?.role === "service_role";
+}
+
 function shouldSendReminderPush(channel: string | null | undefined): boolean {
   return !channel || channel === "push" || channel === "entrambi";
 }
@@ -358,9 +380,17 @@ async function loadUserBase(
 Deno.serve(async (req: Request) => {
   // Auth: chiamabile solo con la service-role key nell'header
   const incomingSecret = getIncomingSecret(req);
-  if (!incomingSecret || !ACCEPTED_FUNCTION_KEYS.includes(incomingSecret)) {
+  const hasAcceptedKey = !!incomingSecret && ACCEPTED_FUNCTION_KEYS.includes(incomingSecret);
+  const hasServiceRoleJwt = !hasAcceptedKey && hasAcceptedServiceRoleJwt(req);
+
+  if (!hasAcceptedKey && !hasServiceRoleJwt) {
+    console.warn("Unauthorized cron-notifications request", {
+      hasApiKey: !!req.headers.get("apikey"),
+      hasAuthorization: !!req.headers.get("authorization"),
+    });
     return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
       status: 401,
+      headers: { "content-type": "application/json" },
     });
   }
 
