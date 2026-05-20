@@ -6,12 +6,15 @@ import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { Card } from "@/components/ui/Card";
 import { AlertCard } from "@/components/ui/AlertCard";
 import { SectionTitle } from "@/components/ui/SectionTitle";
-import { fetchMeteo, hasCoords, type MeteoData } from "@/lib/utils/meteo";
+import { fetchMeteo, getAlbaTramonto, hasCoords, type MeteoData } from "@/lib/utils/meteo";
 import { consiglioStagionale } from "@/lib/utils/stagione";
-import { calcolaStatiManutenzione } from "@/lib/utils/manutenzione";
+import {
+  calcolaStatiManutenzione,
+  type VoceManutenzione,
+} from "@/lib/utils/manutenzione";
 import { calcolaScadenza } from "@/lib/utils/uova";
-import { TIPI_MANUTENZIONE, type TipoManutenzioneId } from "@/lib/constants/manutenzione";
 import { formatDataCompleta } from "@/lib/utils/date";
+import { AperturaChiusuraCard } from "@/components/home/AperturaChiusuraCard";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +27,8 @@ interface Alert {
 }
 
 export default async function HomePage() {
-  const { supabase, pollaio, pollaiConRuolo } = await requirePollaio();
+  const { supabase, pollaio, pollaiConRuolo, ruolo } = await requirePollaio();
+  const oggiIso = new Date().toISOString().slice(0, 10);
 
   // ── Dati in parallelo ───────────────────────────────────
   const [
@@ -32,12 +36,13 @@ export default async function HomePage() {
     uovaOggiRes,
     gallineCountRes,
     galloCountRes,
+    vociAttiveRes,
     manutRes,
-    configRes,
     saluteAttiviRes,
     uovaTutte,
     scorteRes,
     promemoriaRes,
+    uscitaOggiRes,
   ] = await Promise.all([
     supabase
       .from("uova")
@@ -62,14 +67,15 @@ export default async function HomePage() {
       .eq("tipo", "gallo")
       .eq("attivo", true),
     supabase
+      .from("manutenzioni_voci")
+      .select("id, nome, dove, icona, frequenza_giorni, consiglio_id, attivo")
+      .eq("pollaio_id", pollaio.id)
+      .eq("attivo", true),
+    supabase
       .from("manutenzioni")
-      .select("id, tipo, data")
+      .select("id, voce_id, data")
       .eq("pollaio_id", pollaio.id)
       .order("data", { ascending: false }),
-    supabase
-      .from("manutenzioni_config")
-      .select("tipo, frequenza_giorni")
-      .eq("pollaio_id", pollaio.id),
     supabase
       .from("eventi_salute")
       .select("id, animale_id, descrizione, tipo, animali(nome)")
@@ -94,29 +100,51 @@ export default async function HomePage() {
       .lte("promemoria_data", new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString())
       .order("promemoria_data", { ascending: true })
       .limit(3),
+    supabase
+      .from("log_uscite")
+      .select("id, ora_uscita, ora_rientro")
+      .eq("pollaio_id", pollaio.id)
+      .eq("data", oggiIso)
+      .maybeSingle(),
   ]);
 
-  // ── Manutenzioni: ultimo per tipo + override ────────────
-  const ultimoPerTipo = new Map<TipoManutenzioneId, string>();
-  for (const m of manutRes.data ?? []) {
-    if (!ultimoPerTipo.has(m.tipo as TipoManutenzioneId)) {
-      ultimoPerTipo.set(m.tipo as TipoManutenzioneId, m.data);
-    }
+  // ── Manutenzioni: stati dalle voci attive ───────────────
+  type VoceRow = {
+    id: string;
+    nome: string;
+    dove: string | null;
+    icona: string;
+    frequenza_giorni: number;
+    consiglio_id: string | null;
+    attivo: boolean;
+  };
+  type LogRow = { id: string; voce_id: string; data: string };
+  const voci: VoceManutenzione[] = ((vociAttiveRes.data ?? []) as unknown as VoceRow[]).map((v) => ({
+    id: v.id,
+    nome: v.nome,
+    dove: v.dove,
+    icona: v.icona,
+    frequenza_giorni: v.frequenza_giorni,
+    consiglio_id: v.consiglio_id,
+    attivo: v.attivo,
+  }));
+  const ultimoPerVoce = new Map<string, string>();
+  for (const m of (manutRes.data ?? []) as unknown as LogRow[]) {
+    if (!ultimoPerVoce.has(m.voce_id)) ultimoPerVoce.set(m.voce_id, m.data);
   }
-  const freqOverride = new Map<TipoManutenzioneId, number>();
-  for (const c of configRes.data ?? []) {
-    freqOverride.set(c.tipo as TipoManutenzioneId, c.frequenza_giorni);
-  }
-  const stati = calcolaStatiManutenzione(ultimoPerTipo, freqOverride);
+  const stati = calcolaStatiManutenzione(voci, ultimoPerVoce);
 
   // ── Alerts ──────────────────────────────────────────────
   const alerts: Alert[] = [];
 
-  // Manutenzioni scadute
-  for (const s of stati.filter((x) => x.stato === "scaduta").slice(0, 3)) {
+  // Manutenzioni scadute (solo se la voce è stata almeno fatta una volta:
+  // evitiamo di mostrare alert per voci appena create che non hanno log)
+  for (const s of stati
+    .filter((x) => x.stato === "scaduta" && x.ultimoIntervento !== null)
+    .slice(0, 3)) {
     alerts.push({
       icon: "⚠️",
-      title: `${s.tipo.nome} in ritardo`,
+      title: `${s.voce.nome} in ritardo`,
       subtitle: `Da ${s.giorniDaUltimo} giorni`,
       color: "#E8678A",
       href: "/manutenzione",
@@ -126,7 +154,7 @@ export default async function HomePage() {
   for (const s of stati.filter((x) => x.stato === "in_scadenza").slice(0, 2)) {
     alerts.push({
       icon: "🔔",
-      title: `${s.tipo.nome} tra poco`,
+      title: `${s.voce.nome} tra poco`,
       subtitle: `Tra ${s.giorniRimanenti} giorni`,
       color: "#FFE07A",
       href: "/manutenzione",
@@ -210,13 +238,22 @@ export default async function HomePage() {
 
   // ── Meteo (fail-safe: home non si rompe se Open-Meteo è giù) ──
   let meteo: MeteoData | null = null;
+  let alba: string | null = null;
+  let tramonto: string | null = null;
   if (hasCoords(pollaio)) {
     try {
-      meteo = await fetchMeteo(pollaio.posizione_lat!, pollaio.posizione_lng!);
+      [meteo, { alba, tramonto }] = await Promise.all([
+        fetchMeteo(pollaio.posizione_lat!, pollaio.posizione_lng!),
+        getAlbaTramonto(pollaio.posizione_lat!, pollaio.posizione_lng!),
+      ]);
     } catch {
       meteo = null;
     }
   }
+
+  // Stato uscita di oggi
+  type UscitaRow = { id: string; ora_uscita: string | null; ora_rientro: string | null };
+  const uscitaOggi = (uscitaOggiRes.data ?? null) as UscitaRow | null;
 
   const consiglio = consiglioStagionale();
   const disponibili = uovaDispRes.count ?? 0;
@@ -246,6 +283,17 @@ export default async function HomePage() {
         </div>
         {/* Widget meteo */}
         {meteo ? <MeteoWidget meteo={meteo} /> : <MeteoMissing pollaioId={pollaio.id} />}
+
+        {/* Apertura/chiusura pollaio */}
+        <div className="mt-3">
+          <AperturaChiusuraCard
+            oraUscita={uscitaOggi?.ora_uscita ?? null}
+            oraRientro={uscitaOggi?.ora_rientro ?? null}
+            alba={alba}
+            tramonto={tramonto}
+            isAdmin={ruolo === "admin"}
+          />
+        </div>
 
         {/* Counter uova + galline */}
         <div className="grid grid-cols-2 gap-3 mt-3">

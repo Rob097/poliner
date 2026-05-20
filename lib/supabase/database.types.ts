@@ -261,7 +261,7 @@ export type Database = {
           id: string
           note: string | null
           pollaio_id: string
-          tipo: string
+          voce_id: string
         }
         Insert: {
           created_at?: string
@@ -270,7 +270,7 @@ export type Database = {
           id?: string
           note?: string | null
           pollaio_id: string
-          tipo: string
+          voce_id: string
         }
         Update: {
           created_at?: string
@@ -279,7 +279,7 @@ export type Database = {
           id?: string
           note?: string | null
           pollaio_id?: string
-          tipo?: string
+          voce_id?: string
         }
         Relationships: [
           {
@@ -289,27 +289,58 @@ export type Database = {
             referencedRelation: "pollai"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "manutenzioni_voce_id_fkey"
+            columns: ["voce_id"]
+            isOneToOne: false
+            referencedRelation: "manutenzioni_voci"
+            referencedColumns: ["id"]
+          },
         ]
       }
-      manutenzioni_config: {
+      manutenzioni_voci: {
         Row: {
+          attivo: boolean
+          consiglio_id: string | null
+          created_at: string
+          dove: string | null
           frequenza_giorni: number
+          icona: string
+          id: string
+          nome: string
+          note: string | null
           pollaio_id: string
-          tipo: string
+          updated_at: string
         }
         Insert: {
+          attivo?: boolean
+          consiglio_id?: string | null
+          created_at?: string
+          dove?: string | null
           frequenza_giorni: number
+          icona?: string
+          id?: string
+          nome: string
+          note?: string | null
           pollaio_id: string
-          tipo: string
+          updated_at?: string
         }
         Update: {
+          attivo?: boolean
+          consiglio_id?: string | null
+          created_at?: string
+          dove?: string | null
           frequenza_giorni?: number
+          icona?: string
+          id?: string
+          nome?: string
+          note?: string | null
           pollaio_id?: string
-          tipo?: string
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "manutenzioni_config_pollaio_id_fkey"
+            foreignKeyName: "manutenzioni_voci_pollaio_id_fkey"
             columns: ["pollaio_id"]
             isOneToOne: false
             referencedRelation: "pollai"

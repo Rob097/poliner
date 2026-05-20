@@ -40,7 +40,16 @@
       "Bash(grep -E \"^/.*/\\(app|galline|uova|menu\\)/\\(page|layout\\)\\\\.tsx$\")",
       "Bash(npx tsc *)",
       "Bash(npm run *)",
-      "mcp__claude_ai_Supabase__list_edge_functions"
+      "mcp__claude_ai_Supabase__list_edge_functions",
+      "Bash(python3 -c \"import sys, json; print\\(json.dumps\\(sys.stdin.read\\(\\)\\)\\)\")",
+      "Bash(python3 -c ' *)",
+      "Bash(python3)",
+      "Bash(grep -n \"^      [a-z_]*: {$\\\\|^    Tables: {$\\\\|^  public: {$\\\\|^}$\" /home/roberto/personal-projects/claude-code/poliner/lib/supabase/database.types.ts)",
+      "Bash(grep -E \"^      [a-z_]+: \\\\{$\" /home/roberto/personal-projects/claude-code/poliner/lib/supabase/database.types.ts)",
+      "Bash(grep -n \"manutenzioni_voci\\\\|manutenzioni: {$\\\\|voce_id\" /home/roberto/personal-projects/claude-code/poliner/lib/supabase/database.types.ts)",
+      "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\('js',p.get\\('version'\\)\\)\")",
+      "Bash(npx supabase *)",
+      "Bash(git stash *)"
     ],
     "additionalDirectories": [
       "/tmp"

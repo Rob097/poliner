@@ -259,3 +259,41 @@ export function hasCoords(p: {
 }): boolean {
   return p.posizione_lat !== null && p.posizione_lng !== null;
 }
+
+/**
+ * Restituisce orario alba/tramonto per una data specifica (default: oggi).
+ * Open-Meteo daily=sunrise,sunset. Cache 1h.
+ *
+ * @param lat latitudine
+ * @param lng longitudine
+ * @param date YYYY-MM-DD (default: oggi locale)
+ * @returns alba/tramonto in formato "HH:MM" (timezone locale) o null se non disponibile
+ */
+export async function getAlbaTramonto(
+  lat: number,
+  lng: number,
+  date?: string,
+): Promise<{ alba: string | null; tramonto: string | null }> {
+  const day = date ?? new Date().toISOString().slice(0, 10);
+  const url = new URL(FORECAST_URL);
+  url.searchParams.set("latitude", lat.toString());
+  url.searchParams.set("longitude", lng.toString());
+  url.searchParams.set("daily", "sunrise,sunset");
+  url.searchParams.set("start_date", day);
+  url.searchParams.set("end_date", day);
+  url.searchParams.set("timezone", "auto");
+
+  try {
+    const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
+    if (!res.ok) return { alba: null, tramonto: null };
+    const json = await res.json();
+    const sunrise = json.daily?.sunrise?.[0] as string | undefined;
+    const sunset = json.daily?.sunset?.[0] as string | undefined;
+    return {
+      alba: sunrise ? sunrise.slice(11, 16) : null,
+      tramonto: sunset ? sunset.slice(11, 16) : null,
+    };
+  } catch {
+    return { alba: null, tramonto: null };
+  }
+}

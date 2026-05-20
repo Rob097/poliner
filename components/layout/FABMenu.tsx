@@ -1,14 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
 import { IconClose } from "@/components/ui/icons";
-import { quickAddPuliziaCasetta } from "@/lib/actions/quick";
 
 interface FABMenuProps {
   open: boolean;
   onClose: () => void;
-  onAddCleaning?: (ok: boolean) => void;
 }
 
 interface Action {
@@ -19,11 +16,9 @@ interface Action {
   onClick: () => void;
 }
 
-export function FABMenu({ open, onClose, onAddCleaning }: FABMenuProps) {
+export function FABMenu({ open, onClose }: FABMenuProps) {
   const router = useRouter();
-  const [, startTransition] = useTransition();
 
-  // Tutte le hooks DEVONO essere chiamate prima di qualsiasi return.
   if (!open) return null;
 
   const actions: Action[] = [
@@ -38,16 +33,12 @@ export function FABMenu({ open, onClose, onAddCleaning }: FABMenuProps) {
       },
     },
     {
-      id: "add-cleaning",
-      label: "Segnala pulizia casetta",
+      id: "go-manutenzione",
+      label: "Manutenzione",
       icon: "🧹",
       bg: "#B5D4B5",
       onClick: () => {
-        startTransition(async () => {
-          const res = await quickAddPuliziaCasetta();
-          onAddCleaning?.(res.ok);
-          router.refresh();
-        });
+        router.push("/manutenzione");
         onClose();
       },
     },
