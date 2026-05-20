@@ -17,7 +17,8 @@ export async function compressImage(file: File): Promise<File> {
 }
 
 /**
- * Upload di un file su Supabase Storage. Ritorna la URL pubblica (signed) del file.
+ * Upload di un file su Supabase Storage. Ritorna la URL pubblica del file.
+ * Questo helper assume che il bucket `poliner-media` sia pubblico.
  * `path` deve iniziare con uno dei prefissi consentiti dalla policy:
  *   pollai/, animali/, uova/, salute/, manutenzione/, note/
  */

@@ -15,6 +15,7 @@ interface PollaioConRuolo {
 interface PollaioSwitcherProps {
   pollai: PollaioConRuolo[];
   attivoId: string;
+  prominent?: boolean;
 }
 
 /**
@@ -22,7 +23,7 @@ interface PollaioSwitcherProps {
  * e apre un bottom-sheet con la lista degli altri pollai e il pulsante
  * "Crea nuovo pollaio".
  */
-export function PollaioSwitcher({ pollai, attivoId }: PollaioSwitcherProps) {
+export function PollaioSwitcher({ pollai, attivoId, prominent = false }: PollaioSwitcherProps) {
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [nuovoNome, setNuovoNome] = useState("");
@@ -69,15 +70,23 @@ export function PollaioSwitcher({ pollai, attivoId }: PollaioSwitcherProps) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1 text-[13px] text-[var(--text-secondary)] mt-0.5 hover:text-text active:scale-95 transition-transform"
+        className={`inline-flex items-center transition-transform hover:text-text active:scale-95 ${
+          prominent
+            ? "gap-1.5 text-[19px] font-bold text-text leading-tight"
+            : "gap-1 text-[13px] text-[var(--text-secondary)] mt-0.5"
+        }`}
         aria-label="Cambia pollaio"
       >
-        <span className="font-semibold">{attivo.pollaio.nome}</span>
+        <span className={prominent ? "truncate max-w-[230px]" : "font-semibold"}>{attivo.pollaio.nome}</span>
         {pollai.length > 1 && (
-          <span className="text-[10px] opacity-70 ml-0.5">▾</span>
+          <span className={prominent ? "text-[12px] opacity-80 mt-0.5" : "text-[10px] opacity-70 ml-0.5"}>▾</span>
         )}
         {attivo.ruolo === "guest" && (
-          <span className="ml-1.5 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-[var(--border)] text-[var(--text-secondary)]">
+          <span
+            className={prominent
+              ? "ml-2 text-[11px] uppercase tracking-wide px-2 py-1 rounded-md bg-[var(--border)] text-[var(--text-secondary)]"
+              : "ml-1.5 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-[var(--border)] text-[var(--text-secondary)]"}
+          >
             guest
           </span>
         )}

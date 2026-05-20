@@ -4,7 +4,7 @@ import { Button } from "./Button";
 import { IconBack } from "./icons";
 
 interface HeaderProps {
-  title: string;
+  title?: ReactNode;
   subtitle?: ReactNode;
   onBack?: () => void;
   right?: ReactNode;
@@ -27,9 +27,11 @@ export function Header({ title, subtitle, onBack, right, transparent, className 
         </Button>
       )}
       <div className="flex-1 min-w-0">
-        <div className="font-serif font-bold text-[20px] text-text leading-tight">{title}</div>
+        {title && (
+          <div className="font-serif font-bold text-[20px] text-text leading-tight">{title}</div>
+        )}
         {subtitle && (
-          <div className="text-[13px] text-[var(--text-secondary)] mt-0.5">{subtitle}</div>
+          <div className={cn(title ? "text-[13px] text-[var(--text-secondary)] mt-0.5" : "text-text")}>{subtitle}</div>
         )}
       </div>
       {right}

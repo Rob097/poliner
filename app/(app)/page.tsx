@@ -265,8 +265,7 @@ export default async function HomePage() {
   return (
     <>
       <Header
-        title={pollaio.nome}
-        subtitle={<PollaioSwitcher pollai={pollaiConRuolo} attivoId={pollaio.id} />}
+        subtitle={<PollaioSwitcher pollai={pollaiConRuolo} attivoId={pollaio.id} prominent />}
         right={
           <Link
             href="/notifiche"
