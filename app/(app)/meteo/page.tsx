@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SectionTitle } from "@/components/ui/SectionTitle";
-import { fetchMeteo, hasCoords } from "@/lib/utils/meteo";
+import { fetchMeteo, getForecastUrl, hasCoords } from "@/lib/utils/meteo";
 import { salvaMeteoStorico } from "@/lib/utils/meteo-storico";
 
 export const dynamic = "force-dynamic";
@@ -56,6 +56,7 @@ export default async function MeteoPage() {
   // Fire-and-forget: salva snapshot di oggi nello storico per la sezione Statistiche
   const oggi = meteo.giorni.find((g) => g.giornoLabel === "Oggi");
   void salvaMeteoStorico(supabase, pollaio.id, oggi ?? null);
+  const forecastUrl = getForecastUrl(pollaio.posizione_nome);
 
   return (
     <>
@@ -120,6 +121,16 @@ export default async function MeteoPage() {
         )}
 
         {/* Previsioni */}
+        {forecastUrl && (
+          <Link
+            href={forecastUrl}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex items-center text-sm font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
+          >
+            Vedi previsioni complete su 3B Meteo
+          </Link>
+        )}
         <SectionTitle>Previsioni</SectionTitle>
         <div className="flex flex-col gap-2">
           {meteo.giorni.map((g) => (

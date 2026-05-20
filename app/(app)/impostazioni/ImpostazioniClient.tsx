@@ -11,7 +11,9 @@ import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { useToast } from "@/components/ui/Toast";
-import { IconEdit } from "@/components/ui/icons";
+import { IconEdit, IconMap } from "@/components/ui/icons";
+import { useGeolocation } from "@/lib/hooks/useGeolocation";
+import { reverseGeocode, searchPlaces, type PlaceSuggestion } from "@/lib/utils/geocoding";
 import { createClient } from "@/lib/supabase/client";
 import {
   CATEGORIE_NOTIFICHE,
@@ -40,6 +42,8 @@ interface Pollaio {
   id: string;
   nome: string;
   posizioneNome: string | null;
+  posizioneLat: number | null;
+  posizioneLng: number | null;
   conservazioneAmbienteGiorni: number;
   conservazioneFrigoGiorni: number;
 }
@@ -178,7 +182,7 @@ export function ImpostazioniClient({
       </Button>
 
       <div className="text-center mt-4 text-xs text-[var(--text-secondary)]">
-        Poliner v0.8 · Made with 🐔 in Italia
+        Poliner v0.8 · Made with 🐔 by Roberto
       </div>
 
       {editProfilo && (
@@ -520,16 +524,145 @@ function ModalPollaio({
   onSaved: () => void;
 }) {
   const { show } = useToast();
+  const geo = useGeolocation();
+  const initialLocation =
+    pollaio.posizioneNome && pollaio.posizioneLat !== null && pollaio.posizioneLng !== null
+      ? {
+          nome: pollaio.posizioneNome,
+          lat: pollaio.posizioneLat,
+          lng: pollaio.posizioneLng,
+        }
+      : null;
   const [nome, setNome] = useState(pollaio.nome);
   const [posizione, setPosizione] = useState(pollaio.posizioneNome ?? "");
+  const [selectedLocation, setSelectedLocation] = useState(initialLocation);
+  const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
+  const [searchingPlaces, setSearchingPlaces] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [geocoding, setGeocoding] = useState(false);
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    const query = posizione.trim();
+
+    if ((selectedLocation && query === selectedLocation.nome) || query.length < 2) {
+      setSuggestions([]);
+      setSearchError(null);
+      setSearchingPlaces(false);
+      return;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setSearchingPlaces(true);
+      setSearchError(null);
+
+      try {
+        const results = await searchPlaces(query, { count: 6, signal: controller.signal });
+        if (cancelled) return;
+        setSuggestions(results);
+      } catch (error) {
+        if (cancelled || (error instanceof DOMException && error.name === "AbortError")) return;
+        setSuggestions([]);
+        setSearchError("Non riesco a cercare le località adesso.");
+      } finally {
+        if (!cancelled) setSearchingPlaces(false);
+      }
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [posizione, selectedLocation]);
+
+  useEffect(() => {
+    const coords = geo.coords;
+    if (!coords) return;
+
+    let active = true;
+    setGeocoding(true);
+
+    reverseGeocode(coords.lat, coords.lng)
+      .then((place) => {
+        if (!active) return;
+        if (!place?.display) {
+          show("Posizione rilevata, ma non sono riuscita a trovare la località.");
+          return;
+        }
+
+        setPosizione(place.display);
+        setSelectedLocation({
+          nome: place.display,
+          lat: coords.lat,
+          lng: coords.lng,
+        });
+        setSuggestions([]);
+        setSearchError(null);
+      })
+      .finally(() => {
+        if (active) setGeocoding(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [geo.coords, show]);
+
+  function onPosizioneChange(value: string) {
+    setPosizione(value);
+    setSearchError(null);
+
+    if (initialLocation && value.trim() === initialLocation.nome) {
+      setSelectedLocation(initialLocation);
+      return;
+    }
+
+    if (selectedLocation?.nome !== value) {
+      setSelectedLocation(null);
+    }
+  }
+
+  function onSelectSuggestion(suggestion: PlaceSuggestion) {
+    setPosizione(suggestion.display);
+    setSelectedLocation({
+      nome: suggestion.display,
+      lat: suggestion.lat,
+      lng: suggestion.lng,
+    });
+    setSuggestions([]);
+    setSearchError(null);
+  }
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    const posizioneTrimmed = posizione.trim();
+    const keepingLegacyTextOnly =
+      !selectedLocation &&
+      posizioneTrimmed.length > 0 &&
+      posizioneTrimmed === (pollaio.posizioneNome ?? "").trim() &&
+      pollaio.posizioneLat === null &&
+      pollaio.posizioneLng === null;
+
+    if (posizioneTrimmed && !selectedLocation && !keepingLegacyTextOnly) {
+      show("Scegli una località dai suggerimenti o usa il GPS.");
+      return;
+    }
+
     startTransition(async () => {
       const res = await aggiornaPollaio({
+        pollaioId: pollaio.id,
         nome,
-        posizioneNome: posizione || null,
+        posizioneNome: posizioneTrimmed || null,
+        posizioneLat: posizioneTrimmed
+          ? (selectedLocation?.lat ?? pollaio.posizioneLat)
+          : null,
+        posizioneLng: posizioneTrimmed
+          ? (selectedLocation?.lng ?? pollaio.posizioneLng)
+          : null,
         conservazioneAmbienteGiorni: pollaio.conservazioneAmbienteGiorni,
         conservazioneFrigoGiorni: pollaio.conservazioneFrigoGiorni,
       });
@@ -552,14 +685,65 @@ function ModalPollaio({
           />
         </FormField>
         <FormField label="Posizione (città, regione)">
-          <Input
-            value={posizione}
-            onChange={(e) => setPosizione(e.target.value)}
-            placeholder="Es. Firenze, Toscana"
-          />
+          <div className="flex flex-col gap-2">
+            <Input
+              value={posizione}
+              onChange={(e) => onPosizioneChange(e.target.value)}
+              placeholder="Es. Firenze, Toscana"
+              autoComplete="off"
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={geo.request}
+              disabled={geo.loading || geocoding}
+              className="self-start"
+            >
+              <IconMap size={16} />
+              {geo.loading
+                ? "Sto cercando..."
+                : geocoding
+                  ? "Trovo la città..."
+                  : "Usa la mia posizione"}
+            </Button>
+          </div>
+          {geo.error && (
+            <p className="mt-2 text-xs text-[#c0435a]">{geo.error}</p>
+          )}
+          {searchError && (
+            <p className="mt-2 text-xs text-[#c0435a]">{searchError}</p>
+          )}
+          {searchingPlaces && posizione.trim().length >= 2 && (
+            <p className="mt-2 text-xs text-[var(--text-secondary)]">
+              Cerco località disponibili...
+            </p>
+          )}
+          {!searchingPlaces &&
+            !searchError &&
+            suggestions.length === 0 &&
+            posizione.trim().length >= 2 &&
+            (!selectedLocation || posizione.trim() !== selectedLocation.nome) && (
+              <p className="mt-2 text-xs text-[var(--text-secondary)]">
+                Nessuna località trovata per questa ricerca.
+              </p>
+            )}
+          {suggestions.length > 0 && (
+            <div className="mt-2 overflow-hidden rounded-[var(--radius-sm)] border-2 border-[var(--border)] bg-white">
+              {suggestions.map((suggestion) => (
+                <button
+                  key={`${suggestion.id}-${suggestion.lat}-${suggestion.lng}`}
+                  type="button"
+                  className="w-full border-b border-[var(--border)] px-4 py-3 text-left text-[15px] font-semibold text-text transition-colors last:border-b-0 hover:bg-[var(--border)]"
+                  onClick={() => onSelectSuggestion(suggestion)}
+                >
+                  {suggestion.display}
+                </button>
+              ))}
+            </div>
+          )}
         </FormField>
         <p className="text-xs text-[var(--text-secondary)] italic mb-3">
-          {"Per modificare le coordinate GPS, ricontatta supporto. Aggiungeremo l'editor coordinate in Fase 9."}
+          Scegli una località dai suggerimenti o usa il GPS per aggiornare meteo e tramonto.
         </p>
         <Button type="submit" fullWidth size="lg" disabled={!nome.trim() || pending}>
           {pending ? "Salvataggio..." : "Salva"}
@@ -587,8 +771,11 @@ function ModalConservazione({
     e.preventDefault();
     startTransition(async () => {
       const res = await aggiornaPollaio({
+        pollaioId: pollaio.id,
         nome: pollaio.nome,
         posizioneNome: pollaio.posizioneNome,
+        posizioneLat: pollaio.posizioneLat,
+        posizioneLng: pollaio.posizioneLng,
         conservazioneAmbienteGiorni: ambiente,
         conservazioneFrigoGiorni: frigo,
       });

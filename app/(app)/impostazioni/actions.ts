@@ -54,23 +54,50 @@ export async function aggiornaProfilo(input: {
 }
 
 export async function aggiornaPollaio(input: {
+  pollaioId: string;
   nome: string;
   posizioneNome: string | null;
+  posizioneLat: number | null;
+  posizioneLng: number | null;
   conservazioneAmbienteGiorni: number;
   conservazioneFrigoGiorni: number;
 }): Promise<ActionResult> {
+  const nome = input.nome.trim();
+  if (!nome) return { ok: false, error: "Dai un nome al tuo pollaio!" };
+
+  const posizioneNome = input.posizioneNome?.trim() || null;
+  const hasOnlyOneCoord = (input.posizioneLat === null) !== (input.posizioneLng === null);
+  if (hasOnlyOneCoord) {
+    return { ok: false, error: "Seleziona una località valida o usa il GPS." };
+  }
+
   const { supabase, user } = await requireUser();
+
+  const { data: membership } = await supabase
+    .from("pollaio_members")
+    .select("ruolo")
+    .eq("pollaio_id", input.pollaioId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!membership || membership.ruolo !== "admin") {
+    return { ok: false, error: "Solo gli admin possono modificare il pollaio." };
+  }
+
   const { error } = await supabase
     .from("pollai")
     .update({
-      nome: input.nome.trim(),
-      posizione_nome: input.posizioneNome?.trim() || null,
+      nome,
+      posizione_nome: posizioneNome,
+      posizione_lat: posizioneNome ? input.posizioneLat : null,
+      posizione_lng: posizioneNome ? input.posizioneLng : null,
       conservazione_ambiente_giorni: input.conservazioneAmbienteGiorni,
       conservazione_frigo_giorni: input.conservazioneFrigoGiorni,
     })
-    .eq("user_id", user.id);
+    .eq("id", input.pollaioId);
   if (error) return { ok: false, error: "Ops, riprova!" };
   revalidatePath("/impostazioni");
   revalidatePath("/");
+  revalidatePath("/meteo");
   return { ok: true };
 }

@@ -37,6 +37,8 @@ export default async function ImpostazioniPage() {
             id: pollaio.id,
             nome: pollaio.nome,
             posizioneNome: pollaio.posizione_nome,
+            posizioneLat: pollaio.posizione_lat,
+            posizioneLng: pollaio.posizione_lng,
             conservazioneAmbienteGiorni: pollaio.conservazione_ambiente_giorni,
             conservazioneFrigoGiorni: pollaio.conservazione_frigo_giorni,
           }}

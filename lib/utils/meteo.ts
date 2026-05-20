@@ -260,6 +260,26 @@ export function hasCoords(p: {
   return p.posizione_lat !== null && p.posizione_lng !== null;
 }
 
+export function getForecastUrl(locationName: string | null | undefined): string | null {
+  const city = locationName
+    ?.split(",")[0]
+    ?.replace(/\s*\([^)]*\)\s*$/g, "")
+    .trim();
+
+  if (!city) return null;
+
+  const slug = city
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/['’]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, "+");
+
+  return slug ? `https://www.3bmeteo.com/meteo/${slug}` : null;
+}
+
 /**
  * Restituisce orario alba/tramonto per una data specifica (default: oggi).
  * Open-Meteo daily=sunrise,sunset. Cache 1h.
