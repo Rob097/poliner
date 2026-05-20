@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "./Button";
 import { IconClose } from "./icons";
 
@@ -11,7 +12,10 @@ interface ModalProps {
 }
 
 export function Modal({ title, onClose, children }: ModalProps) {
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
@@ -19,9 +23,11 @@ export function Modal({ title, onClose, children }: ModalProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  return (
+  if (!mounted) return null;
+
+  const sheet = (
     <div
-      className="fixed inset-0 bg-[rgba(46,41,36,0.4)] z-[150] flex items-end justify-center animate-fade-in"
+      className="fixed inset-0 bg-[rgba(46,41,36,0.4)] z-[200] flex items-end justify-center animate-fade-in"
       onClick={onClose}
     >
       <div
@@ -39,4 +45,6 @@ export function Modal({ title, onClose, children }: ModalProps) {
       </div>
     </div>
   );
+
+  return createPortal(sheet, document.body);
 }

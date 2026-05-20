@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -58,6 +59,7 @@ interface Props {
   preferenze: Preferenze;
   hasPushSubscription: boolean;
   vapidPublicKey: string;
+  ruolo: "admin" | "guest";
 }
 
 export function ImpostazioniClient({
@@ -66,6 +68,7 @@ export function ImpostazioniClient({
   preferenze,
   hasPushSubscription,
   vapidPublicKey,
+  ruolo,
 }: Props) {
   const router = useRouter();
   const { show } = useToast();
@@ -108,13 +111,30 @@ export function ImpostazioniClient({
         <KeyValueRow
           label="Nome pollaio"
           value={pollaio.nome}
-          onEdit={() => setEditPollaio(true)}
+          onEdit={ruolo === "admin" ? () => setEditPollaio(true) : undefined}
         />
         <KeyValueRow
           label="Posizione"
           value={pollaio.posizioneNome ?? "Non impostata"}
-          onEdit={() => setEditPollaio(true)}
+          onEdit={ruolo === "admin" ? () => setEditPollaio(true) : undefined}
         />
+      </Card>
+
+      {/* Membri */}
+      <SectionTitle>Membri</SectionTitle>
+      <Card>
+        <Link
+          href="/impostazioni/membri"
+          className="flex items-center justify-between py-2 -my-2"
+        >
+          <div>
+            <div className="font-semibold text-[15px]">Chi può vedere questo pollaio</div>
+            <div className="text-[13px] text-[var(--text-secondary)] mt-0.5">
+              {ruolo === "admin" ? "Gestisci membri e inviti" : "Vedi chi fa parte del pollaio"}
+            </div>
+          </div>
+          <span className="text-[var(--text-secondary)] text-lg">›</span>
+        </Link>
       </Card>
 
       {/* Conservazione */}
@@ -123,12 +143,12 @@ export function ImpostazioniClient({
         <KeyValueRow
           label="A temperatura ambiente"
           value={`${pollaio.conservazioneAmbienteGiorni} giorni`}
-          onEdit={() => setEditConservazione(true)}
+          onEdit={ruolo === "admin" ? () => setEditConservazione(true) : undefined}
         />
         <KeyValueRow
           label="In frigorifero"
           value={`${pollaio.conservazioneFrigoGiorni} giorni`}
-          onEdit={() => setEditConservazione(true)}
+          onEdit={ruolo === "admin" ? () => setEditConservazione(true) : undefined}
         />
       </Card>
 

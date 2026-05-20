@@ -9,9 +9,9 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const VAPID_PUBLIC = Deno.env.get("VAPID_PUBLIC_KEY")!;
 const VAPID_PRIVATE = Deno.env.get("VAPID_PRIVATE_KEY")!;
-const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "mailto:noreply@poliner.app";
+const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "mailto:info@rdlabs.digital";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const RESEND_FROM = Deno.env.get("RESEND_FROM") ?? "Poliner <noreply@poliner.app>";
+const RESEND_FROM = Deno.env.get("RESEND_FROM") ?? "Poliner <info@rdlabs.digital>";
 
 webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
 

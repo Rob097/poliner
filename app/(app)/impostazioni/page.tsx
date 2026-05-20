@@ -6,7 +6,7 @@ import { ImpostazioniClient } from "./ImpostazioniClient";
 export const dynamic = "force-dynamic";
 
 export default async function ImpostazioniPage() {
-  const { supabase, user, pollaio } = await requirePollaio();
+  const { supabase, user, pollaio, ruolo } = await requirePollaio();
 
   const [profileRes, prefRes, subsRes] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
@@ -50,6 +50,7 @@ export default async function ImpostazioniPage() {
           }}
           hasPushSubscription={(subsRes.data?.length ?? 0) > 0}
           vapidPublicKey={vapidPublicKey}
+          ruolo={ruolo}
         />
       </ScreenContainer>
     </>

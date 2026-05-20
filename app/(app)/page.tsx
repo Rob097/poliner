@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requirePollaio } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
+import { PollaioSwitcher } from "@/components/layout/PollaioSwitcher";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { Card } from "@/components/ui/Card";
 import { AlertCard } from "@/components/ui/AlertCard";
@@ -23,7 +24,7 @@ interface Alert {
 }
 
 export default async function HomePage() {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio, pollaiConRuolo } = await requirePollaio();
 
   // ── Dati in parallelo ───────────────────────────────────
   const [
@@ -228,7 +229,7 @@ export default async function HomePage() {
     <>
       <Header
         title={pollaio.nome}
-        subtitle={dateStr}
+        subtitle={<PollaioSwitcher pollai={pollaiConRuolo} attivoId={pollaio.id} />}
         right={
           <Link
             href="/notifiche"
@@ -240,6 +241,9 @@ export default async function HomePage() {
         }
       />
       <ScreenContainer>
+        <div className="text-[13px] text-[var(--text-secondary)] mt-1 mb-2">
+          {dateStr}
+        </div>
         {/* Widget meteo */}
         {meteo ? <MeteoWidget meteo={meteo} /> : <MeteoMissing pollaioId={pollaio.id} />}
 

@@ -9,6 +9,9 @@ const PUBLIC_PATHS = [
   "/auth/callback",
 ];
 
+// Path accessibili sia da loggati che non loggati (no redirect)
+const OPEN_PATHS = ["/invito"];
+
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -39,8 +42,9 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  const isOpen = OPEN_PATHS.some((p) => pathname.startsWith(p));
 
-  if (!user && !isPublic) {
+  if (!user && !isPublic && !isOpen) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);

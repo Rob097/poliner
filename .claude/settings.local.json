@@ -35,7 +35,12 @@
       "Bash(curl -s \"https://api.open-meteo.com/v1/forecast?latitude=43.7&longitude=11.25&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max&forecast_days=2&timezone=auto\")",
       "mcp__claude_ai_Supabase__deploy_edge_function",
       "Bash(node -e ' *)",
-      "mcp__claude_ai_Supabase__get_logs"
+      "mcp__claude_ai_Supabase__get_logs",
+      "Bash(xargs cat)",
+      "Bash(grep -E \"^/.*/\\(app|galline|uova|menu\\)/\\(page|layout\\)\\\\.tsx$\")",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "mcp__claude_ai_Supabase__list_edge_functions"
     ],
     "additionalDirectories": [
       "/tmp"

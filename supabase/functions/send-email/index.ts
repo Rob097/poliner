@@ -1,8 +1,14 @@
 // Edge Function: invia email transazionale via Resend.
 // Riceve { to, subject, body } — il body è plain text, lo wrappo io in un template basic.
+//
+// Auth: verify_jwt è disabilitata al deploy. Il backend Next.js usa
+// un token interno dedicato quando presente; manteniamo un fallback legacy
+// alla service-role solo per compatibilità con ambienti non ancora riallineati.
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const RESEND_FROM = Deno.env.get("RESEND_FROM") ?? "Poliner <noreply@poliner.app>";
+const RESEND_FROM = Deno.env.get("RESEND_FROM") ?? "Poliner <info@rdlabs.digital>";
+const INTERNAL_TOKEN = Deno.env.get("SEND_EMAIL_FUNCTION_TOKEN");
+const LEGACY_SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 interface EmailInput {
   to: string;
@@ -36,8 +42,19 @@ function templateHtml(body: string, isHtml = false): string {
 </html>`;
 }
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   try {
+    const auth = req.headers.get("authorization") ?? "";
+    const bearer = auth.replace(/^Bearer\s+/i, "");
+    const expectedToken = INTERNAL_TOKEN ?? LEGACY_SERVICE_ROLE ?? "";
+
+    if (!expectedToken || bearer !== expectedToken) {
+      return new Response(
+        JSON.stringify({ ok: false, error: "Unauthorized" }),
+        { status: 401, headers: { "content-type": "application/json" } },
+      );
+    }
+
     if (!RESEND_API_KEY) {
       return new Response(
         JSON.stringify({ ok: false, error: "RESEND_API_KEY non configurata" }),

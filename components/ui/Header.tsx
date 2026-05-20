@@ -5,7 +5,7 @@ import { IconBack } from "./icons";
 
 interface HeaderProps {
   title: string;
-  subtitle?: string;
+  subtitle?: ReactNode;
   onBack?: () => void;
   right?: ReactNode;
   transparent?: boolean;

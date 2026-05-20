@@ -7,6 +7,8 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
@@ -155,7 +157,22 @@ export type Database = {
           tipo?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "eventi_salute_animale_id_fkey"
+            columns: ["animale_id"]
+            isOneToOne: false
+            referencedRelation: "animali"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventi_salute_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lista_spesa: {
         Row: {
@@ -188,7 +205,15 @@ export type Database = {
           quantita?: string | null
           testo?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "lista_spesa_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       log_uscite: {
         Row: {
@@ -218,7 +243,15 @@ export type Database = {
           ora_uscita?: string | null
           pollaio_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "log_uscite_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       manutenzioni: {
         Row: {
@@ -248,7 +281,15 @@ export type Database = {
           pollaio_id?: string
           tipo?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "manutenzioni_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       manutenzioni_config: {
         Row: {
@@ -266,7 +307,15 @@ export type Database = {
           pollaio_id?: string
           tipo?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "manutenzioni_config_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       meteo_storico: {
         Row: {
@@ -305,7 +354,15 @@ export type Database = {
           temp_min?: number | null
           vento_max_kmh?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "meteo_storico_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nidi: {
         Row: {
@@ -332,7 +389,15 @@ export type Database = {
           ordine?: number
           pollaio_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nidi_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       note: {
         Row: {
@@ -377,6 +442,38 @@ export type Database = {
           testo?: string
           updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "note_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifiche_inviate: {
+        Row: {
+          categoria: string
+          id: string
+          inviata_il: string
+          riferimento_id: string
+          user_id: string
+        }
+        Insert: {
+          categoria: string
+          id?: string
+          inviata_il?: string
+          riferimento_id: string
+          user_id: string
+        }
+        Update: {
+          categoria?: string
+          id?: string
+          inviata_il?: string
+          riferimento_id?: string
+          user_id?: string
+        }
         Relationships: []
       }
       periodi_muta: {
@@ -407,7 +504,22 @@ export type Database = {
           note?: string | null
           pollaio_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "periodi_muta_animale_id_fkey"
+            columns: ["animale_id"]
+            isOneToOne: false
+            referencedRelation: "animali"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "periodi_muta_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pollai: {
         Row: {
@@ -450,6 +562,85 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      pollaio_inviti: {
+        Row: {
+          accettato_da: string | null
+          accettato_il: string | null
+          created_at: string
+          email: string
+          id: string
+          invitato_da: string
+          messaggio: string | null
+          pollaio_id: string
+          ruolo: string
+          scadenza: string
+          token: string
+        }
+        Insert: {
+          accettato_da?: string | null
+          accettato_il?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          invitato_da: string
+          messaggio?: string | null
+          pollaio_id: string
+          ruolo: string
+          scadenza?: string
+          token?: string
+        }
+        Update: {
+          accettato_da?: string | null
+          accettato_il?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          invitato_da?: string
+          messaggio?: string | null
+          pollaio_id?: string
+          ruolo?: string
+          scadenza?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pollaio_inviti_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pollaio_members: {
+        Row: {
+          created_at: string
+          pollaio_id: string
+          ruolo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          pollaio_id: string
+          ruolo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          pollaio_id?: string
+          ruolo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pollaio_members_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       preferenze_notifiche: {
         Row: {
@@ -497,6 +688,7 @@ export type Database = {
           display_name: string | null
           email: string | null
           id: string
+          pollaio_attivo_id: string | null
           updated_at: string
         }
         Insert: {
@@ -505,6 +697,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id: string
+          pollaio_attivo_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -513,9 +706,18 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id?: string
+          pollaio_attivo_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_pollaio_attivo_id_fkey"
+            columns: ["pollaio_attivo_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       push_subscriptions: {
         Row: {
@@ -575,7 +777,22 @@ export type Database = {
           pollaio_id?: string
           quantita?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "regali_contatto_id_fkey"
+            columns: ["contatto_id"]
+            isOneToOne: false
+            referencedRelation: "contatti"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "regali_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       scorte_cibo: {
         Row: {
@@ -608,7 +825,15 @@ export type Database = {
           unita?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "scorte_cibo_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       scorte_rifornimenti: {
         Row: {
@@ -635,7 +860,15 @@ export type Database = {
           quantita_aggiunta?: number
           scorta_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "scorte_rifornimenti_scorta_id_fkey"
+            columns: ["scorta_id"]
+            isOneToOne: false
+            referencedRelation: "scorte_cibo"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       spese: {
         Row: {
@@ -668,7 +901,15 @@ export type Database = {
           note?: string | null
           pollaio_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "spese_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trattamenti: {
         Row: {
@@ -713,7 +954,22 @@ export type Database = {
           prossima_data?: string | null
           tipo?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trattamenti_animale_id_fkey"
+            columns: ["animale_id"]
+            isOneToOne: false
+            referencedRelation: "animali"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trattamenti_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       uova: {
         Row: {
@@ -761,14 +1017,174 @@ export type Database = {
           stato?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "uova_animale_id_fkey"
+            columns: ["animale_id"]
+            isOneToOne: false
+            referencedRelation: "animali"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uova_nido_id_fkey"
+            columns: ["nido_id"]
+            isOneToOne: false
+            referencedRelation: "nidi"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uova_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uova_regalo_id_fkey"
+            columns: ["regalo_id"]
+            isOneToOne: false
+            referencedRelation: "regali"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
-    Views: Record<string, never>
-    Functions: {
-      is_my_pollaio: { Args: { p_pollaio: string }; Returns: boolean }
+    Views: {
+      [_ in never]: never
     }
-    Enums: Record<string, never>
-    CompositeTypes: Record<string, never>
+    Functions: {
+      accept_invito: { Args: { p_token: string }; Returns: Json }
+      is_my_pollaio: { Args: { p_pollaio: string }; Returns: boolean }
+      my_pollaio_role: { Args: { p_pollaio: string }; Returns: string }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
