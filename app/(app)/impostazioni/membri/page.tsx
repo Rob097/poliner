@@ -1,7 +1,12 @@
 import { requirePollaio } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
-import { MembriClient, type InvitoRow, type MembroRow } from "./MembriClient";
+import {
+  MembriClient,
+  type ContattoRow,
+  type InvitoRow,
+  type MembroRow,
+} from "./MembriClient";
 
 export const dynamic = "force-dynamic";
 
@@ -48,16 +53,47 @@ export default async function MembriPage() {
     );
   }
 
+  // Contatti del pollaio (per il merge con membri guest)
+  let contattiAll: ContattoRow[] = [];
+  const contattoLinkatoPerUtente = new Map<string, ContattoRow>();
+  if (ruolo === "admin") {
+    type ContattoRaw = {
+      id: string;
+      nome: string;
+      relazione: string | null;
+      utente_id: string | null;
+    };
+    const { data: contattiData } = await supabase
+      .from("contatti")
+      .select("id, nome, relazione, utente_id")
+      .eq("pollaio_id", pollaio.id)
+      .order("nome", { ascending: true });
+    contattiAll = ((contattiData ?? []) as unknown as ContattoRaw[]).map((c) => ({
+      id: c.id,
+      nome: c.nome,
+      relazione: c.relazione,
+      utenteId: c.utente_id,
+    }));
+    for (const c of contattiAll) {
+      if (c.utenteId) contattoLinkatoPerUtente.set(c.utenteId, c);
+    }
+  }
+
   const membri: MembroRow[] = rows.map((r) => {
     const prof = profiliMap.get(r.user_id);
+    const linkato = contattoLinkatoPerUtente.get(r.user_id);
     return {
       userId: r.user_id,
       ruolo: r.ruolo,
       displayName: prof?.display_name ?? null,
       email: prof?.email ?? null,
       isYou: r.user_id === user.id,
+      contattoLinkatoNome: linkato?.nome ?? null,
     };
   });
+
+  // Contatti senza utente_id (linkabili)
+  const contattiLinkabili = contattiAll.filter((c) => !c.utenteId);
 
   // Inviti pending (solo admin li vede)
   let inviti: InvitoRow[] = [];
@@ -92,6 +128,7 @@ export default async function MembriPage() {
           ruoloCorrente={ruolo}
           membri={membri}
           inviti={inviti}
+          contattiLinkabili={contattiLinkabili}
         />
       </ScreenContainer>
     </>

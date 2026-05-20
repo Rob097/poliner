@@ -83,6 +83,7 @@ export type Database = {
           relazione: string | null
           telefono: string | null
           updated_at: string
+          utente_id: string | null
         }
         Insert: {
           created_at?: string
@@ -93,6 +94,7 @@ export type Database = {
           relazione?: string | null
           telefono?: string | null
           updated_at?: string
+          utente_id?: string | null
         }
         Update: {
           created_at?: string
@@ -103,6 +105,7 @@ export type Database = {
           relazione?: string | null
           telefono?: string | null
           updated_at?: string
+          utente_id?: string | null
         }
         Relationships: [
           {
@@ -825,6 +828,60 @@ export type Database = {
           },
         ]
       }
+      richieste_uova: {
+        Row: {
+          created_at: string
+          evasa_da: string | null
+          evasa_il: string | null
+          id: string
+          nota: string | null
+          pollaio_id: string
+          quantita: number
+          regalo_id: string | null
+          richiedente_user_id: string
+          stato: string
+        }
+        Insert: {
+          created_at?: string
+          evasa_da?: string | null
+          evasa_il?: string | null
+          id?: string
+          nota?: string | null
+          pollaio_id: string
+          quantita: number
+          regalo_id?: string | null
+          richiedente_user_id: string
+          stato?: string
+        }
+        Update: {
+          created_at?: string
+          evasa_da?: string | null
+          evasa_il?: string | null
+          id?: string
+          nota?: string | null
+          pollaio_id?: string
+          quantita?: number
+          regalo_id?: string | null
+          richiedente_user_id?: string
+          stato?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "richieste_uova_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "richieste_uova_regalo_id_fkey"
+            columns: ["regalo_id"]
+            isOneToOne: false
+            referencedRelation: "regali"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scorte_cibo: {
         Row: {
           created_at: string
@@ -1085,8 +1142,14 @@ export type Database = {
     }
     Functions: {
       accept_invito: { Args: { p_token: string }; Returns: Json }
+      accetta_richiesta_uova: { Args: { p_richiesta: string }; Returns: Json }
       is_my_pollaio: { Args: { p_pollaio: string }; Returns: boolean }
+      merge_contatto_con_utente: {
+        Args: { p_contatto: string; p_rinomina?: string; p_utente: string }
+        Returns: Json
+      }
       my_pollaio_role: { Args: { p_pollaio: string }; Returns: string }
+      rifiuta_richiesta_uova: { Args: { p_richiesta: string }; Returns: Json }
     }
     Enums: {
       [_ in never]: never

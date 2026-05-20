@@ -63,3 +63,40 @@ export async function deleteContatto(id: string): Promise<ActionResult> {
   revalidatePath("/rubrica");
   return { ok: true };
 }
+
+/**
+ * Collega un contatto della rubrica a un membro del pollaio.
+ * Tutto lo storico regali del contatto resta intatto; se esisteva un
+ * contatto auto-creato per quello stesso utente, lo storico viene
+ * trasferito sul contatto target e l'orfano eliminato (via RPC).
+ *
+ * Solo admin. La verifica è dentro la RPC SECURITY DEFINER.
+ */
+export async function linkContattoUtente(input: {
+  contattoId: string;
+  utenteId: string;
+  rinomina?: string;
+}): Promise<ActionResult> {
+  const { supabase } = await requirePollaio();
+
+  const { data, error } = await supabase.rpc("merge_contatto_con_utente", {
+    p_contatto: input.contattoId,
+    p_utente: input.utenteId,
+    p_rinomina: input.rinomina?.trim() || undefined,
+  });
+
+  if (error) {
+    return { ok: false, error: "Ops, riprova!" };
+  }
+
+  type RpcResult = { ok: boolean; errore?: string };
+  const res = (data ?? { ok: false }) as RpcResult;
+  if (!res.ok) {
+    return { ok: false, error: res.errore ?? "Operazione non riuscita." };
+  }
+
+  revalidatePath("/rubrica");
+  revalidatePath("/uova");
+  revalidatePath("/impostazioni/membri");
+  return { ok: true };
+}

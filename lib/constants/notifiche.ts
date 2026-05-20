@@ -6,7 +6,8 @@ export type CategoriaNotificaId =
   | "scorte"
   | "trattamenti"
   | "fine_produzione"
-  | "muta_lunga";
+  | "muta_lunga"
+  | "richiesta_uova";
 
 export interface CategoriaNotifica {
   id: CategoriaNotificaId;
@@ -71,6 +72,13 @@ export const CATEGORIE_NOTIFICHE: CategoriaNotifica[] = [
     label: "Muta lunga",
     desc: "Se una gallina è in muta da oltre 10 settimane",
     icona: "🪶",
+    defaultOn: true,
+  },
+  {
+    id: "richiesta_uova",
+    label: "Richieste uova",
+    desc: "Quando un guest del pollaio chiede uova",
+    icona: "🙏",
     defaultOn: true,
   },
 ];

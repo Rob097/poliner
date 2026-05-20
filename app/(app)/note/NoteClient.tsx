@@ -369,7 +369,7 @@ function NotaFormModal({
               </Select>
             </FormField>
             <p className="text-[11px] text-[var(--text-secondary)] italic m-0">
-              Il promemoria verra inviato all'orario scelto se i canali sono attivi nelle impostazioni.
+              {"Il promemoria verrà inviato all'orario scelto se i canali sono attivi nelle impostazioni."}
             </p>
           </div>
         )}

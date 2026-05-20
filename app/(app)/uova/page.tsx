@@ -1,12 +1,14 @@
 import { requirePollaio } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
+import { RichiesteSection, type RichiestaRow } from "@/components/uova/RichiesteSection";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { UovaList, type UovoDisplay } from "./UovaList";
 
 export const dynamic = "force-dynamic";
 
 export default async function UovaPage() {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, user, pollaio, ruolo } = await requirePollaio();
 
   // Fetch uova: tutte (per scorte + storico)
   const { data: uova } = await supabase
@@ -68,13 +70,63 @@ export default async function UovaPage() {
     regalatoA: u.regalo_id ? regaloMap.get(u.regalo_id) ?? null : null,
   }));
 
+  const uovaDisponibili = uovaDisplay.filter((u) => u.stato === "disponibile").length;
+
+  // ── Richieste pending (FIFO) ─────────────────────────────
+  type RichRow = {
+    id: string;
+    quantita: number;
+    nota: string | null;
+    created_at: string;
+    richiedente_user_id: string;
+  };
+  const { data: richiesteRaw } = await supabase
+    .from("richieste_uova")
+    .select("id, quantita, nota, created_at, richiedente_user_id")
+    .eq("pollaio_id", pollaio.id)
+    .eq("stato", "in_attesa")
+    .order("created_at", { ascending: true });
+
+  const richiesteRows = (richiesteRaw ?? []) as unknown as RichRow[];
+
+  // Profili dei richiedenti (via admin client per leggere tutti i nomi
+  // anche se l'utente corrente non avesse accesso diretto a profiles).
+  const richiedentiIds = Array.from(new Set(richiesteRows.map((r) => r.richiedente_user_id)));
+  const nomeMap = new Map<string, string>();
+  if (richiedentiIds.length > 0) {
+    type ProfRow = { id: string; display_name: string | null; email: string | null };
+    const admin = createAdminClient();
+    const { data: profili } = await admin
+      .from("profiles")
+      .select("id, display_name, email")
+      .in("id", richiedentiIds);
+    for (const p of ((profili ?? []) as unknown as ProfRow[])) {
+      nomeMap.set(p.id, p.display_name?.trim() || p.email?.split("@")[0] || "Membro");
+    }
+  }
+
+  const richieste: RichiestaRow[] = richiesteRows.map((r) => ({
+    id: r.id,
+    quantita: r.quantita,
+    nota: r.nota,
+    createdAt: r.created_at,
+    richiedenteUserId: r.richiedente_user_id,
+    richiedenteNome: nomeMap.get(r.richiedente_user_id) ?? "Membro",
+    isMia: r.richiedente_user_id === user.id,
+  }));
+
   return (
     <>
       <Header
         title="Le tue uova"
-        subtitle={`${uovaDisplay.filter((u) => u.stato === "disponibile").length} disponibili`}
+        subtitle={`${uovaDisponibili} disponibili`}
       />
       <ScreenContainer pad={false}>
+        <RichiesteSection
+          richieste={richieste}
+          uovaDisponibili={uovaDisponibili}
+          ruolo={ruolo}
+        />
         <UovaList
           uova={uovaDisplay}
           conservazioneSettings={{

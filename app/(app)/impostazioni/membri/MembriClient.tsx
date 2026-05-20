@@ -13,6 +13,7 @@ import {
   rimuoviMembro,
 } from "@/lib/actions/pollaio";
 import { creaInviti, revocaInvito, type CreaInvitiResult } from "@/lib/actions/inviti";
+import { linkContattoUtente } from "@/app/(app)/rubrica/actions";
 
 export interface MembroRow {
   userId: string;
@@ -20,6 +21,7 @@ export interface MembroRow {
   displayName: string | null;
   email: string | null;
   isYou: boolean;
+  contattoLinkatoNome: string | null;
 }
 
 export interface InvitoRow {
@@ -29,14 +31,28 @@ export interface InvitoRow {
   scadenza: string;
 }
 
+export interface ContattoRow {
+  id: string;
+  nome: string;
+  relazione: string | null;
+  utenteId: string | null;
+}
+
 interface Props {
   pollaioId: string;
   ruoloCorrente: "admin" | "guest";
   membri: MembroRow[];
   inviti: InvitoRow[];
+  contattiLinkabili: ContattoRow[];
 }
 
-export function MembriClient({ pollaioId, ruoloCorrente, membri, inviti }: Props) {
+export function MembriClient({
+  pollaioId,
+  ruoloCorrente,
+  membri,
+  inviti,
+  contattiLinkabili,
+}: Props) {
   const router = useRouter();
   const { show } = useToast();
   const [isPending, startTransition] = useTransition();
@@ -45,6 +61,7 @@ export function MembriClient({ pollaioId, ruoloCorrente, membri, inviti }: Props
   const [invitaOpen, setInvitaOpen] = useState(false);
 
   const isAdmin = ruoloCorrente === "admin";
+  const [linkingMembro, setLinkingMembro] = useState<MembroRow | null>(null);
 
   const handleLeave = () => {
     setErrore(null);
@@ -122,15 +139,23 @@ export function MembriClient({ pollaioId, ruoloCorrente, membri, inviti }: Props
                 <div className="text-[12px] text-[var(--text-secondary)] truncate">
                   {m.ruolo === "admin" ? "Admin · gestisce tutto" : "Guest · solo visualizzazione"}
                 </div>
+                {m.contattoLinkatoNome && (
+                  <div className="text-[11px] text-[var(--text-secondary)] truncate mt-0.5">
+                    🔗 Collegato a {m.contattoLinkatoNome}
+                  </div>
+                )}
               </div>
 
               {isAdmin && !m.isYou && (
                 <MembroMenu
                   ruolo={m.ruolo}
                   isPending={isPending}
+                  hasLinkableContatti={contattiLinkabili.length > 0}
+                  hasContattoLinkato={Boolean(m.contattoLinkatoNome)}
                   onPromote={() => handlePromote(m.userId, "admin")}
                   onDemote={() => handlePromote(m.userId, "guest")}
                   onRemove={() => handleRemove(m.userId, nome)}
+                  onLinkContatto={() => setLinkingMembro(m)}
                 />
               )}
             </Card>
@@ -240,6 +265,14 @@ export function MembriClient({ pollaioId, ruoloCorrente, membri, inviti }: Props
           }}
         />
       )}
+
+      {linkingMembro && (
+        <LinkContattoModal
+          membro={linkingMembro}
+          contatti={contattiLinkabili}
+          onClose={() => setLinkingMembro(null)}
+        />
+      )}
     </>
   );
 }
@@ -256,17 +289,24 @@ function formatScadenza(iso: string): string {
 function MembroMenu({
   ruolo,
   isPending,
+  hasLinkableContatti,
+  hasContattoLinkato,
   onPromote,
   onDemote,
   onRemove,
+  onLinkContatto,
 }: {
   ruolo: "admin" | "guest";
   isPending: boolean;
+  hasLinkableContatti: boolean;
+  hasContattoLinkato: boolean;
   onPromote: () => void;
   onDemote: () => void;
   onRemove: () => void;
+  onLinkContatto: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const canLink = !hasContattoLinkato && hasLinkableContatti;
 
   return (
     <div className="relative">
@@ -280,7 +320,20 @@ function MembroMenu({
       {open && (
         <>
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 bg-white rounded-[var(--radius-sm)] border border-[var(--border)] shadow-lg z-40 min-w-[170px] overflow-hidden">
+          <div className="absolute right-0 top-full mt-1 bg-white rounded-[var(--radius-sm)] border border-[var(--border)] shadow-lg z-40 min-w-[200px] overflow-hidden">
+            {canLink && (
+              <button
+                type="button"
+                className="w-full px-4 py-3 text-left text-sm hover:bg-[var(--bg-warm)] disabled:opacity-50 border-b border-[var(--border)]"
+                onClick={() => {
+                  setOpen(false);
+                  onLinkContatto();
+                }}
+                disabled={isPending}
+              >
+                🔗 Collega contatto
+              </button>
+            )}
             {ruolo === "guest" ? (
               <button
                 type="button"
@@ -464,6 +517,114 @@ function InvitaModal({
             {isPending ? "Invio…" : "Invia inviti"}
           </Button>
         </div>
+      </div>
+    </Modal>
+  );
+}
+
+function LinkContattoModal({
+  membro,
+  contatti,
+  onClose,
+}: {
+  membro: MembroRow;
+  contatti: ContattoRow[];
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const { show } = useToast();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [rinomina, setRinomina] = useState(false);
+  const [errore, setErrore] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const nomeMembro =
+    membro.displayName ?? membro.email?.split("@")[0] ?? "questo membro";
+
+  const handleSubmit = () => {
+    setErrore(null);
+    if (!selectedId) {
+      setErrore("Seleziona un contatto.");
+      return;
+    }
+    startTransition(async () => {
+      const res = await linkContattoUtente({
+        contattoId: selectedId,
+        utenteId: membro.userId,
+        rinomina: rinomina ? nomeMembro : undefined,
+      });
+      if (res.ok) {
+        show("✓ Contatto collegato");
+        onClose();
+        router.refresh();
+      } else {
+        setErrore(res.error ?? "Ops, riprova!");
+      }
+    });
+  };
+
+  return (
+    <Modal title={`Collega ${nomeMembro} a un contatto`} onClose={onClose}>
+      <p className="text-sm text-[var(--text-secondary)] m-0 mb-3">
+        Seleziona il contatto della rubrica che corrisponde a {nomeMembro}. Lo
+        storico dei regali resta collegato.
+      </p>
+
+      <div className="flex flex-col gap-1.5 max-h-[40vh] overflow-y-auto">
+        {contatti.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => setSelectedId(c.id)}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-sm)] border-2 text-left transition-colors ${
+              selectedId === c.id
+                ? "border-[var(--primary)] bg-[var(--primary-lighter)]"
+                : "border-[var(--border)] bg-white hover:bg-[var(--bg-warm)]"
+            }`}
+          >
+            <div className="w-8 h-8 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-base flex-shrink-0">
+              👤
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-sm truncate">{c.nome}</div>
+              {c.relazione && (
+                <div className="text-[12px] text-[var(--text-secondary)] truncate">
+                  {c.relazione}
+                </div>
+              )}
+            </div>
+            {selectedId === c.id && (
+              <span className="text-[var(--primary)] text-lg" aria-hidden>
+                ●
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      <label className="flex items-center gap-2 text-sm cursor-pointer mt-3">
+        <input
+          type="checkbox"
+          checked={rinomina}
+          onChange={(e) => setRinomina(e.target.checked)}
+          className="w-4 h-4"
+        />
+        Rinomina il contatto in &ldquo;{nomeMembro}&rdquo;
+      </label>
+
+      {errore && <p className="text-[var(--primary)] text-sm m-0 mb-2">{errore}</p>}
+
+      <div className="flex gap-2 mt-2">
+        <Button variant="secondary" fullWidth onClick={onClose} disabled={isPending}>
+          Annulla
+        </Button>
+        <Button
+          fullWidth
+          onClick={handleSubmit}
+          disabled={isPending || !selectedId}
+        >
+          {isPending ? "Collego…" : "Collega"}
+        </Button>
       </div>
     </Modal>
   );
