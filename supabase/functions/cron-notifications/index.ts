@@ -1,5 +1,5 @@
-// Cron Edge Function: scansiona promemoria, uova in scadenza, manutenzione,
-// trattamenti, scorte basse — invia notifiche push e/o email secondo le preferenze.
+// Cron Edge Function: scansiona promemoria, meteo, tramonto, uova in scadenza,
+// manutenzione, trattamenti, scorte basse — invia notifiche push e/o email secondo le preferenze.
 // Schedulare via pg_cron (vedi migration 0005_pg_cron).
 //
 // Multi-tenancy: per ogni pollaio recupera tutti gli admin via
@@ -228,6 +228,32 @@ async function buildTomorrowWeatherNotification(
   }
 }
 
+async function getTodaySunsetTime(
+  lat: number,
+  lng: number,
+  todayKey: string,
+): Promise<string | null> {
+  const url = new URL(OPEN_METEO_URL);
+  url.searchParams.set("latitude", lat.toString());
+  url.searchParams.set("longitude", lng.toString());
+  url.searchParams.set("daily", "sunset");
+  url.searchParams.set("start_date", todayKey);
+  url.searchParams.set("end_date", todayKey);
+  url.searchParams.set("timezone", ITALY_TIME_ZONE);
+
+  try {
+    const res = await fetch(url.toString());
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    const sunset = json.daily?.sunset?.[0] as string | undefined;
+    return sunset ? sunset.slice(11, 16) : null;
+  } catch (error) {
+    console.error("Sunset notification error", error);
+    return null;
+  }
+}
+
 async function alreadySent(
   supabase: SupabaseClient,
   userId: string,
@@ -414,6 +440,7 @@ Deno.serve(async (req: Request) => {
   const stats = {
     promemoria: 0,
     meteo: 0,
+    chiusura_pollaio: 0,
     uova_scadenza: 0,
     manutenzione: 0,
     trattamenti: 0,
@@ -447,6 +474,16 @@ Deno.serve(async (req: Request) => {
           ub.globaleAttivo &&
           ub.pushAttivo &&
           ub.categorie.meteo !== false,
+      );
+
+    const shouldCheckSunsetReminder =
+      p.posizione_lat !== null &&
+      p.posizione_lng !== null &&
+      adminBases.some(
+        (ub) =>
+          ub.globaleAttivo &&
+          ub.pushAttivo &&
+          ub.categorie.chiusura_pollaio !== false,
       );
 
     // ─── 1. PROMEMORIA ───
@@ -509,6 +546,43 @@ Deno.serve(async (req: Request) => {
             emailBody: weatherNotification.emailBody,
           });
           if (push || email) stats.meteo++;
+        }
+      }
+    }
+
+    if (shouldCheckSunsetReminder) {
+      const { data: uscitaOggi } = await supabase
+        .from("log_uscite")
+        .select("id, ora_uscita, ora_rientro")
+        .eq("pollaio_id", p.id)
+        .eq("data", today)
+        .maybeSingle();
+
+      if (uscitaOggi?.ora_uscita && !uscitaOggi.ora_rientro) {
+        const sunsetTime = await getTodaySunsetTime(
+          Number(p.posizione_lat),
+          Number(p.posizione_lng),
+          today,
+        );
+
+        if (sunsetTime === currentTime) {
+          for (const ub of adminBases) {
+            const { push, email } = await dispatchNotifica(supabase, {
+              ...ub,
+              emailAttivo: false,
+              category: "chiusura_pollaio",
+              riferimentoId: `${p.id}-${today}`,
+              push: {
+                title: "🌙 È ora di chiudere il pollaio",
+                body: `Tramonto alle ${sunsetTime}: se le galline sono ancora fuori, e il momento di farle rientrare.`,
+                url: "/",
+                tag: `chiusura-${p.id}-${today}`,
+              },
+              emailSubject: "🌙 È ora di chiudere il pollaio · Poliner",
+              emailBody: `Nel pollaio "${p.nome}" risulta ancora aperta l'uscita di oggi e il tramonto e alle ${sunsetTime}.`,
+            });
+            if (push || email) stats.chiusura_pollaio++;
+          }
         }
       }
     }

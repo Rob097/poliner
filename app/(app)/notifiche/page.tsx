@@ -54,6 +54,12 @@ const META: Record<string, CategoriaMeta> = {
     color: "#D9EEF8",
     hrefFn: () => "/meteo",
   },
+  chiusura_pollaio: {
+    label: "Chiusura pollaio",
+    icona: "🌙",
+    color: "#E6E0FF",
+    hrefFn: () => "/",
+  },
   fine_produzione: {
     label: "Fine produzione",
     icona: "🐔",
@@ -113,7 +119,7 @@ export default async function NotifichePage() {
           <EmptyState
             icon="🔔"
             title="Nessuna notifica ancora"
-            subtitle="Le notifiche inviate (push e email) appariranno qui."
+            subtitle="Le notifiche inviate appariranno qui."
           />
         ) : (
           <>

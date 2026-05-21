@@ -2,6 +2,7 @@ export type CategoriaNotificaId =
   | "manutenzione"
   | "uova_scadenza"
   | "meteo"
+  | "chiusura_pollaio"
   | "promemoria"
   | "scorte"
   | "trattamenti"
@@ -37,6 +38,13 @@ export const CATEGORIE_NOTIFICHE: CategoriaNotifica[] = [
     label: "Meteo",
     desc: "Avvisi pioggia, vento, caldo, freddo",
     icona: "⛅",
+    defaultOn: true,
+  },
+  {
+    id: "chiusura_pollaio",
+    label: "Chiusura pollaio",
+    desc: "Al tramonto, se risulta ancora aperto",
+    icona: "🌙",
     defaultOn: true,
   },
   {

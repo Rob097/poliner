@@ -10,7 +10,7 @@ import {
 import { usePathname, useSearchParams } from "next/navigation";
 import { createPortal } from "react-dom";
 
-const FRASI = ["Sto beccando…", "Un attimo, mangio…", "Beccata e arrivo…"];
+const FRASI = ["Finisco di beccare…", "Un attimo, mangio…", "Adoro le granaie!"];
 // Durata della transizione di fade per il fade-out.
 const FADE_MS = 200;
 // Ritardo prima di mostrare la scritta sotto la gallina. Se l'overlay

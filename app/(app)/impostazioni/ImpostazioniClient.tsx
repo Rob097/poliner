@@ -484,7 +484,7 @@ function NotificheSection({
   const { show } = useToast();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [browserPushAttivo, setBrowserPushAttivo] = useState(hasPushSubscription);
+  const [browserPushAttivo, setBrowserPushAttivo] = useState(false);
   const [browserPushPending, setBrowserPushPending] = useState(false);
   const [supported, setSupported] = useState(false);
   const pushSyncVersion = useRef(0);
@@ -495,6 +495,7 @@ function NotificheSection({
     const def = categorieDefault();
     return { ...def, ...preferenze.categorie } as Record<string, boolean>;
   });
+  const notificheAttive = pushAttivo && browserPushAttivo;
 
   useEffect(() => {
     const supportedNow = isPushSupported();
@@ -508,13 +509,32 @@ function NotificheSection({
         await ensurePushServiceWorker();
         const subscribed = await isSubscribed();
         if (pushSyncVersion.current !== syncVersion) return;
-        setBrowserPushAttivo(subscribed || hasPushSubscription);
+        setBrowserPushAttivo(subscribed);
       } catch {
         if (pushSyncVersion.current !== syncVersion) return;
-        setBrowserPushAttivo(hasPushSubscription);
+        setBrowserPushAttivo(false);
       }
     })();
   }, [hasPushSubscription]);
+
+  async function savePushPreference(nextPushAttivo: boolean) {
+    const res = await aggiornaPreferenzeNotifiche({
+      pushAttivo: nextPushAttivo,
+      emailAttivo,
+      oraMeteo: preferenze.oraMeteo,
+      nonDisturbareInizio: preferenze.nonDisturbareInizio,
+      nonDisturbareFine: preferenze.nonDisturbareFine,
+      categorie,
+    });
+
+    if (!res.ok) {
+      show(res.error ?? "Ops, riprova!");
+      return false;
+    }
+
+    setPushAttivo(nextPushAttivo);
+    return true;
+  }
 
   function persistChanges(next: {
     pushAttivo?: boolean;
@@ -536,33 +556,45 @@ function NotificheSection({
     });
   }
 
-  async function onTogglePushBrowser() {
+  async function onToggleNotifiche() {
     if (browserPushPending) return;
 
     pushSyncVersion.current += 1;
     setBrowserPushPending(true);
 
     try {
-      if (browserPushAttivo) {
+      if (notificheAttive) {
+        const saved = await savePushPreference(false);
+        if (!saved) return;
+
         const res = await disablePushNotifications();
         if (res.ok) {
           setBrowserPushAttivo(false);
-          show("Push disattivate");
-          router.refresh();
+          show("Notifiche disattivate");
         } else {
-          show(res.error ?? "Ops, riprova!");
+          show(
+            res.error ??
+              "Notifiche disattivate per l'account, ma questo dispositivo non si e sganciato correttamente.",
+          );
         }
+
+        router.refresh();
       } else {
         if (!vapidPublicKey) {
           show("VAPID keys non configurate sul server");
           return;
         }
+
+        const saved = await savePushPreference(true);
+        if (!saved) return;
+
         const res = await enablePushNotifications(vapidPublicKey);
         if (res.ok) {
           setBrowserPushAttivo(true);
-          show("✓ Push notifiche attive!");
+          show("✓ Notifiche attive!");
           router.refresh();
         } else {
+          await savePushPreference(false);
           show(res.error ?? "Ops, riprova!");
         }
       }
@@ -586,29 +618,31 @@ function NotificheSection({
 
   return (
     <Card className="flex flex-col gap-4">
-      {/* Browser push subscription */}
+      {/* Notifiche push + storico */}
       <div className="flex justify-between items-center gap-3">
         <div>
-          <div className="font-semibold text-sm">📱 Notifiche push (questo dispositivo)</div>
+          <div className="font-semibold text-sm">🔔 Notifiche</div>
           <div className="text-xs text-[var(--text-secondary)] mt-0.5">
             {!supported
               ? "Il tuo browser non supporta le push"
               : browserPushPending
-                ? browserPushAttivo
+                ? notificheAttive
                   ? "Disattivazione in corso..."
                   : "Attivazione in corso..."
-              : browserPushAttivo
-                ? "Riceverai gli avvisi sul telefono/desktop"
-                : "Tap per attivarle"}
+              : notificheAttive
+                ? "Notifiche push e nello storico dell'app attive"
+              : pushAttivo && hasPushSubscription
+                ? "Le notifiche sono gia attive altrove: attivale anche qui"
+                : "Notifiche push e nello storico dell'app"}
           </div>
         </div>
         <SwitchToggle
-          on={browserPushAttivo}
+          on={notificheAttive}
           disabled={!supported || browserPushPending}
-          onChange={onTogglePushBrowser}
+          onChange={onToggleNotifiche}
         />
       </div>
-      {browserPushAttivo && (
+      {notificheAttive && (
         <Button
           variant="secondary"
           size="md"
@@ -620,24 +654,6 @@ function NotificheSection({
       )}
 
       <hr className="border-[var(--border)] m-0" />
-
-      {/* Master switches */}
-      <div className="flex justify-between items-center">
-        <div>
-          <div className="font-semibold text-sm">Push (server-side)</div>
-          <div className="text-xs text-[var(--text-secondary)] mt-0.5">
-            Master switch per le notifiche programmate
-          </div>
-        </div>
-        <SwitchToggle
-          on={pushAttivo}
-          onChange={() => {
-            const next = !pushAttivo;
-            setPushAttivo(next);
-            persistChanges({ pushAttivo: next });
-          }}
-        />
-      </div>
 
       <div className="flex justify-between items-center">
         <div>
