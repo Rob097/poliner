@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { IconHome, IconChicken, IconEgg, IconMenu, IconPlus } from "@/components/ui/icons";
@@ -27,6 +28,33 @@ interface TabBarProps {
 
 export function TabBar({ onFab }: TabBarProps) {
   const pathname = usePathname();
+  const navRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const rootStyle = document.documentElement.style;
+    const setTabBarOffset = () => {
+      const navHeight = Math.ceil(nav.getBoundingClientRect().height);
+      rootStyle.setProperty("--tab-bar-offset", `${navHeight + 24}px`);
+    };
+
+    setTabBarOffset();
+
+    const resizeObserver = new ResizeObserver(setTabBarOffset);
+    resizeObserver.observe(nav);
+
+    window.addEventListener("resize", setTabBarOffset);
+    window.visualViewport?.addEventListener("resize", setTabBarOffset);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", setTabBarOffset);
+      window.visualViewport?.removeEventListener("resize", setTabBarOffset);
+      rootStyle.removeProperty("--tab-bar-offset");
+    };
+  }, []);
 
   // Match attivo: home solo per "/", altri prefisso
   const isActive = (href: string) => {
@@ -36,6 +64,7 @@ export function TabBar({ onFab }: TabBarProps) {
 
   return (
     <nav
+      ref={navRef}
       className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around bg-white border-t border-[var(--border)] px-2 min-[500px]:absolute"
       style={{ paddingTop: 6, paddingBottom: "calc(env(safe-area-inset-bottom, 4px) + 6px)" }}
     >

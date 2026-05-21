@@ -110,6 +110,7 @@
      perché Tailwind utilities vincono sui componenti. */
   .screen-scroll {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
@@ -117,10 +118,10 @@
 }
 
 @layer utilities {
-  /* Padding-bottom dinamico per evitare contenuto sotto il TabBar
-     (80px tab bar + 16px safe-area + 24px breathing).
-     Applicato di default a .screen-scroll dal componente ScreenContainer. */
+  /* Padding-bottom dinamico per evitare contenuto sotto il TabBar.
+     Usa l'altezza reale del TabBar quando disponibile e mantiene
+     un fallback conservativo durante il primo paint. */
   .pad-tab {
-    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: var(--tab-bar-offset, calc(96px + env(safe-area-inset-bottom, 0px)));
   }
 }
