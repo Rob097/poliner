@@ -55,7 +55,8 @@
       "Read(//usr/local/bin/**)",
       "Bash(command -v nvm)",
       "Bash([ -s \"$HOME/.nvm/nvm.sh\" ])",
-      "Bash(nvm --version)"
+      "Bash(nvm --version)",
+      "Bash(git check-ignore *)"
     ],
     "additionalDirectories": [
       "/tmp"

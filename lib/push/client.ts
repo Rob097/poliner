@@ -13,7 +13,7 @@ export type PushStatus =
 
 const PUSH_SERVICE_WORKER_URL = "/push-sw.js";
 const PUSH_SERVICE_WORKER_SCOPE = "/push-notifications/";
-const LEGACY_PUSH_SERVICE_WORKER_URL = "/sw.js";
+const APP_PUSH_SERVICE_WORKER_URL = "/sw.js";
 const SERVICE_WORKER_READY_TIMEOUT_MS = 30_000;
 const SERVICE_WORKER_POLL_INTERVAL_MS = 150;
 const SERVICE_WORKER_READY_ERROR =
@@ -61,8 +61,12 @@ function isPreferredPushWorker(worker: ServiceWorker | null | undefined): boolea
 function isKnownPushWorker(worker: ServiceWorker | null | undefined): boolean {
   return (
     isWorkerScriptUrl(worker, PUSH_SERVICE_WORKER_URL) ||
-    isWorkerScriptUrl(worker, LEGACY_PUSH_SERVICE_WORKER_URL)
+    isWorkerScriptUrl(worker, APP_PUSH_SERVICE_WORKER_URL)
   );
+}
+
+function isAppPushWorker(worker: ServiceWorker | null | undefined): boolean {
+  return isWorkerScriptUrl(worker, APP_PUSH_SERVICE_WORKER_URL);
 }
 
 function isPreferredPushRegistration(
@@ -87,6 +91,17 @@ function isKnownPushRegistration(
   );
 }
 
+function isAppPushRegistration(
+  registration: ServiceWorkerRegistration | null | undefined,
+): registration is ServiceWorkerRegistration {
+  if (!registration) return false;
+  return (
+    isAppPushWorker(registration.active) ||
+    isAppPushWorker(registration.waiting) ||
+    isAppPushWorker(registration.installing)
+  );
+}
+
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => {
     window.setTimeout(resolve, ms);
@@ -101,6 +116,18 @@ async function getPreferredPushRegistration(): Promise<ServiceWorkerRegistration
 
   const registrations = await navigator.serviceWorker.getRegistrations();
   return registrations.find((registration) => isPreferredPushRegistration(registration)) ?? null;
+}
+
+async function getAppPushRegistration(): Promise<ServiceWorkerRegistration | null> {
+  const rootRegistration =
+    (await navigator.serviceWorker.getRegistration("/")) ??
+    (await navigator.serviceWorker.getRegistration()) ??
+    null;
+
+  if (isAppPushRegistration(rootRegistration)) return rootRegistration;
+
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  return registrations.find((registration) => isAppPushRegistration(registration)) ?? null;
 }
 
 async function getKnownPushRegistrations(): Promise<ServiceWorkerRegistration[]> {
@@ -165,21 +192,58 @@ async function unsubscribeAndForgetPushSubscription(
   await subscription.unsubscribe();
 }
 
-async function cleanupObsoletePushSubscriptions(
-  preferredRegistration: ServiceWorkerRegistration,
-): Promise<void> {
-  const registrations = await getKnownPushRegistrations();
-
-  await Promise.all(
-    registrations.map(async (registration) => {
-      if (registration.scope === preferredRegistration.scope) return;
-
-      const subscription = await registration.pushManager.getSubscription();
-      if (!subscription) return;
-
-      await unsubscribeAndForgetPushSubscription(subscription);
+async function savePushSubscription(subscription: PushSubscription): Promise<void> {
+  const json = subscription.toJSON();
+  const res = await fetch("/api/push/subscribe", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      endpoint: json.endpoint,
+      keys: json.keys,
+      userAgent: navigator.userAgent,
     }),
-  );
+  });
+
+  if (!res.ok) {
+    throw new Error("Errore nel salvare la sottoscrizione");
+  }
+}
+
+async function ensureRegistrationSubscription(
+  registration: ServiceWorkerRegistration,
+  vapidPublicKey: string,
+): Promise<PushSubscription> {
+  let subscription = await registration.pushManager.getSubscription();
+  if (!subscription) {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+    });
+  }
+
+  await savePushSubscription(subscription);
+  return subscription;
+}
+
+export async function migratePushSubscriptionToAppWorker(
+  vapidPublicKey: string,
+): Promise<void> {
+  if (!isPushSupported() || !vapidPublicKey || Notification.permission !== "granted") {
+    return;
+  }
+
+  const appRegistration = await getAppPushRegistration();
+  if (!appRegistration) return;
+
+  const appSubscription = await ensureRegistrationSubscription(appRegistration, vapidPublicKey);
+  const preferredRegistration = await getPreferredPushRegistration();
+  if (!preferredRegistration) return;
+
+  const preferredSubscription = await preferredRegistration.pushManager.getSubscription();
+  if (!preferredSubscription) return;
+  if (preferredSubscription.endpoint === appSubscription.endpoint) return;
+
+  await unsubscribeAndForgetPushSubscription(preferredSubscription);
 }
 
 export async function ensurePushServiceWorker(): Promise<ServiceWorkerRegistration | null> {
@@ -226,31 +290,10 @@ export async function enablePushNotifications(
       return { ok: false, error: "Service worker non disponibile" };
     }
 
-    // Se esiste già una subscription, ricicliamo
-    let subscription = await registration.pushManager.getSubscription();
-    if (!subscription) {
-      subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-      });
-    }
+    await ensureRegistrationSubscription(registration, vapidPublicKey);
 
-    const json = subscription.toJSON();
-    const res = await fetch("/api/push/subscribe", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        endpoint: json.endpoint,
-        keys: json.keys,
-        userAgent: navigator.userAgent,
-      }),
-    });
-    if (!res.ok) {
-      return { ok: false, error: "Errore nel salvare la sottoscrizione" };
-    }
-
-    cleanupObsoletePushSubscriptions(registration).catch((error) => {
-      console.warn("cleanupObsoletePushSubscriptions", error);
+    migratePushSubscriptionToAppWorker(vapidPublicKey).catch((error) => {
+      console.warn("migratePushSubscriptionToAppWorker", error);
     });
 
     return { ok: true };
