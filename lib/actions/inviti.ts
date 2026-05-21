@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/supabase/queries";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ActionResult, RuoloPollaio } from "@/lib/types";
+import { isUuid } from "@/lib/utils/validation";
 
 export type { ActionResult };
 
@@ -34,6 +35,7 @@ export interface CreaAccountDaInvitoResult extends ActionResult {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const INVALID_INVITE_ERROR = "Invito non valido o scaduto.";
 
 function buildInvitoEmailHtml(params: {
   invitanteNome: string;
@@ -130,13 +132,16 @@ async function sendInvitoEmail(args: {
     });
     if (!res.ok) {
       const txt = await res.text().catch(() => "");
-      console.error("send-email failed", res.status, txt);
-      return { ok: false, error: `Edge function ${res.status}: ${txt.slice(0, 200)}` };
+      console.error("send-email failed", {
+        status: res.status,
+        body: txt.slice(0, 500),
+      });
+      return { ok: false, error: "Non sono riuscito a inviare l'email di invito." };
     }
     return { ok: true };
   } catch (e) {
     console.error("send-email fetch threw", e);
-    return { ok: false, error: (e as Error).message };
+    return { ok: false, error: "Non sono riuscito a inviare l'email di invito." };
   }
 }
 
@@ -144,6 +149,10 @@ export async function creaAccountDaInvito(params: {
   token: string;
   password: string;
 }): Promise<CreaAccountDaInvitoResult> {
+  if (!isUuid(params.token)) {
+    return { ok: false, error: INVALID_INVITE_ERROR };
+  }
+
   if (params.password.length < 8) {
     return { ok: false, error: "La password deve avere almeno 8 caratteri." };
   }
@@ -394,6 +403,10 @@ export async function creaInviti(input: CreaInvitiInput): Promise<CreaInvitiResu
 }
 
 export async function revocaInvito(invitoId: string): Promise<ActionResult> {
+  if (!isUuid(invitoId)) {
+    return { ok: false, error: "Invito non valido." };
+  }
+
   const { supabase } = await requireUser();
 
   const { error } = await supabase.from("pollaio_inviti").delete().eq("id", invitoId);
@@ -410,6 +423,10 @@ export async function accettaInvito(token: string): Promise<{
   error?: string;
   pollaioId?: string;
 }> {
+  if (!isUuid(token)) {
+    return { ok: false, error: INVALID_INVITE_ERROR };
+  }
+
   const { supabase, user } = await requireUser();
 
   const { data, error } = await supabase.rpc("accept_invito", { p_token: token });
@@ -458,6 +475,10 @@ export async function getInvitoPublic(token: string): Promise<
     }
   | { ok: false; error: string; scaduto?: boolean; gia_accettato?: boolean }
 > {
+  if (!isUuid(token)) {
+    return { ok: false, error: "Invito non trovato." };
+  }
+
   const admin = createAdminClient();
 
   const { data: invito } = await admin

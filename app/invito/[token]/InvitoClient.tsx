@@ -154,7 +154,10 @@ function SignupForm({ token, invito }: { token: string; invito: InvitoData }) {
     });
 
     if (error) {
-      return { ok: false as const, error: `Login fallito — ${error.message}` };
+      return {
+        ok: false as const,
+        error: "Non sono riuscito ad accedere con questo account. Controlla la password e riprova.",
+      };
     }
     if (!data.session) {
       return {

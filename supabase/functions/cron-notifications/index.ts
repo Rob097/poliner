@@ -381,7 +381,9 @@ async function loadUserBase(
     supabase.from("profiles").select("email").eq("id", userId).maybeSingle(),
     supabase
       .from("preferenze_notifiche")
-      .select("*")
+      .select(
+        "globale_attivo, push_attivo, email_attivo, categorie, ora_notifiche_meteo",
+      )
       .eq("user_id", userId)
       .maybeSingle(),
   ]);

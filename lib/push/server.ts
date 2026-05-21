@@ -1,3 +1,4 @@
+import "server-only";
 /**
  * Helper push server-side: invia notifiche web push direttamente
  * dal backend Next.js (senza passare per l'edge function).

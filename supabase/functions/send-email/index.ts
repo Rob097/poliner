@@ -44,11 +44,23 @@ function templateHtml(body: string, isHtml = false): string {
 
 Deno.serve(async (req: Request) => {
   try {
+    const apiKey = req.headers.get("apikey") ?? "";
     const auth = req.headers.get("authorization") ?? "";
     const bearer = auth.replace(/^Bearer\s+/i, "");
-    const expectedToken = INTERNAL_TOKEN ?? LEGACY_SERVICE_ROLE ?? "";
+    const providedToken = apiKey || bearer;
+    const expectedTokens = [INTERNAL_TOKEN, LEGACY_SERVICE_ROLE].filter(
+      (value): value is string => Boolean(value),
+    );
 
-    if (!expectedToken || bearer !== expectedToken) {
+    if (expectedTokens.length === 0) {
+      console.error("send-email missing auth token configuration");
+      return new Response(
+        JSON.stringify({ ok: false, error: "Server misconfigured" }),
+        { status: 500, headers: { "content-type": "application/json" } },
+      );
+    }
+
+    if (!providedToken || !expectedTokens.includes(providedToken)) {
       return new Response(
         JSON.stringify({ ok: false, error: "Unauthorized" }),
         { status: 401, headers: { "content-type": "application/json" } },
@@ -88,8 +100,12 @@ Deno.serve(async (req: Request) => {
 
     if (!res.ok) {
       const errText = await res.text();
+      console.error("Resend request failed", {
+        status: res.status,
+        body: errText.slice(0, 500),
+      });
       return new Response(
-        JSON.stringify({ ok: false, error: `Resend ${res.status}: ${errText}` }),
+        JSON.stringify({ ok: false, error: "Email provider error" }),
         { status: 500, headers: { "content-type": "application/json" } },
       );
     }
@@ -99,8 +115,9 @@ Deno.serve(async (req: Request) => {
       headers: { "content-type": "application/json" },
     });
   } catch (e) {
+    console.error("send-email unexpected error", e);
     return new Response(
-      JSON.stringify({ ok: false, error: (e as Error).message }),
+      JSON.stringify({ ok: false, error: "Internal server error" }),
       { status: 500, headers: { "content-type": "application/json" } },
     );
   }

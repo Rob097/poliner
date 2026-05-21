@@ -8,6 +8,7 @@ import { PolinerLogo } from "@/components/brand/PolinerLogo";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { FormField } from "@/components/ui/FormField";
+import { getSafeInternalRedirect } from "@/lib/utils/internal-redirect";
 
 export default function LoginPage() {
   return (
@@ -20,7 +21,7 @@ export default function LoginPage() {
 function LoginForm() {
   const router = useRouter();
   const search = useSearchParams();
-  const next = search.get("next") ?? "/";
+  const next = getSafeInternalRedirect(search.get("next"));
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

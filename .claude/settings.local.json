@@ -56,10 +56,19 @@
       "Bash(command -v nvm)",
       "Bash([ -s \"$HOME/.nvm/nvm.sh\" ])",
       "Bash(nvm --version)",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(git rm *)",
+      "Bash(git mv *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(sed -i 's/new Date\\(\\)\\\\.toISOString\\(\\)\\\\.slice\\(0, 10\\)/todayIso\\(\\)/g' app/\\\\\\(app\\\\\\)/galline/\\\\[id\\\\]/ChickenDetail.tsx && grep -c \"new Date\\(\\)\\\\.toISOString\" app/\\\\\\(app\\\\\\)/galline/\\\\[id\\\\]/ChickenDetail.tsx)",
+      "Bash(sed -i 's/new Date\\(\\)\\\\.toISOString\\(\\)\\\\.slice\\(0, 10\\)/todayIso\\(\\)/g' app/\\\\\\(app\\\\\\)/spese/SpeseClient.tsx app/\\\\\\(app\\\\\\)/uscite/UsciteClient.tsx app/\\\\\\(app\\\\\\)/galline/nuova/NuovaGallinaForm.tsx app/\\\\\\(app\\\\\\)/galline/\\\\[id\\\\]/modifica/ModificaGallinaForm.tsx)",
+      "Bash(npm install *)"
     ],
     "additionalDirectories": [
-      "/tmp"
+      "/tmp",
+      "/home/roberto/personal-projects/claude-code/poliner/app/(app)/galline/[id]",
+      "/home/roberto/personal-projects/claude-code/poliner/app/(app)/galline/[id]/modifica"
     ]
   }
 }

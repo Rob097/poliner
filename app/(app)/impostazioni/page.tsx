@@ -9,10 +9,16 @@ export default async function ImpostazioniPage() {
   const { supabase, user, pollaio, ruolo } = await requirePollaio();
 
   const [profileRes, prefRes, subsRes] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("id", user.id)
+      .maybeSingle(),
     supabase
       .from("preferenze_notifiche")
-      .select("*")
+      .select(
+        "push_attivo, email_attivo, ora_notifiche_meteo, non_disturbare_inizio, non_disturbare_fine, categorie",
+      )
       .eq("user_id", user.id)
       .maybeSingle(),
     supabase

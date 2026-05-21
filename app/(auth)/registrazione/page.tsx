@@ -32,7 +32,7 @@ export default function RegistrazionePage() {
     });
     setLoading(false);
     if (error) {
-      setError(`Ops, qualcosa non ha funzionato — ${error.message}`);
+      setError("Ops, non sono riuscita a creare l'account. Controlla i dati e riprova.");
       return;
     }
     if (data.user && !data.session) {
