@@ -11,7 +11,9 @@ export type PushStatus =
   | "granted"
   | "subscribed";
 
-const PUSH_SERVICE_WORKER_URL = "/sw.js";
+const PUSH_SERVICE_WORKER_URL = "/push-sw.js";
+const PUSH_SERVICE_WORKER_SCOPE = "/push-notifications/";
+const LEGACY_PUSH_SERVICE_WORKER_URL = "/sw.js";
 const SERVICE_WORKER_READY_TIMEOUT_MS = 30_000;
 const SERVICE_WORKER_POLL_INTERVAL_MS = 150;
 const SERVICE_WORKER_READY_ERROR =
@@ -45,36 +47,43 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
   return arr;
 }
 
-async function waitForServiceWorkerReady(): Promise<ServiceWorkerRegistration> {
-  return await new Promise((resolve, reject) => {
-    const timeoutId = window.setTimeout(() => {
-      reject(new Error(SERVICE_WORKER_READY_ERROR));
-    }, SERVICE_WORKER_READY_TIMEOUT_MS);
-
-    navigator.serviceWorker.ready
-      .then((registration) => {
-        window.clearTimeout(timeoutId);
-        resolve(registration);
-      })
-      .catch((error) => {
-        window.clearTimeout(timeoutId);
-        reject(error);
-      });
-  });
+function isWorkerScriptUrl(
+  worker: ServiceWorker | null | undefined,
+  serviceWorkerUrl: string,
+): boolean {
+  return worker?.scriptURL?.endsWith(serviceWorkerUrl) ?? false;
 }
 
-function isPushWorker(worker: ServiceWorker | null | undefined): boolean {
-  return worker?.scriptURL?.endsWith(PUSH_SERVICE_WORKER_URL) ?? false;
+function isPreferredPushWorker(worker: ServiceWorker | null | undefined): boolean {
+  return isWorkerScriptUrl(worker, PUSH_SERVICE_WORKER_URL);
 }
 
-function isPushRegistration(
+function isKnownPushWorker(worker: ServiceWorker | null | undefined): boolean {
+  return (
+    isWorkerScriptUrl(worker, PUSH_SERVICE_WORKER_URL) ||
+    isWorkerScriptUrl(worker, LEGACY_PUSH_SERVICE_WORKER_URL)
+  );
+}
+
+function isPreferredPushRegistration(
   registration: ServiceWorkerRegistration | null | undefined,
 ): registration is ServiceWorkerRegistration {
   if (!registration) return false;
   return (
-    isPushWorker(registration.active) ||
-    isPushWorker(registration.waiting) ||
-    isPushWorker(registration.installing)
+    isPreferredPushWorker(registration.active) ||
+    isPreferredPushWorker(registration.waiting) ||
+    isPreferredPushWorker(registration.installing)
+  );
+}
+
+function isKnownPushRegistration(
+  registration: ServiceWorkerRegistration | null | undefined,
+): registration is ServiceWorkerRegistration {
+  if (!registration) return false;
+  return (
+    isKnownPushWorker(registration.active) ||
+    isKnownPushWorker(registration.waiting) ||
+    isKnownPushWorker(registration.installing)
   );
 }
 
@@ -84,17 +93,19 @@ function wait(ms: number): Promise<void> {
   });
 }
 
-async function getExistingRegistration(): Promise<ServiceWorkerRegistration | null> {
-  const directRegistration =
-    (await navigator.serviceWorker.getRegistration(PUSH_SERVICE_WORKER_URL)) ??
-    (await navigator.serviceWorker.getRegistration("/")) ??
-    (await navigator.serviceWorker.getRegistration()) ??
-    null;
+async function getPreferredPushRegistration(): Promise<ServiceWorkerRegistration | null> {
+  const scopedRegistration =
+    (await navigator.serviceWorker.getRegistration(PUSH_SERVICE_WORKER_SCOPE)) ?? null;
 
-  if (isPushRegistration(directRegistration)) return directRegistration;
+  if (isPreferredPushRegistration(scopedRegistration)) return scopedRegistration;
 
   const registrations = await navigator.serviceWorker.getRegistrations();
-  return registrations.find((registration) => isPushRegistration(registration)) ?? null;
+  return registrations.find((registration) => isPreferredPushRegistration(registration)) ?? null;
+}
+
+async function getKnownPushRegistrations(): Promise<ServiceWorkerRegistration[]> {
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  return registrations.filter((registration) => isKnownPushRegistration(registration));
 }
 
 async function waitForActivePushRegistration(
@@ -104,14 +115,14 @@ async function waitForActivePushRegistration(
   let currentRegistration = initialRegistration ?? null;
 
   while (Date.now() - startedAt < SERVICE_WORKER_READY_TIMEOUT_MS) {
-    if (currentRegistration?.active && isPushWorker(currentRegistration.active)) {
+    if (currentRegistration?.active && isPreferredPushWorker(currentRegistration.active)) {
       return currentRegistration;
     }
 
-    const latestRegistration = await getExistingRegistration();
+    const latestRegistration = await getPreferredPushRegistration();
     if (latestRegistration) {
       currentRegistration = latestRegistration;
-      if (latestRegistration.active && isPushWorker(latestRegistration.active)) {
+      if (latestRegistration.active && isPreferredPushWorker(latestRegistration.active)) {
         return latestRegistration;
       }
     }
@@ -119,27 +130,56 @@ async function waitForActivePushRegistration(
     await wait(SERVICE_WORKER_POLL_INTERVAL_MS);
   }
 
-  try {
-    const readyRegistration = await waitForServiceWorkerReady();
-    if (isPushRegistration(readyRegistration)) return readyRegistration;
-  } catch {
-    // Ignoriamo l'errore originale per restituire un messaggio coerente alla UI.
-  }
-
   throw new Error(SERVICE_WORKER_READY_ERROR);
 }
 
 async function getOrCreatePushRegistration(): Promise<ServiceWorkerRegistration> {
-  const existingRegistration = await getExistingRegistration();
-  if (existingRegistration?.active && isPushWorker(existingRegistration.active)) {
+  const existingRegistration = await getPreferredPushRegistration();
+  if (existingRegistration?.active && isPreferredPushWorker(existingRegistration.active)) {
     return existingRegistration;
   }
 
   const registration =
     existingRegistration ??
-    (await navigator.serviceWorker.register(PUSH_SERVICE_WORKER_URL, { scope: "/" }));
+    (await navigator.serviceWorker.register(PUSH_SERVICE_WORKER_URL, {
+      scope: PUSH_SERVICE_WORKER_SCOPE,
+      updateViaCache: "none",
+    }));
 
   return await waitForActivePushRegistration(registration);
+}
+
+async function unsubscribeAndForgetPushSubscription(
+  subscription: PushSubscription,
+): Promise<void> {
+  try {
+    await fetch("/api/push/unsubscribe", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ endpoint: subscription.endpoint }),
+    });
+  } catch {
+    // Continuiamo comunque con l'unsubscribe locale.
+  }
+
+  await subscription.unsubscribe();
+}
+
+async function cleanupObsoletePushSubscriptions(
+  preferredRegistration: ServiceWorkerRegistration,
+): Promise<void> {
+  const registrations = await getKnownPushRegistrations();
+
+  await Promise.all(
+    registrations.map(async (registration) => {
+      if (registration.scope === preferredRegistration.scope) return;
+
+      const subscription = await registration.pushManager.getSubscription();
+      if (!subscription) return;
+
+      await unsubscribeAndForgetPushSubscription(subscription);
+    }),
+  );
 }
 
 export async function ensurePushServiceWorker(): Promise<ServiceWorkerRegistration | null> {
@@ -208,6 +248,11 @@ export async function enablePushNotifications(
     if (!res.ok) {
       return { ok: false, error: "Errore nel salvare la sottoscrizione" };
     }
+
+    cleanupObsoletePushSubscriptions(registration).catch((error) => {
+      console.warn("cleanupObsoletePushSubscriptions", error);
+    });
+
     return { ok: true };
   } catch (e) {
     console.error(e);
@@ -221,17 +266,14 @@ export async function disablePushNotifications(): Promise<{
 }> {
   if (!isPushSupported()) return { ok: true };
   try {
-    const registration = await getExistingRegistration();
-    if (!registration) return { ok: true };
-    const subscription = await registration.pushManager.getSubscription();
-    if (!subscription) return { ok: true };
+    const registrations = await getKnownPushRegistrations();
+    for (const registration of registrations) {
+      const subscription = await registration.pushManager.getSubscription();
+      if (!subscription) continue;
 
-    await fetch("/api/push/unsubscribe", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ endpoint: subscription.endpoint }),
-    });
-    await subscription.unsubscribe();
+      await unsubscribeAndForgetPushSubscription(subscription);
+    }
+
     return { ok: true };
   } catch (e) {
     console.error(e);
@@ -241,8 +283,12 @@ export async function disablePushNotifications(): Promise<{
 
 export async function isSubscribed(): Promise<boolean> {
   if (!isPushSupported()) return false;
-  const registration = await getExistingRegistration();
-  if (!registration) return false;
-  const subscription = await registration.pushManager.getSubscription();
-  return !!subscription;
+  const registrations = await getKnownPushRegistrations();
+
+  for (const registration of registrations) {
+    const subscription = await registration.pushManager.getSubscription();
+    if (subscription) return true;
+  }
+
+  return false;
 }

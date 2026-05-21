@@ -12,6 +12,6 @@ export const config = {
      * - _next/static, _next/image, favicon.ico, icons, sw.js, manifest.webmanifest
      * - Public assets in /public
      */
-    "/((?!_next/static|_next/image|favicon.ico|icons/|sw\\.js|workbox-|manifest\\.webmanifest|.*\\.(?:png|jpg|jpeg|gif|svg|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|icons/|push-sw\\.js|sw\\.js|workbox-|manifest\\.webmanifest|.*\\.(?:png|jpg|jpeg|gif|svg|webp)$).*)",
   ],
 };
