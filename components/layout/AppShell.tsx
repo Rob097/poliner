@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { Suspense, useState, type ReactNode } from "react";
 import { TabBar } from "./TabBar";
 import { FABMenu } from "./FABMenu";
 import { InstallPrompt } from "./InstallPrompt";
@@ -10,9 +10,11 @@ import { ToastProvider } from "@/components/ui/Toast";
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <ToastProvider>
-      <NavigationOverlayProvider>
-        <AppShellInner>{children}</AppShellInner>
-      </NavigationOverlayProvider>
+      <Suspense fallback={<AppShellInner>{children}</AppShellInner>}>
+        <NavigationOverlayProvider>
+          <AppShellInner>{children}</AppShellInner>
+        </NavigationOverlayProvider>
+      </Suspense>
     </ToastProvider>
   );
 }
