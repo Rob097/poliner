@@ -1,17 +1,35 @@
-const MESI_BREVI = [
+/** Millisecondi in un giorno. Centralizzato per evitare la duplicazione `1000 * 60 * 60 * 24`. */
+export const MS_DAY = 1000 * 60 * 60 * 24;
+
+/** Mesi brevi in italiano. */
+export const MESI_BREVI = [
   "gen", "feb", "mar", "apr", "mag", "giu",
   "lug", "ago", "set", "ott", "nov", "dic",
 ] as const;
 
-const MESI_LUNGHI = [
+/** Mesi per esteso in italiano. */
+export const MESI_LUNGHI = [
   "gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno",
   "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre",
 ] as const;
 
-const GIORNI = [
+/** Giorni della settimana in italiano (domenica = 0). */
+export const GIORNI = [
   "Domenica", "Lunedì", "Martedì", "Mercoledì",
   "Giovedì", "Venerdì", "Sabato",
 ] as const;
+
+/** Data di oggi in formato YYYY-MM-DD (UTC, coerente con colonne DATE). */
+export function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** Mezzanotte locale di oggi in ISO 8601 — utile per query "da inizio giornata". */
+export function startOfTodayIso(): string {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
 
 /** "15 mag" */
 export function formatData(input: string | Date): string {
@@ -33,7 +51,7 @@ export function formatDataCompleta(input: string | Date): string {
 
 export function giorniFa(date: string | Date, now: Date = new Date()): number {
   const d = typeof date === "string" ? new Date(date) : date;
-  return Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.floor((now.getTime() - d.getTime()) / MS_DAY);
 }
 
 export function etichettaGiornoRelativo(date: string | Date, now: Date = new Date()): string {

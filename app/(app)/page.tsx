@@ -8,13 +8,9 @@ import { AlertCard } from "@/components/ui/AlertCard";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { fetchMeteo, getAlbaTramonto, hasCoords, type MeteoData } from "@/lib/utils/meteo";
 import { consiglioStagionale } from "@/lib/utils/stagione";
-import {
-  calcolaStatiManutenzione,
-  type VoceManutenzione,
-} from "@/lib/utils/manutenzione";
-import { calcolaScadenza } from "@/lib/utils/uova";
 import { formatDataCompleta } from "@/lib/utils/date";
 import { AperturaChiusuraCard } from "@/components/home/AperturaChiusuraCard";
+import { loadHomeData } from "@/lib/queries/home";
 
 export const dynamic = "force-dynamic";
 
@@ -28,132 +24,18 @@ interface Alert {
 
 export default async function HomePage() {
   const { supabase, user, pollaio, pollaiConRuolo, ruolo } = await requirePollaio();
-  const oggiIso = new Date().toISOString().slice(0, 10);
 
-  // ── Dati in parallelo ───────────────────────────────────
-  const [
-    uovaDispRes,
-    uovaOggiRes,
-    gallineCountRes,
-    galloCountRes,
-    vociAttiveRes,
-    manutRes,
-    saluteAttiviRes,
-    uovaTutte,
-    scorteRes,
-    promemoriaRes,
-    uscitaOggiRes,
-    notificheNonLetteRes,
-    homeHospitalRes,
-  ] = await Promise.all([
-    supabase
-      .from("uova")
-      .select("id", { count: "exact", head: true })
-      .eq("pollaio_id", pollaio.id)
-      .eq("stato", "disponibile"),
-    supabase
-      .from("uova")
-      .select("id", { count: "exact", head: true })
-      .eq("pollaio_id", pollaio.id)
-      .gte("data_deposizione", startOfTodayIso()),
-    supabase
-      .from("animali")
-      .select("id", { count: "exact", head: true })
-      .eq("pollaio_id", pollaio.id)
-      .eq("tipo", "gallina")
-      .eq("attivo", true),
-    supabase
-      .from("animali")
-      .select("id", { count: "exact", head: true })
-      .eq("pollaio_id", pollaio.id)
-      .eq("tipo", "gallo")
-      .eq("attivo", true),
-    supabase
-      .from("manutenzioni_voci")
-      .select("id, nome, dove, icona, frequenza_giorni, consiglio_id, attivo")
-      .eq("pollaio_id", pollaio.id)
-      .eq("attivo", true),
-    supabase
-      .from("manutenzioni")
-      .select("id, voce_id, data")
-      .eq("pollaio_id", pollaio.id)
-      .order("data", { ascending: false }),
-    supabase
-      .from("eventi_salute")
-      .select("id, animale_id, descrizione, tipo, animali(nome)")
-      .eq("pollaio_id", pollaio.id)
-      .eq("stato", "in_corso")
-      .limit(5),
-    supabase
-      .from("uova")
-      .select("id, data_deposizione, conservazione")
-      .eq("pollaio_id", pollaio.id)
-      .eq("stato", "disponibile"),
-    supabase
-      .from("scorte_cibo")
-      .select("id, nome, quantita, soglia_avviso")
-      .eq("pollaio_id", pollaio.id),
-    supabase
-      .from("note")
-      .select("id, testo, promemoria_data")
-      .eq("pollaio_id", pollaio.id)
-      .eq("archiviata", false)
-      .not("promemoria_data", "is", null)
-      .lte("promemoria_data", new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString())
-      .order("promemoria_data", { ascending: true })
-      .limit(3),
-    supabase
-      .from("log_uscite")
-      .select("id, ora_uscita, ora_rientro")
-      .eq("pollaio_id", pollaio.id)
-      .eq("data", oggiIso)
-      .maybeSingle(),
-    supabase
-      .from("notifiche_inviate")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .is("letta_il", null),
-    supabase
-      .from("eventi_salute")
-      .select("id, animale_id, hh_da, animali(nome, foto_url)")
-      .eq("pollaio_id", pollaio.id)
-      .eq("home_hospital", true)
-      .is("hh_a", null)
-      .order("hh_da", { ascending: true }),
-  ]);
-
-  // ── Manutenzioni: stati dalle voci attive ───────────────
-  type VoceRow = {
-    id: string;
-    nome: string;
-    dove: string | null;
-    icona: string;
-    frequenza_giorni: number;
-    consiglio_id: string | null;
-    attivo: boolean;
-  };
-  type LogRow = { id: string; voce_id: string; data: string };
-  const voci: VoceManutenzione[] = ((vociAttiveRes.data ?? []) as unknown as VoceRow[]).map((v) => ({
-    id: v.id,
-    nome: v.nome,
-    dove: v.dove,
-    icona: v.icona,
-    frequenza_giorni: v.frequenza_giorni,
-    consiglio_id: v.consiglio_id,
-    attivo: v.attivo,
-  }));
-  const ultimoPerVoce = new Map<string, string>();
-  for (const m of (manutRes.data ?? []) as unknown as LogRow[]) {
-    if (!ultimoPerVoce.has(m.voce_id)) ultimoPerVoce.set(m.voce_id, m.data);
-  }
-  const stati = calcolaStatiManutenzione(voci, ultimoPerVoce);
+  const data = await loadHomeData(supabase, pollaio.id, user.id, {
+    ambiente: pollaio.conservazione_ambiente_giorni,
+    frigo: pollaio.conservazione_frigo_giorni,
+  });
 
   // ── Alerts ──────────────────────────────────────────────
   const alerts: Alert[] = [];
 
   // Manutenzioni scadute (solo se la voce è stata almeno fatta una volta:
   // evitiamo di mostrare alert per voci appena create che non hanno log)
-  for (const s of stati
+  for (const s of data.manutenzioneStati
     .filter((x) => x.stato === "scaduta" && x.ultimoIntervento !== null)
     .slice(0, 3)) {
     alerts.push({
@@ -165,7 +47,9 @@ export default async function HomePage() {
     });
   }
   // Manutenzioni in scadenza
-  for (const s of stati.filter((x) => x.stato === "in_scadenza").slice(0, 2)) {
+  for (const s of data.manutenzioneStati
+    .filter((x) => x.stato === "in_scadenza")
+    .slice(0, 2)) {
     alerts.push({
       icon: "🔔",
       title: `${s.voce.nome} tra poco`,
@@ -175,52 +59,27 @@ export default async function HomePage() {
     });
   }
   // Galline con problemi attivi
-  for (const e of saluteAttiviRes.data ?? []) {
-    const animale = e.animali as unknown as
-      | { nome: string }
-      | { nome: string }[]
-      | null;
-    const nome = Array.isArray(animale)
-      ? animale[0]?.nome
-      : animale?.nome ?? "Una gallina";
+  for (const e of data.saluteAttivi) {
     alerts.push({
       icon: "❤️‍🩹",
-      title: `${nome} ha un problema`,
+      title: `${e.nome} ha un problema`,
       subtitle: e.descrizione ?? e.tipo,
       color: "#E8678A",
       href: `/galline/${e.animale_id}`,
     });
   }
   // Uova in scadenza
-  const scadenzaSettings = {
-    ambiente: pollaio.conservazione_ambiente_giorni,
-    frigo: pollaio.conservazione_frigo_giorni,
-  };
-  const inScadenzaCount = (uovaTutte.data ?? []).filter((u) => {
-    const s = calcolaScadenza(
-      u.data_deposizione,
-      u.conservazione as "ambiente" | "frigo",
-      scadenzaSettings,
-    );
-    return s.livello === "in_scadenza" || s.livello === "urgente";
-  }).length;
-  if (inScadenzaCount > 0) {
+  if (data.uovaInScadenza > 0) {
     alerts.push({
       icon: "🥚",
-      title: `${inScadenzaCount} uova in scadenza`,
+      title: `${data.uovaInScadenza} uova in scadenza`,
       subtitle: "Usale o regalale presto!",
       color: "#FFE07A",
       href: "/uova",
     });
   }
   // Scorte basse
-  const scorteBasse = (scorteRes.data ?? []).filter(
-    (s) =>
-      s.quantita !== null &&
-      s.soglia_avviso !== null &&
-      Number(s.quantita) <= Number(s.soglia_avviso),
-  );
-  for (const s of scorteBasse.slice(0, 2)) {
+  for (const s of data.scorteBasse.slice(0, 2)) {
     alerts.push({
       icon: "📦",
       title: `${s.nome} sta finendo`,
@@ -231,8 +90,7 @@ export default async function HomePage() {
   }
   // Promemoria in arrivo (< 24h) o scaduti
   const now = Date.now();
-  for (const p of promemoriaRes.data ?? []) {
-    if (!p.promemoria_data) continue;
+  for (const p of data.promemoriaImminenti) {
     const dt = new Date(p.promemoria_data).getTime();
     const diffH = Math.round((dt - now) / (1000 * 60 * 60));
     const subtitle =
@@ -260,48 +118,15 @@ export default async function HomePage() {
         fetchMeteo(pollaio.posizione_lat!, pollaio.posizione_lng!),
         getAlbaTramonto(pollaio.posizione_lat!, pollaio.posizione_lng!),
       ]);
-    } catch {
+    } catch (e) {
+      console.error("[home] meteo:", e);
       meteo = null;
     }
   }
 
-  // Stato uscita di oggi
-  type UscitaRow = { id: string; ora_uscita: string | null; ora_rientro: string | null };
-  const uscitaOggi = (uscitaOggiRes.data ?? null) as UscitaRow | null;
-
   const consiglio = consiglioStagionale();
-  const disponibili = uovaDispRes.count ?? 0;
-  const oggiUova = uovaOggiRes.count ?? 0;
-  const gallineN = gallineCountRes.count ?? 0;
-  const galloN = galloCountRes.count ?? 0;
-  const notificheDaLeggere = notificheNonLetteRes.count ?? 0;
   const dateStr = formatDataCompleta(new Date());
-
-  // ── Galline in Home Hospital ────────────────────────────
-  type HHRow = {
-    id: string;
-    animale_id: string;
-    hh_da: string | null;
-    animali: { nome: string; foto_url: string | null } | { nome: string; foto_url: string | null }[] | null;
-  };
-  const hhRows = (homeHospitalRes.data ?? []) as unknown as HHRow[];
-  // Dedup per animale_id (una gallina può avere più eventi HH attivi teoricamente)
-  const hhByAnimale = new Map<string, { nome: string; fotoUrl: string | null; hhDa: string | null }>();
-  for (const r of hhRows) {
-    if (hhByAnimale.has(r.animale_id)) continue;
-    const a = Array.isArray(r.animali) ? r.animali[0] : r.animali;
-    hhByAnimale.set(r.animale_id, {
-      nome: a?.nome ?? "Una gallina",
-      fotoUrl: a?.foto_url ?? null,
-      hhDa: r.hh_da,
-    });
-  }
-  const hhList = Array.from(hhByAnimale.entries()).map(([animaleId, v]) => {
-    const giorni = v.hhDa
-      ? Math.max(0, Math.floor((Date.now() - new Date(v.hhDa).getTime()) / (1000 * 60 * 60 * 24)))
-      : 0;
-    return { animaleId, ...v, giorni };
-  });
+  const { counters, uscitaOggi, hhList } = data;
 
   return (
     <>
@@ -312,15 +137,15 @@ export default async function HomePage() {
             href="/notifiche"
             className="relative p-1.5 -mr-1.5"
             aria-label={
-              notificheDaLeggere > 0
-                ? `Notifiche, ${notificheDaLeggere} da leggere`
+              counters.notificheDaLeggere > 0
+                ? `Notifiche, ${counters.notificheDaLeggere} da leggere`
                 : "Notifiche"
             }
           >
             <span className="text-xl">🔔</span>
-            {notificheDaLeggere > 0 && (
+            {counters.notificheDaLeggere > 0 && (
               <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E8678A] text-white text-[10px] font-bold leading-[18px] text-center shadow-[0_1px_3px_rgba(0,0,0,0.18)]">
-                {notificheDaLeggere > 99 ? "99+" : notificheDaLeggere}
+                {counters.notificheDaLeggere > 99 ? "99+" : counters.notificheDaLeggere}
               </span>
             )}
           </Link>
@@ -357,13 +182,13 @@ export default async function HomePage() {
             >
               <div className="text-4xl">🥚</div>
               <div className="text-4xl font-extrabold text-[var(--primary)]">
-                {disponibili}
+                {counters.uovaDisponibili}
               </div>
               <div className="text-[13px] text-[var(--primary)] font-semibold">
                 uova disponibili
               </div>
               <div className="text-[11px] text-[var(--text-secondary)] mt-1">
-                +{oggiUova} oggi
+                +{counters.uovaOggi} oggi
               </div>
             </Card>
           </Link>
@@ -378,13 +203,13 @@ export default async function HomePage() {
             >
               <div className="text-4xl">🐔</div>
               <div className="text-4xl font-extrabold" style={{ color: "#5a8a5a" }}>
-                {gallineN}
+                {counters.galline}
               </div>
               <div className="text-[13px] font-semibold" style={{ color: "#5a8a5a" }}>
                 galline
               </div>
               <div className="text-[11px] text-[var(--text-secondary)] mt-1">
-                {galloN > 0 ? `+${galloN} gallo` : "no gallo"}
+                {counters.galli > 0 ? `+${counters.galli} gallo` : "no gallo"}
               </div>
             </Card>
           </Link>
@@ -557,10 +382,4 @@ function MeteoMissing({ pollaioId: _pollaioId }: { pollaioId: string }) {
       </div>
     </Card>
   );
-}
-
-function startOfTodayIso(): string {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString();
 }

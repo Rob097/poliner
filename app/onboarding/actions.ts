@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import type { ActionResult, Tipo } from "@/lib/types";
 
 export interface OnboardingInput {
   pollaioId: string;
@@ -15,15 +15,12 @@ export interface OnboardingInput {
   fotoUrl: string | null;
   animale: {
     nome: string;
-    tipo: "gallina" | "gallo";
+    tipo: Tipo;
     razzaId: string | null;
   };
 }
 
-export interface OnboardingResult {
-  ok: boolean;
-  error?: string;
-}
+export type OnboardingResult = ActionResult;
 
 /**
  * Crea pollaio (con id passato dal client per coerenza con foto già uploadata)
@@ -76,10 +73,4 @@ export async function completeOnboarding(input: OnboardingInput): Promise<Onboar
 
   revalidatePath("/", "layout");
   return { ok: true };
-}
-
-export async function signOutAction() {
-  const supabase = createClient();
-  await supabase.auth.signOut();
-  redirect("/login");
 }

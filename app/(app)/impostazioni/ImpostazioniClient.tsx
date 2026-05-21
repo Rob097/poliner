@@ -14,7 +14,7 @@ import { useToast } from "@/components/ui/Toast";
 import { IconEdit, IconMap } from "@/components/ui/icons";
 import { useGeolocation } from "@/lib/hooks/useGeolocation";
 import { reverseGeocode, searchPlaces, type PlaceSuggestion } from "@/lib/utils/geocoding";
-import { createClient } from "@/lib/supabase/client";
+import { signOutAction } from "@/lib/actions/auth";
 import {
   CATEGORIE_NOTIFICHE,
   categorieDefault,
@@ -89,10 +89,7 @@ export function ImpostazioniClient({
   const [editConservazione, setEditConservazione] = useState(false);
 
   async function onLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
+    await signOutAction();
   }
 
   const displayName = profilo.displayName ?? profilo.email?.split("@")[0] ?? "Tu";

@@ -3,6 +3,8 @@
  * Free, no API key, copertura italiana eccellente.
  */
 
+import { GIORNI, MS_DAY, todayIso } from "./date";
+
 const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 
 export type Condizione =
@@ -87,19 +89,13 @@ function describeCode(code: number): { icona: string; desc: string } {
   return WEATHER_CODE[code] ?? { icona: "🌥️", desc: "Variabile" };
 }
 
-const GIORNI_SETTIMANA = [
-  "Domenica", "Lunedì", "Martedì", "Mercoledì",
-  "Giovedì", "Venerdì", "Sabato",
-];
-
 function labelGiorno(date: Date, today: Date): string {
   const diff = Math.round(
-    (date.setHours(0, 0, 0, 0) - today.setHours(0, 0, 0, 0)) /
-      (1000 * 60 * 60 * 24),
+    (date.setHours(0, 0, 0, 0) - today.setHours(0, 0, 0, 0)) / MS_DAY,
   );
   if (diff === 0) return "Oggi";
   if (diff === 1) return "Domani";
-  return GIORNI_SETTIMANA[date.getDay()];
+  return GIORNI[date.getDay()];
 }
 
 /**
@@ -294,7 +290,7 @@ export async function getAlbaTramonto(
   lng: number,
   date?: string,
 ): Promise<{ alba: string | null; tramonto: string | null }> {
-  const day = date ?? new Date().toISOString().slice(0, 10);
+  const day = date ?? todayIso();
   const url = new URL(FORECAST_URL);
   url.searchParams.set("latitude", lat.toString());
   url.searchParams.set("longitude", lng.toString());
