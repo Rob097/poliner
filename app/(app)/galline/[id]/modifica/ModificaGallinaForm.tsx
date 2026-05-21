@@ -18,8 +18,8 @@ import {
   showLoadingOverlay,
 } from "@/components/layout/NavigationOverlay";
 import { archiviaAnimale, updateAnimale } from "../../actions";
-
-type Tipo = "gallina" | "gallo";
+import { todayIso } from "@/lib/utils/date";
+import type { Tipo } from "@/lib/types";
 
 interface InitialValues {
   id: string;
@@ -192,7 +192,7 @@ export function ModificaGallinaForm({ initial }: Props) {
               type="date"
               value={dataNascita}
               onChange={(e) => setDataNascita(e.target.value)}
-              max={new Date().toISOString().slice(0, 10)}
+              max={todayIso()}
             />
           </FormField>
 

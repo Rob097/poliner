@@ -3,11 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { requirePollaio, requireUser } from "@/lib/supabase/queries";
 import { SLUG_REGEX } from "@/lib/utils/slug";
+import type { ActionResult } from "@/lib/types";
 
-export interface ActionResult {
-  ok: boolean;
-  error?: string;
-}
+export type { ActionResult };
 
 export interface PreferenzeNotificheInput {
   pushAttivo: boolean;

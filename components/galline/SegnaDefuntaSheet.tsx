@@ -11,6 +11,7 @@ import {
   showLoadingOverlay,
 } from "@/components/layout/NavigationOverlay";
 import { segnaAnimaleDefunto } from "@/app/(app)/galline/actions";
+import { todayIso } from "@/lib/utils/date";
 
 interface Props {
   animaleId: string;
@@ -21,7 +22,7 @@ interface Props {
 
 export function SegnaDefuntaSheet({ animaleId, animaleNome, onClose, onConfirmed }: Props) {
   const { show } = useToast();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
   const [data, setData] = useState(today);
   const [causa, setCausa] = useState("");
   const [note, setNote] = useState("");

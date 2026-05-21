@@ -39,7 +39,7 @@ export function InvitoClient({ token, invito, userEmail, isLoggedIn }: Props) {
     startTransition(async () => {
       const res = await accettaInvito(token);
       if (!res.ok) {
-        setErrore(res.errore ?? "Non sono riuscito ad accettare l'invito.");
+        setErrore(res.error ?? "Non sono riuscito ad accettare l'invito.");
         return;
       }
       router.push(`/benvenuto?pollaio=${res.pollaioId ?? ""}`);
@@ -154,12 +154,12 @@ function SignupForm({ token, invito }: { token: string; invito: InvitoData }) {
     });
 
     if (error) {
-      return { ok: false as const, errore: `Login fallito — ${error.message}` };
+      return { ok: false as const, error: `Login fallito — ${error.message}` };
     }
     if (!data.session) {
       return {
         ok: false as const,
-        errore: "Account creato, ma non sono riuscito ad avviare la sessione. Riprova ad accedere.",
+        error: "Account creato, ma non sono riuscito ad avviare la sessione. Riprova ad accedere.",
       };
     }
 
@@ -167,7 +167,7 @@ function SignupForm({ token, invito }: { token: string; invito: InvitoData }) {
     if (!res.ok) {
       return {
         ok: false as const,
-        errore: res.errore ?? "Non sono riuscito ad accettare l'invito.",
+        error: res.error ?? "Non sono riuscito ad accettare l'invito.",
       };
     }
 
@@ -185,7 +185,7 @@ function SignupForm({ token, invito }: { token: string; invito: InvitoData }) {
       const res = await signInAndAccept(supabase);
       setLoading(false);
       if (!res.ok) {
-        setErrore(res.errore);
+        setErrore(res.error);
         return;
       }
       router.push(`/benvenuto?pollaio=${res.pollaioId}`);
@@ -199,14 +199,14 @@ function SignupForm({ token, invito }: { token: string; invito: InvitoData }) {
       if (createRes.giaRegistrato) {
         setHasAccount(true);
       }
-      setErrore(createRes.errore ?? "Non sono riuscito a creare l'account.");
+      setErrore(createRes.error ?? "Non sono riuscito a creare l'account.");
       return;
     }
 
     const res = await signInAndAccept(supabase);
     setLoading(false);
     if (!res.ok) {
-      setErrore(res.errore);
+      setErrore(res.error);
       return;
     }
 

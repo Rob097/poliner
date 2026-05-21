@@ -1,5 +1,7 @@
-export type Conservazione = "ambiente" | "frigo";
-export type StatoUovo = "disponibile" | "consumato" | "regalato";
+import { MS_DAY } from "./date";
+import type { Conservazione, StatoUovo } from "@/lib/types";
+
+export type { Conservazione, StatoUovo };
 
 export interface ConservazioneSettings {
   ambiente: number;  // giorni
@@ -10,8 +12,6 @@ export const CONSERVAZIONE_DEFAULT: ConservazioneSettings = {
   ambiente: 20,
   frigo: 28,
 };
-
-const MS_DAY = 1000 * 60 * 60 * 24;
 
 export interface ScadenzaInfo {
   /** Giorni rimanenti prima della scadenza. Negativo = già scaduto. */

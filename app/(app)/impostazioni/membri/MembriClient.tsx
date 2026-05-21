@@ -68,7 +68,7 @@ export function MembriClient({
     startTransition(async () => {
       const res = await abbandonaPollaio(pollaioId);
       if (!res.ok) {
-        setErrore(res.errore ?? "Errore");
+        setErrore(res.error ?? "Errore");
         return;
       }
       setConfirmLeave(false);
@@ -82,7 +82,7 @@ export function MembriClient({
     startTransition(async () => {
       const res = await cambiaRuoloMembro({ pollaioId, userId, nuovoRuolo });
       if (!res.ok) {
-        show(res.errore ?? "Errore");
+        show(res.error ?? "Errore");
         return;
       }
       show(nuovoRuolo === "admin" ? "Promosso ad admin" : "Ora è guest");
@@ -95,7 +95,7 @@ export function MembriClient({
     startTransition(async () => {
       const res = await rimuoviMembro({ pollaioId, userId });
       if (!res.ok) {
-        show(res.errore ?? "Errore");
+        show(res.error ?? "Errore");
         return;
       }
       show("Membro rimosso");
@@ -108,7 +108,7 @@ export function MembriClient({
     startTransition(async () => {
       const res = await revocaInvito(invitoId);
       if (!res.ok) {
-        show(res.errore ?? "Errore");
+        show(res.error ?? "Errore");
         return;
       }
       show("Invito revocato");
@@ -416,7 +416,7 @@ function InvitaModal({
       });
 
       if (!res.ok) {
-        setErrore(res.errore ?? "Qualcosa è andato storto.");
+        setErrore(res.error ?? "Qualcosa è andato storto.");
         return;
       }
 

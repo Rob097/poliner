@@ -14,6 +14,7 @@ import {
   aggiungiEventoInserimento,
   type TipoEventoInserimento,
 } from "@/app/(app)/galline/actions";
+import { todayIso } from "@/lib/utils/date";
 
 export const INSERIMENTO_LABEL: Record<TipoEventoInserimento, { label: string; icona: string }> = {
   quarantena_inizio: { label: "Quarantena iniziata", icona: "🔒" },
@@ -42,7 +43,7 @@ interface Props {
 
 export function AggiungiEventoInserimentoSheet({ animaleId, onClose }: Props) {
   const { show } = useToast();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
   const [tipo, setTipo] = useState<TipoEventoInserimento>("quarantena_inizio");
   const [data, setData] = useState(today);
   const [note, setNote] = useState("");

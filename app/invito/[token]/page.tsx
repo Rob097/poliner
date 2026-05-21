@@ -27,7 +27,7 @@ export default async function InvitoTokenPage({ params }: { params: Params }) {
               : "Invito non valido"}
         </h1>
         <p className="text-sm text-[var(--text-secondary)] m-0 max-w-xs">
-          {invito.errore} Chiedi a chi ti ha invitata/o di mandartene uno nuovo.
+          {invito.error} Chiedi a chi ti ha invitata/o di mandartene uno nuovo.
         </p>
         <Link href="/" className="mt-4">
           <Button>Vai a Poliner</Button>

@@ -20,7 +20,7 @@ import { calcolaEta, faseProduttiva } from "@/lib/utils/eta";
 import { statoMutaCorrente } from "@/lib/utils/muta";
 import { trovaRazza, uovaAnnoLabel } from "@/lib/data/razze";
 import { avatarBgFor, defaultEmojiFor } from "@/lib/utils/avatar";
-import { formatData, formatDataLunga } from "@/lib/utils/date";
+import { formatData, formatDataLunga, todayIso } from "@/lib/utils/date";
 import {
   aggiornaHomeHospital,
   aggiungiEventoSalute,
@@ -922,7 +922,7 @@ function AggiungiTrattamentoSheet({
             type="date"
             value={prossimaData}
             onChange={(e) => setProssimaData(e.target.value)}
-            min={new Date().toISOString().slice(0, 10)}
+            min={todayIso()}
           />
         </FormField>
 
@@ -951,7 +951,7 @@ function RegistraProblemaSheet({
   const [tipo, setTipo] =
     useState<(typeof TIPI_PROBLEMA)[number]["value"]>("ferita");
   const [descrizione, setDescrizione] = useState("");
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
   const [homeHospital, setHomeHospital] = useState(false);
   const [hhDa, setHhDa] = useState(today);
   const [hhA, setHhA] = useState("");
@@ -1072,7 +1072,7 @@ function AggiornaHomeHospitalSheet({
   onClose: () => void;
 }) {
   const { show } = useToast();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
   const [homeHospital, setHomeHospital] = useState(evento.home_hospital);
   const [hhDa, setHhDa] = useState(evento.hh_da ?? today);
   const [hhA, setHhA] = useState(evento.hh_a ?? "");

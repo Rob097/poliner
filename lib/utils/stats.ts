@@ -2,6 +2,8 @@
  * Helpers per aggregazioni statistiche.
  */
 
+import { MS_DAY } from "./date";
+
 export type PeriodoStats = "settimana" | "mese" | "tre_mesi" | "anno" | "tutto";
 
 export interface BucketKey {
@@ -9,8 +11,6 @@ export interface BucketKey {
   label: string;   // "S18", "Mag", "2026"
   date: Date;      // inizio del bucket (per ordinamento)
 }
-
-const MS_DAY = 1000 * 60 * 60 * 24;
 
 export function sogliaPerPeriodo(p: PeriodoStats, oggi: Date = new Date()): Date | null {
   if (p === "tutto") return null;

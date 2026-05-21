@@ -42,7 +42,7 @@ export function PollaioSwitcher({ pollai, attivoId, prominent = false }: Pollaio
     startTransition(async () => {
       const res = await switchPollaio(id);
       if (!res.ok) {
-        setErrore(res.errore ?? "Errore");
+        setErrore(res.error ?? "Errore");
         return;
       }
       setOpen(false);
@@ -55,7 +55,7 @@ export function PollaioSwitcher({ pollai, attivoId, prominent = false }: Pollaio
     startTransition(async () => {
       const res = await creaPollaio({ nome: nuovoNome });
       if (!res.ok || !res.pollaioId) {
-        setErrore(res.errore ?? "Errore");
+        setErrore(res.error ?? "Errore");
         return;
       }
       setNuovoNome("");

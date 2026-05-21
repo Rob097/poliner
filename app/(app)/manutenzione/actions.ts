@@ -2,11 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { requirePollaio } from "@/lib/supabase/queries";
+import type { ActionResult } from "@/lib/types";
 
-export interface ActionResult {
-  ok: boolean;
-  error?: string;
-}
+export type { ActionResult };
 
 export interface NuovoInterventoInput {
   voceId: string;

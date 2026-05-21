@@ -24,7 +24,7 @@ import {
   creaUscitaManuale,
   eliminaUscita,
 } from "@/lib/actions/uscite";
-import { etichettaGiornoRelativo, formatData } from "@/lib/utils/date";
+import { etichettaGiornoRelativo, formatData, todayIso } from "@/lib/utils/date";
 
 export interface UscitaRow {
   id: string;
@@ -262,7 +262,7 @@ function EditUscitaModal({
         onClose();
         router.refresh();
       } else {
-        show(res.errore ?? "Ops, riprova!");
+        show(res.error ?? "Ops, riprova!");
       }
     });
   };
@@ -276,7 +276,7 @@ function EditUscitaModal({
         onClose();
         router.refresh();
       } else {
-        show(res.errore ?? "Ops, riprova!");
+        show(res.error ?? "Ops, riprova!");
       }
     });
   };
@@ -325,7 +325,7 @@ function EditUscitaModal({
 function NuovaUscitaModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const { show } = useToast();
-  const [data, setData] = useState(new Date().toISOString().slice(0, 10));
+  const [data, setData] = useState(todayIso());
   const [oraUscita, setOraUscita] = useState("");
   const [oraRientro, setOraRientro] = useState("");
   const [note, setNote] = useState("");
@@ -349,7 +349,7 @@ function NuovaUscitaModal({ onClose }: { onClose: () => void }) {
         onClose();
         router.refresh();
       } else {
-        show(res.errore ?? "Ops, riprova!");
+        show(res.error ?? "Ops, riprova!");
       }
     });
   };

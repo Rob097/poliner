@@ -2,19 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { requirePollaio } from "@/lib/supabase/queries";
+import { todayIso } from "@/lib/utils/date";
+import type { ActionResult } from "@/lib/types";
 
-export interface ActionResult {
-  ok: boolean;
-  errore?: string;
-}
-
-/**
- * YYYY-MM-DD in fuso orario locale del server (forzato a UTC per coerenza con DATE).
- * log_uscite.data è di tipo DATE, quindi salviamo solo la parte data.
- */
-function oggiIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
+export type { ActionResult };
 
 /**
  * HH:MM:SS dell'istante corrente in fuso locale del server.
@@ -34,7 +25,7 @@ function oraCorrenteIso(): string {
  */
 export async function registraApertura(): Promise<ActionResult> {
   const { supabase, pollaio } = await requirePollaio();
-  const data = oggiIso();
+  const data = todayIso();
   const ora = oraCorrenteIso();
 
   // Verifica se la riga di oggi esiste già
@@ -54,12 +45,12 @@ export async function registraApertura(): Promise<ActionResult> {
       .from("log_uscite")
       .update({ ora_uscita: ora })
       .eq("id", existing.id);
-    if (error) return { ok: false, errore: "Non sono riuscita a registrare l'apertura." };
+    if (error) return { ok: false, error: "Non sono riuscita a registrare l'apertura." };
   } else {
     const { error } = await supabase
       .from("log_uscite")
       .insert({ pollaio_id: pollaio.id, data, ora_uscita: ora });
-    if (error) return { ok: false, errore: "Non sono riuscita a registrare l'apertura." };
+    if (error) return { ok: false, error: "Non sono riuscita a registrare l'apertura." };
   }
 
   revalidatePath("/");
@@ -73,7 +64,7 @@ export async function registraApertura(): Promise<ActionResult> {
  */
 export async function registraChiusura(): Promise<ActionResult> {
   const { supabase, pollaio } = await requirePollaio();
-  const data = oggiIso();
+  const data = todayIso();
   const ora = oraCorrenteIso();
 
   const { data: existing } = await supabase
@@ -92,12 +83,12 @@ export async function registraChiusura(): Promise<ActionResult> {
       .from("log_uscite")
       .update({ ora_rientro: ora })
       .eq("id", existing.id);
-    if (error) return { ok: false, errore: "Non sono riuscita a registrare la chiusura." };
+    if (error) return { ok: false, error: "Non sono riuscita a registrare la chiusura." };
   } else {
     const { error } = await supabase
       .from("log_uscite")
       .insert({ pollaio_id: pollaio.id, data, ora_rientro: ora });
-    if (error) return { ok: false, errore: "Non sono riuscita a registrare la chiusura." };
+    if (error) return { ok: false, error: "Non sono riuscita a registrare la chiusura." };
   }
 
   revalidatePath("/");
@@ -129,7 +120,7 @@ export async function aggiornaOrario(
   if (Object.keys(update).length === 0) return { ok: true };
 
   const { error } = await supabase.from("log_uscite").update(update).eq("id", id);
-  if (error) return { ok: false, errore: "Non sono riuscita a salvare le modifiche." };
+  if (error) return { ok: false, error: "Non sono riuscita a salvare le modifiche." };
 
   revalidatePath("/");
   revalidatePath("/uscite");
@@ -157,7 +148,7 @@ export async function creaUscitaManuale(input: {
     },
     { onConflict: "pollaio_id,data" },
   );
-  if (error) return { ok: false, errore: "Non sono riuscita a salvare la giornata." };
+  if (error) return { ok: false, error: "Non sono riuscita a salvare la giornata." };
 
   revalidatePath("/");
   revalidatePath("/uscite");
@@ -167,7 +158,7 @@ export async function creaUscitaManuale(input: {
 export async function eliminaUscita(id: string): Promise<ActionResult> {
   const { supabase } = await requirePollaio();
   const { error } = await supabase.from("log_uscite").delete().eq("id", id);
-  if (error) return { ok: false, errore: "Non sono riuscita a eliminare la giornata." };
+  if (error) return { ok: false, error: "Non sono riuscita a eliminare la giornata." };
   revalidatePath("/");
   revalidatePath("/uscite");
   return { ok: true };

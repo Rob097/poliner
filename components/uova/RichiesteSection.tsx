@@ -108,7 +108,7 @@ function RichiestaCard({
         show("✓ Accettata");
         router.refresh();
       } else {
-        show(res.errore ?? "Ops, riprova!");
+        show(res.error ?? "Ops, riprova!");
       }
     });
   };
@@ -121,7 +121,7 @@ function RichiestaCard({
         show("Rifiutata");
         router.refresh();
       } else {
-        show(res.errore ?? "Ops, riprova!");
+        show(res.error ?? "Ops, riprova!");
       }
     });
   };
@@ -134,7 +134,7 @@ function RichiestaCard({
         show("Annullata");
         router.refresh();
       } else {
-        show(res.errore ?? "Ops, riprova!");
+        show(res.error ?? "Ops, riprova!");
       }
     });
   };
@@ -233,7 +233,7 @@ function RichiediModal({
         onClose();
         router.refresh();
       } else {
-        setErrore(res.errore ?? "Ops, riprova!");
+        setErrore(res.error ?? "Ops, riprova!");
       }
     });
   };

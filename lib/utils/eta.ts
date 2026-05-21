@@ -1,4 +1,9 @@
 import { trovaRazza, type Razza } from "@/lib/data/razze";
+import { MS_DAY } from "./date";
+import type { Tipo } from "@/lib/types";
+
+/** Giorni in un mese medio (365.25 / 12). */
+const MS_MESE = MS_DAY * 30.44;
 
 /**
  * Età testuale tipo "2 anni e 3 mesi" / "8 mesi".
@@ -6,7 +11,7 @@ import { trovaRazza, type Razza } from "@/lib/data/razze";
 export function calcolaEta(dataNascita: string | Date, oggi: Date = new Date()): string {
   const nascita = typeof dataNascita === "string" ? new Date(dataNascita) : dataNascita;
   const diffMs = oggi.getTime() - nascita.getTime();
-  const mesiTotali = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30.44));
+  const mesiTotali = Math.floor(diffMs / MS_MESE);
   const anni = Math.floor(mesiTotali / 12);
   const mesiResto = mesiTotali % 12;
 
@@ -39,7 +44,7 @@ const FASI: Record<Fase, Omit<FaseProduttiva, "fase">> = {
  */
 export function faseProduttiva(
   args: {
-    tipo: "gallina" | "gallo";
+    tipo: Tipo;
     dataNascita: string | Date | null;
     razzaId?: string | null;
   },
@@ -49,7 +54,7 @@ export function faseProduttiva(
   if (!args.dataNascita) return null;
 
   const nascita = typeof args.dataNascita === "string" ? new Date(args.dataNascita) : args.dataNascita;
-  const mesi = Math.floor((oggi.getTime() - nascita.getTime()) / (1000 * 60 * 60 * 24 * 30.44));
+  const mesi = Math.floor((oggi.getTime() - nascita.getTime()) / MS_MESE);
 
   const razza: Razza | undefined = trovaRazza(args.razzaId);
   const inizio = razza?.inizioProduzioneMesi ?? 5;

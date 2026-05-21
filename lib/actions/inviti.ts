@@ -3,16 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/supabase/queries";
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { ActionResult, RuoloPollaio } from "@/lib/types";
 
-export interface ActionResult {
-  ok: boolean;
-  errore?: string;
-}
+export type { ActionResult };
 
 interface CreaInvitiInput {
   pollaioId: string;
   emails: string[];
-  ruolo: "admin" | "guest";
+  ruolo: RuoloPollaio;
   messaggio?: string;
 }
 
@@ -26,16 +24,12 @@ interface InvitoFallito {
   motivo: string;
 }
 
-export interface CreaInvitiResult {
-  ok: boolean;
+export interface CreaInvitiResult extends ActionResult {
   inviati: InvitoOK[];
   falliti: InvitoFallito[];
-  errore?: string;
 }
 
-export interface CreaAccountDaInvitoResult {
-  ok: boolean;
-  errore?: string;
+export interface CreaAccountDaInvitoResult extends ActionResult {
   giaRegistrato?: boolean;
 }
 
@@ -44,7 +38,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function buildInvitoEmailHtml(params: {
   invitanteNome: string;
   pollaioNome: string;
-  ruolo: "admin" | "guest";
+  ruolo: RuoloPollaio;
   messaggio: string | null;
   link: string;
 }): { subject: string; html: string } {
@@ -85,7 +79,7 @@ async function sendInvitoEmail(args: {
   to: string;
   invitanteNome: string;
   pollaioNome: string;
-  ruolo: "admin" | "guest";
+  ruolo: RuoloPollaio;
   messaggio: string | null;
   token: string;
 }): Promise<{ ok: boolean; error?: string }> {
@@ -151,7 +145,7 @@ export async function creaAccountDaInvito(params: {
   password: string;
 }): Promise<CreaAccountDaInvitoResult> {
   if (params.password.length < 8) {
-    return { ok: false, errore: "La password deve avere almeno 8 caratteri." };
+    return { ok: false, error: "La password deve avere almeno 8 caratteri." };
   }
 
   const admin = createAdminClient();
@@ -162,13 +156,13 @@ export async function creaAccountDaInvito(params: {
     .maybeSingle();
 
   if (!invito) {
-    return { ok: false, errore: "Invito non valido o scaduto." };
+    return { ok: false, error: "Invito non valido o scaduto." };
   }
   if (invito.accettato_il) {
-    return { ok: false, errore: "Questo invito è già stato accettato." };
+    return { ok: false, error: "Questo invito è già stato accettato." };
   }
   if (new Date(invito.scadenza as string) <= new Date()) {
-    return { ok: false, errore: "Questo invito è scaduto." };
+    return { ok: false, error: "Questo invito è scaduto." };
   }
 
   const email = (invito.email as string).toLowerCase();
@@ -188,7 +182,7 @@ export async function creaAccountDaInvito(params: {
       console.error("creaAccountDaInvito getUserById failed", existingAuthError);
       return {
         ok: false,
-        errore: "Ho trovato un account esistente ma non riesco a verificarlo adesso.",
+        error: "Ho trovato un account esistente ma non riesco a verificarlo adesso.",
       };
     }
 
@@ -202,7 +196,7 @@ export async function creaAccountDaInvito(params: {
         console.error("creaAccountDaInvito updateUserById failed", updateError);
         return {
           ok: false,
-          errore: "Non sono riuscito a completare l'account già creato per questo invito.",
+          error: "Non sono riuscito a completare l'account già creato per questo invito.",
         };
       }
 
@@ -212,7 +206,7 @@ export async function creaAccountDaInvito(params: {
     return {
       ok: false,
       giaRegistrato: true,
-      errore: "Esiste già un account con questa email. Accedi con la tua password per accettare l'invito.",
+      error: "Esiste già un account con questa email. Accedi con la tua password per accettare l'invito.",
     };
   }
 
@@ -228,14 +222,14 @@ export async function creaAccountDaInvito(params: {
       return {
         ok: false,
         giaRegistrato: true,
-        errore: "Esiste già un account con questa email. Accedi con la tua password per accettare l'invito.",
+        error: "Esiste già un account con questa email. Accedi con la tua password per accettare l'invito.",
       };
     }
 
     console.error("creaAccountDaInvito failed", error);
     return {
       ok: false,
-      errore: "Non sono riuscito a creare l'account da questo invito.",
+      error: "Non sono riuscito a creare l'account da questo invito.",
     };
   }
 
@@ -266,7 +260,7 @@ export async function creaInviti(input: CreaInvitiInput): Promise<CreaInvitiResu
   if (!myMember || myMember.ruolo !== "admin") {
     return {
       ok: false,
-      errore: "Solo gli admin possono invitare nuove persone.",
+      error: "Solo gli admin possono invitare nuove persone.",
       inviati: [],
       falliti: [],
     };
@@ -279,7 +273,7 @@ export async function creaInviti(input: CreaInvitiInput): Promise<CreaInvitiResu
   ]);
 
   if (!pollaio) {
-    return { ok: false, errore: "Pollaio non trovato.", inviati: [], falliti: [] };
+    return { ok: false, error: "Pollaio non trovato.", inviati: [], falliti: [] };
   }
 
   const invitanteNome =
@@ -404,7 +398,7 @@ export async function revocaInvito(invitoId: string): Promise<ActionResult> {
 
   const { error } = await supabase.from("pollaio_inviti").delete().eq("id", invitoId);
   if (error) {
-    return { ok: false, errore: "Non sono riuscito a revocare l'invito." };
+    return { ok: false, error: "Non sono riuscito a revocare l'invito." };
   }
 
   revalidatePath("/impostazioni/membri");
@@ -413,21 +407,22 @@ export async function revocaInvito(invitoId: string): Promise<ActionResult> {
 
 export async function accettaInvito(token: string): Promise<{
   ok: boolean;
-  errore?: string;
+  error?: string;
   pollaioId?: string;
 }> {
   const { supabase, user } = await requireUser();
 
   const { data, error } = await supabase.rpc("accept_invito", { p_token: token });
   if (error) {
-    return { ok: false, errore: "Qualcosa è andato storto. Riprova!" };
+    return { ok: false, error: "Qualcosa è andato storto. Riprova!" };
   }
 
+  // NB: il campo si chiama "errore" perché è restituito così dalla RPC Postgres.
   type Res = { ok: boolean; errore?: string; pollaio_id?: string };
   const res = (data ?? { ok: false }) as Res;
 
   if (!res.ok) {
-    return { ok: false, errore: res.errore ?? "Invito non valido." };
+    return { ok: false, error: res.errore ?? "Invito non valido." };
   }
 
   if (res.pollaio_id) {
@@ -455,13 +450,13 @@ export async function getInvitoPublic(token: string): Promise<
   | {
       ok: true;
       email: string;
-      ruolo: "admin" | "guest";
+      ruolo: RuoloPollaio;
       pollaioNome: string;
       invitanteNome: string;
       messaggio: string | null;
       scadenza: string;
     }
-  | { ok: false; errore: string; scaduto?: boolean; gia_accettato?: boolean }
+  | { ok: false; error: string; scaduto?: boolean; gia_accettato?: boolean }
 > {
   const admin = createAdminClient();
 
@@ -472,13 +467,13 @@ export async function getInvitoPublic(token: string): Promise<
     .maybeSingle();
 
   if (!invito) {
-    return { ok: false, errore: "Invito non trovato." };
+    return { ok: false, error: "Invito non trovato." };
   }
   if (invito.accettato_il) {
-    return { ok: false, errore: "Questo invito è già stato accettato.", gia_accettato: true };
+    return { ok: false, error: "Questo invito è già stato accettato.", gia_accettato: true };
   }
   if (new Date(invito.scadenza as string) <= new Date()) {
-    return { ok: false, errore: "Questo invito è scaduto.", scaduto: true };
+    return { ok: false, error: "Questo invito è scaduto.", scaduto: true };
   }
 
   const [{ data: pollaio }, { data: profile }] = await Promise.all([

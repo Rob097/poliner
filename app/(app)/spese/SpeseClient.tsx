@@ -12,7 +12,7 @@ import { SectionTitle } from "@/components/ui/SectionTitle";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { useToast } from "@/components/ui/Toast";
 import { IconPlus, IconEdit } from "@/components/ui/icons";
-import { formatData } from "@/lib/utils/date";
+import { formatData, todayIso } from "@/lib/utils/date";
 import { createSpesa, deleteSpesa, updateSpesa } from "./actions";
 
 export interface SpesaItem {
@@ -257,7 +257,7 @@ function SpesaFormModal({
 }) {
   const { show } = useToast();
   const [data, setData] = useState(
-    initial?.data ?? new Date().toISOString().slice(0, 10),
+    initial?.data ?? todayIso(),
   );
   const [importo, setImporto] = useState(initial?.importo.toFixed(2) ?? "");
   const [descrizione, setDescrizione] = useState(initial?.descrizione ?? "");
@@ -344,7 +344,7 @@ function SpesaFormModal({
             type="date"
             value={data}
             onChange={(e) => setData(e.target.value)}
-            max={new Date().toISOString().slice(0, 10)}
+            max={todayIso()}
             required
           />
         </FormField>

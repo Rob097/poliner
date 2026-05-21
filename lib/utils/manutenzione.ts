@@ -1,3 +1,5 @@
+import { MS_DAY } from "./date";
+
 export type StatoManutenzione = "ok" | "in_scadenza" | "scaduta";
 
 export interface VoceManutenzione {
@@ -17,8 +19,6 @@ export interface StatoVoce {
   giorniRimanenti: number; // negativi se in ritardo
   stato: StatoManutenzione;
 }
-
-const MS_DAY = 1000 * 60 * 60 * 24;
 
 /**
  * Calcola lo stato di tutte le voci di manutenzione dato l'ultimo log per voce.

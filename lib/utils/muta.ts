@@ -1,3 +1,5 @@
+import { MS_DAY } from "./date";
+
 export interface PeriodoMuta {
   data_inizio: string;
   data_fine: string | null;
@@ -17,6 +19,6 @@ export function statoMutaCorrente(periodi: PeriodoMuta[], oggi: Date = new Date(
   const aperto = periodi.find((p) => !p.data_fine);
   if (!aperto) return { inMuta: false, giorni: 0, inizio: null };
   const inizio = new Date(aperto.data_inizio);
-  const giorni = Math.floor((oggi.getTime() - inizio.getTime()) / (1000 * 60 * 60 * 24));
+  const giorni = Math.floor((oggi.getTime() - inizio.getTime()) / MS_DAY);
   return { inMuta: true, giorni: Math.max(0, giorni), inizio };
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requirePollaio } from "@/lib/supabase/queries";
+import { todayIso } from "@/lib/utils/date";
 
 export interface NuovaGallinaInput {
   id: string;                // generato client per coerenza foto path
@@ -166,7 +167,7 @@ export async function avviaMuta(animaleId: string): Promise<ActionResult> {
     .maybeSingle();
   if (aperta) return { ok: true };
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
   const { error } = await supabase.from("periodi_muta").insert({
     pollaio_id: pollaio.id,
     animale_id: animaleId,
@@ -190,7 +191,7 @@ export async function terminaMuta(animaleId: string): Promise<ActionResult> {
     .maybeSingle();
   if (!aperta) return { ok: true };
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
   const { error } = await supabase
     .from("periodi_muta")
     .update({ data_fine: today })
@@ -223,7 +224,7 @@ export async function aggiungiEventoSalute(input: NuovoEventoSaluteInput): Promi
     tipo: input.tipo,
     descrizione: input.descrizione?.trim() || null,
     home_hospital: homeHospital,
-    hh_da: homeHospital ? input.hhDa || new Date().toISOString().slice(0, 10) : null,
+    hh_da: homeHospital ? input.hhDa || todayIso() : null,
     hh_a: homeHospital ? input.hhA || null : null,
   });
 
@@ -237,7 +238,7 @@ export async function aggiungiEventoSalute(input: NuovoEventoSaluteInput): Promi
 export async function risolviEventoSalute(eventoId: string, animaleId: string): Promise<ActionResult> {
   const { supabase } = await requirePollaio();
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
 
   // Se l'evento è in home hospital e hh_a è ancora null, chiudiamo anche quello.
   const { data: evento } = await supabase
@@ -283,7 +284,7 @@ export async function aggiornaHomeHospital(
 ): Promise<ActionResult> {
   const { supabase } = await requirePollaio();
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
   const { error } = await supabase
     .from("eventi_salute")
     .update({
@@ -371,7 +372,7 @@ export async function aggiungiEventoInserimento(
 ): Promise<ActionResult> {
   const { supabase, pollaio } = await requirePollaio();
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
   const { error } = await supabase.from("eventi_inserimento").insert({
     pollaio_id: pollaio.id,
     animale_id: input.animaleId,

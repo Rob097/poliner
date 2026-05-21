@@ -45,7 +45,7 @@ export function AperturaChiusuraCard({
         show("🌅 Aperto!");
         router.refresh();
       } else {
-        show(res.errore ?? "Ops, riprova!");
+        show(res.error ?? "Ops, riprova!");
       }
     });
   };
@@ -57,7 +57,7 @@ export function AperturaChiusuraCard({
         show("🌙 Chiuso!");
         router.refresh();
       } else {
-        show(res.errore ?? "Ops, riprova!");
+        show(res.error ?? "Ops, riprova!");
       }
     });
   };

@@ -1,3 +1,5 @@
+import type { Tipo } from "@/lib/types";
+
 const AVATAR_BG_PALETTE = [
   "#FFD6E0", // rosa
   "#FFE4D0", // pesca
@@ -24,6 +26,6 @@ export function avatarBgFor(seed: string): string {
   return AVATAR_BG_PALETTE[hash(seed) % AVATAR_BG_PALETTE.length];
 }
 
-export function defaultEmojiFor(tipo: "gallina" | "gallo"): string {
+export function defaultEmojiFor(tipo: Tipo): string {
   return tipo === "gallo" ? "🐓" : "🐔";
 }

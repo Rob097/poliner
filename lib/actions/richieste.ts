@@ -4,11 +4,9 @@ import { revalidatePath } from "next/cache";
 import { requirePollaio } from "@/lib/supabase/queries";
 import { sendPushToUser } from "@/lib/push/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { ActionResult } from "@/lib/types";
 
-export interface ActionResult {
-  ok: boolean;
-  errore?: string;
-}
+export type { ActionResult };
 
 interface CreaRichiestaInput {
   quantita: number;
@@ -23,7 +21,7 @@ interface CreaRichiestaInput {
 export async function creaRichiestaUova(
   input: CreaRichiestaInput,
 ): Promise<ActionResult> {
-  if (input.quantita < 1) return { ok: false, errore: "Quantità non valida." };
+  if (input.quantita < 1) return { ok: false, error: "Quantità non valida." };
 
   const { supabase, user, pollaio } = await requirePollaio();
   const nota = input.nota?.trim() || null;
@@ -40,7 +38,7 @@ export async function creaRichiestaUova(
     .single();
 
   if (error || !nuova) {
-    return { ok: false, errore: "Ops, non sono riuscita a inviare la richiesta." };
+    return { ok: false, error: "Ops, non sono riuscita a inviare la richiesta." };
   }
 
   // Notifica push agli admin (best-effort: niente errore se push falliscono)
@@ -71,11 +69,12 @@ export async function accettaRichiesta(
     p_richiesta: richiestaId,
   });
 
-  if (error) return { ok: false, errore: "Ops, riprova!" };
+  if (error) return { ok: false, error: "Ops, riprova!" };
 
+  // NB: il campo si chiama "errore" perché è restituito così dalla RPC Postgres.
   type RpcResult = { ok: boolean; errore?: string; regalo_id?: string };
   const res = (data ?? { ok: false }) as RpcResult;
-  if (!res.ok) return { ok: false, errore: res.errore ?? "Operazione non riuscita." };
+  if (!res.ok) return { ok: false, error: res.errore ?? "Operazione non riuscita." };
 
   revalidatePath("/uova");
   revalidatePath("/");
@@ -93,11 +92,11 @@ export async function rifiutaRichiesta(richiestaId: string): Promise<ActionResul
     p_richiesta: richiestaId,
   });
 
-  if (error) return { ok: false, errore: "Ops, riprova!" };
+  if (error) return { ok: false, error: "Ops, riprova!" };
 
   type RpcResult = { ok: boolean; errore?: string };
   const res = (data ?? { ok: false }) as RpcResult;
-  if (!res.ok) return { ok: false, errore: res.errore ?? "Operazione non riuscita." };
+  if (!res.ok) return { ok: false, error: res.errore ?? "Operazione non riuscita." };
 
   revalidatePath("/uova");
   return { ok: true };
@@ -110,7 +109,7 @@ export async function rifiutaRichiesta(richiestaId: string): Promise<ActionResul
 export async function annullaRichiesta(richiestaId: string): Promise<ActionResult> {
   const { supabase } = await requirePollaio();
   const { error } = await supabase.from("richieste_uova").delete().eq("id", richiestaId);
-  if (error) return { ok: false, errore: "Non sono riuscita a eliminare la richiesta." };
+  if (error) return { ok: false, error: "Non sono riuscita a eliminare la richiesta." };
   revalidatePath("/uova");
   return { ok: true };
 }

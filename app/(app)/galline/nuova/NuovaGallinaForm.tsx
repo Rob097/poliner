@@ -17,8 +17,8 @@ import {
   showLoadingOverlay,
 } from "@/components/layout/NavigationOverlay";
 import { createAnimale } from "../actions";
-
-type Tipo = "gallina" | "gallo";
+import { todayIso } from "@/lib/utils/date";
+import type { Tipo } from "@/lib/types";
 
 export function NuovaGallinaForm() {
   const router = useRouter();
@@ -34,7 +34,7 @@ export function NuovaGallinaForm() {
   const [foto, setFoto] = useState<File | null>(null);
 
   const [giaDefunta, setGiaDefunta] = useState(false);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
   const [defuntaIl, setDefuntaIl] = useState(today);
   const [causa, setCausa] = useState("");
   const [noteDecesso, setNoteDecesso] = useState("");
@@ -155,7 +155,7 @@ export function NuovaGallinaForm() {
               type="date"
               value={dataNascita}
               onChange={(e) => setDataNascita(e.target.value)}
-              max={new Date().toISOString().slice(0, 10)}
+              max={todayIso()}
             />
           </FormField>
 
