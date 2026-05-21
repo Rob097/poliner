@@ -363,7 +363,7 @@ function StepFoto({
               </button>
             </>
           ) : (
-            <div className="text-center">
+            <div className="text-center flex flex-col items-center">
               <IconCamera size={40} color="var(--primary)" />
               <div className="text-[13px] text-[var(--primary)] mt-2 font-semibold">
                 Aggiungi foto
