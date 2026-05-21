@@ -13,6 +13,7 @@ export type PushStatus =
 
 const PUSH_SERVICE_WORKER_URL = "/sw.js";
 const SERVICE_WORKER_READY_TIMEOUT_MS = 10_000;
+const SERVICE_WORKER_POLL_INTERVAL_MS = 150;
 
 export function isPushSupported(): boolean {
   if (typeof window === "undefined") return false;
@@ -59,59 +60,62 @@ async function waitForServiceWorkerReady(): Promise<ServiceWorkerRegistration> {
   });
 }
 
-async function waitForServiceWorkerActivation(
-  registration: ServiceWorkerRegistration,
-): Promise<ServiceWorkerRegistration> {
-  if (registration.active) return registration;
+function isPushWorker(worker: ServiceWorker | null | undefined): boolean {
+  return worker?.scriptURL?.endsWith(PUSH_SERVICE_WORKER_URL) ?? false;
+}
 
-  const worker = registration.installing ?? registration.waiting;
-  if (!worker) {
-    return await waitForServiceWorkerReady();
-  }
-
-  const activationWorker = worker;
-
-  return await new Promise((resolve, reject) => {
-    const timeoutId = window.setTimeout(() => {
-      activationWorker.removeEventListener("statechange", onStateChange);
-      reject(new Error("Service worker non pronto: ricarica la pagina e riprova"));
-    }, SERVICE_WORKER_READY_TIMEOUT_MS);
-
-    function cleanup() {
-      window.clearTimeout(timeoutId);
-      activationWorker.removeEventListener("statechange", onStateChange);
-    }
-
-    function onStateChange() {
-      if (activationWorker.state === "activated") {
-        cleanup();
-        resolve(registration);
-        return;
-      }
-
-      if (activationWorker.state === "redundant") {
-        cleanup();
-        reject(new Error("Service worker non attivato correttamente"));
-      }
-    }
-
-    activationWorker.addEventListener("statechange", onStateChange);
-    onStateChange();
-  });
+function isPushRegistration(
+  registration: ServiceWorkerRegistration | null | undefined,
+): registration is ServiceWorkerRegistration {
+  if (!registration) return false;
+  return (
+    isPushWorker(registration.active) ||
+    isPushWorker(registration.waiting) ||
+    isPushWorker(registration.installing)
+  );
 }
 
 async function getExistingRegistration(): Promise<ServiceWorkerRegistration | null> {
-  return (await navigator.serviceWorker.getRegistration()) ?? null;
+  const directRegistration =
+    (await navigator.serviceWorker.getRegistration(PUSH_SERVICE_WORKER_URL)) ??
+    (await navigator.serviceWorker.getRegistration("/")) ??
+    (await navigator.serviceWorker.getRegistration()) ??
+    null;
+
+  if (isPushRegistration(directRegistration)) return directRegistration;
+
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  return registrations.find((registration) => isPushRegistration(registration)) ?? null;
+}
+
+async function waitForActivePushRegistration(): Promise<ServiceWorkerRegistration> {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < SERVICE_WORKER_READY_TIMEOUT_MS) {
+    const registration = await getExistingRegistration();
+    if (registration?.active) return registration;
+
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, SERVICE_WORKER_POLL_INTERVAL_MS);
+    });
+  }
+
+  try {
+    return await waitForServiceWorkerReady();
+  } catch {
+    throw new Error("Service worker non pronto: ricarica la pagina e riprova");
+  }
 }
 
 async function getOrCreatePushRegistration(): Promise<ServiceWorkerRegistration> {
   const existingRegistration = await getExistingRegistration();
-  if (existingRegistration) {
-    return await waitForServiceWorkerActivation(existingRegistration);
+  if (existingRegistration?.active) return existingRegistration;
+
+  if (!existingRegistration) {
+    await navigator.serviceWorker.register(PUSH_SERVICE_WORKER_URL, { scope: "/" });
   }
 
-  const registration = await navigator.serviceWorker.register(PUSH_SERVICE_WORKER_URL);
-  return await waitForServiceWorkerActivation(registration);
+  return await waitForActivePushRegistration();
 }
 
 /**

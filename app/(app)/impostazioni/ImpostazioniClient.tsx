@@ -279,7 +279,7 @@ function PaginaPubblicaSection({ pollaio }: { pollaio: Pollaio }) {
   const descChanged = descrizione !== (pollaio.descrizionePubblica ?? "");
 
   const origin =
-    typeof window !== "undefined" ? window.location.origin : "https://poliner.app";
+    typeof window !== "undefined" ? window.location.origin : "https://poliner.rdlabs.digital";
   const url = `${origin}/p/${pollaio.pubblicoSlug ?? slugTrim}`;
 
   function onToggle(attiva: boolean) {
