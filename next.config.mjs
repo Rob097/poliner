@@ -27,6 +27,7 @@ const withPWA = withPWAInit({
   register: true,
   skipWaiting: true,
   customWorkerDir: "worker",
+  buildExcludes: [/static\/media\/.*\.(?:woff|woff2)$/i],
   // Fallback per pagine non in cache quando offline
   fallbacks: {
     document: "/offline",

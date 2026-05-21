@@ -12,8 +12,10 @@ export type PushStatus =
   | "subscribed";
 
 const PUSH_SERVICE_WORKER_URL = "/sw.js";
-const SERVICE_WORKER_READY_TIMEOUT_MS = 10_000;
+const SERVICE_WORKER_READY_TIMEOUT_MS = 30_000;
 const SERVICE_WORKER_POLL_INTERVAL_MS = 150;
+const SERVICE_WORKER_READY_ERROR =
+  "Service worker non ancora pronto: il primo avvio puo richiedere fino a 30 secondi. Riprova tra poco";
 let pushRegistrationPromise: Promise<ServiceWorkerRegistration> | null = null;
 
 export function isPushSupported(): boolean {
@@ -46,7 +48,7 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
 async function waitForServiceWorkerReady(): Promise<ServiceWorkerRegistration> {
   return await new Promise((resolve, reject) => {
     const timeoutId = window.setTimeout(() => {
-      reject(new Error("Service worker non pronto: ricarica la pagina e riprova"));
+      reject(new Error(SERVICE_WORKER_READY_ERROR));
     }, SERVICE_WORKER_READY_TIMEOUT_MS);
 
     navigator.serviceWorker.ready
@@ -124,7 +126,7 @@ async function waitForActivePushRegistration(
     // Ignoriamo l'errore originale per restituire un messaggio coerente alla UI.
   }
 
-  throw new Error("Service worker non pronto: ricarica la pagina e riprova");
+  throw new Error(SERVICE_WORKER_READY_ERROR);
 }
 
 async function getOrCreatePushRegistration(): Promise<ServiceWorkerRegistration> {
