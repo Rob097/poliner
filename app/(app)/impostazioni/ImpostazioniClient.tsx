@@ -198,7 +198,7 @@ export function ImpostazioniClient({
       </Button>
 
       <div className="text-center mt-4 text-xs text-[var(--text-secondary)]">
-        Poliner v0.8 · Made with 🐔 by Roberto
+        Poliner v1.1 · Made with 🐔 by Roberto
       </div>
 
       {editProfilo && (
