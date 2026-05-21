@@ -25,6 +25,11 @@ function ensureVapid(): boolean {
   return true;
 }
 
+const PUSH_REQUEST_OPTIONS = {
+  TTL: 60 * 60,
+  urgency: "high" as const,
+};
+
 export interface PushPayload {
   title: string;
   body?: string;
@@ -71,6 +76,7 @@ export async function sendPushToUser(
       await webpush.sendNotification(
         { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
         data,
+        PUSH_REQUEST_OPTIONS,
       );
       inviate++;
     } catch (e) {

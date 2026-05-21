@@ -26,6 +26,10 @@ const ITALY_TIME_ZONE = "Europe/Rome";
 const HOURLY_SWEEP_MINUTE = "05";
 const FINE_PRODUZIONE_WARNING_DAYS = 30;
 const MUTA_LUNGA_GIORNI = 70;
+const PUSH_REQUEST_OPTIONS = {
+  TTL: 60 * 60,
+  urgency: "high" as const,
+};
 
 webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
 
@@ -309,6 +313,7 @@ async function sendPush(
       await webpush.sendNotification(
         { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
         data,
+        PUSH_REQUEST_OPTIONS,
       );
       inviate++;
     } catch (e) {
