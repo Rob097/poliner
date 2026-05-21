@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -12,6 +13,7 @@ import { IconChevron, IconPlus, IconSearch } from "@/components/ui/icons";
 import { calcolaEta } from "@/lib/utils/eta";
 import { avatarBgFor, defaultEmojiFor } from "@/lib/utils/avatar";
 import { trovaRazza } from "@/lib/data/razze";
+import { cn } from "@/lib/utils/cn";
 
 export interface GallinaDisplay {
   id: string;
@@ -23,28 +25,50 @@ export interface GallinaDisplay {
   fotoUrl: string | null;
   inMutaDal: string | null;
   problemaAttivo: string | null;
+  inHomeHospital: boolean;
+  inInserimento: boolean;
   uovaUltimaSettimana: number;
 }
 
 interface Props {
   galline: GallinaDisplay[];
   pollaioId: string;
+  defunteCount: number;
 }
 
-export function GallineListClient({ galline }: Props) {
+type Filtro = "tutte" | "home-hospital" | "inserimento";
+
+export function GallineListClient({ galline, defunteCount }: Props) {
   const [query, setQuery] = useState("");
+  const searchParams = useSearchParams();
+  const filtroParam = searchParams.get("filtro");
+  const initialFiltro: Filtro =
+    filtroParam === "home-hospital"
+      ? "home-hospital"
+      : filtroParam === "inserimento"
+        ? "inserimento"
+        : "tutte";
+  const [filtro, setFiltro] = useState<Filtro>(initialFiltro);
+  const hhCount = galline.filter((g) => g.inHomeHospital).length;
+  const insCount = galline.filter((g) => g.inInserimento).length;
 
   const filtered = useMemo(() => {
+    let base = galline;
+    if (filtro === "home-hospital") {
+      base = base.filter((g) => g.inHomeHospital);
+    } else if (filtro === "inserimento") {
+      base = base.filter((g) => g.inInserimento);
+    }
     const q = query.trim().toLowerCase();
-    if (!q) return galline;
-    return galline.filter((g) => {
+    if (!q) return base;
+    return base.filter((g) => {
       const razzaNome = trovaRazza(g.razzaId)?.nome ?? g.razzaCustom ?? "";
       return (
         g.nome.toLowerCase().includes(q) ||
         razzaNome.toLowerCase().includes(q)
       );
     });
-  }, [galline, query]);
+  }, [galline, query, filtro]);
 
   return (
     <>
@@ -61,6 +85,33 @@ export function GallineListClient({ galline }: Props) {
             onChange={(e) => setQuery(e.target.value)}
             className="pl-10"
           />
+        </div>
+      )}
+
+      {(hhCount > 0 || insCount > 0) && (
+        <div className="flex gap-2 mb-3 overflow-x-auto pb-0.5">
+          <FiltroChip
+            active={filtro === "tutte"}
+            onClick={() => setFiltro("tutte")}
+          >
+            Tutte ({galline.length})
+          </FiltroChip>
+          {hhCount > 0 && (
+            <FiltroChip
+              active={filtro === "home-hospital"}
+              onClick={() => setFiltro("home-hospital")}
+            >
+              🏠 In casa ({hhCount})
+            </FiltroChip>
+          )}
+          {insCount > 0 && (
+            <FiltroChip
+              active={filtro === "inserimento"}
+              onClick={() => setFiltro("inserimento")}
+            >
+              🏠+→ In inserimento ({insCount})
+            </FiltroChip>
+          )}
         </div>
       )}
 
@@ -89,7 +140,41 @@ export function GallineListClient({ galline }: Props) {
           <IconPlus size={18} /> Aggiungi animale
         </Button>
       </Link>
+
+      {defunteCount > 0 && (
+        <Link
+          href="/galline/in-memoria"
+          className="block mt-3 text-center text-sm text-[var(--text-secondary)] py-2"
+        >
+          💔 {defunteCount} {defunteCount === 1 ? "gallina ricordata" : "galline ricordate"} →
+        </Link>
+      )}
     </>
+  );
+}
+
+function FiltroChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold border transition-colors whitespace-nowrap",
+        active
+          ? "bg-[var(--primary)] text-white border-[var(--primary)]"
+          : "bg-white text-text border-[var(--border)] active:bg-[var(--border)]",
+      )}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -114,6 +199,16 @@ function GallinaRow({ g }: { g: GallinaDisplay }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-semibold text-[15px] text-text">{g.nome}</span>
+            {g.inHomeHospital && (
+              <Badge small bg="#FFE07A55" color="#7a5d1a">
+                🏠 In casa
+              </Badge>
+            )}
+            {g.inInserimento && (
+              <Badge small bg="#FFE07A55" color="#7a5d1a">
+                🏠+→ Inserimento
+              </Badge>
+            )}
             {g.problemaAttivo && (
               <Badge small bg="#FFD6E0" color="#c0435a">
                 ❤️‍🩹 Salute

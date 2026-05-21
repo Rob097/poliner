@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireUser } from "@/lib/supabase/queries";
+import { requirePollaio, requireUser } from "@/lib/supabase/queries";
+import { SLUG_REGEX } from "@/lib/utils/slug";
 
 export interface ActionResult {
   ok: boolean;
@@ -99,5 +100,88 @@ export async function aggiornaPollaio(input: {
   revalidatePath("/impostazioni");
   revalidatePath("/");
   revalidatePath("/meteo");
+  return { ok: true };
+}
+
+// ── PAGINA PUBBLICA ────────────────────────────────────────
+
+async function requireAdmin(): Promise<
+  | { ok: true; supabase: Awaited<ReturnType<typeof requirePollaio>>["supabase"]; pollaioId: string }
+  | { ok: false; error: string }
+> {
+  const { supabase, pollaio, ruolo } = await requirePollaio();
+  if (ruolo !== "admin") {
+    return { ok: false, error: "Solo gli admin possono modificare la pagina pubblica." };
+  }
+  return { ok: true, supabase, pollaioId: pollaio.id };
+}
+
+export async function attivaPaginaPubblica(slug: string): Promise<ActionResult> {
+  const slugClean = slug.trim().toLowerCase();
+  if (!SLUG_REGEX.test(slugClean)) {
+    return {
+      ok: false,
+      error: "Slug non valido: usa 3-40 caratteri tra a-z, 0-9 e -.",
+    };
+  }
+
+  const guard = await requireAdmin();
+  if (!guard.ok) return guard;
+
+  // Verifica unicità slug fra pollai diversi
+  const { data: esistente } = await guard.supabase
+    .from("pollai")
+    .select("id")
+    .eq("pubblico_slug", slugClean)
+    .maybeSingle();
+  if (esistente && esistente.id !== guard.pollaioId) {
+    return { ok: false, error: "Questo slug è già usato, prova un altro." };
+  }
+
+  const { error } = await guard.supabase
+    .from("pollai")
+    .update({
+      pubblico_slug: slugClean,
+      pubblico_attivo: true,
+    })
+    .eq("id", guard.pollaioId);
+
+  if (error) {
+    return { ok: false, error: "Ops, riprova!" };
+  }
+
+  revalidatePath("/impostazioni");
+  return { ok: true };
+}
+
+export async function disattivaPaginaPubblica(): Promise<ActionResult> {
+  const guard = await requireAdmin();
+  if (!guard.ok) return guard;
+
+  const { error } = await guard.supabase
+    .from("pollai")
+    .update({ pubblico_attivo: false })
+    .eq("id", guard.pollaioId);
+
+  if (error) return { ok: false, error: "Ops, riprova!" };
+  revalidatePath("/impostazioni");
+  return { ok: true };
+}
+
+export async function aggiornaDescrizionePubblica(testo: string): Promise<ActionResult> {
+  const clean = testo.trim();
+  if (clean.length > 500) {
+    return { ok: false, error: "La descrizione può essere lunga al massimo 500 caratteri." };
+  }
+  const guard = await requireAdmin();
+  if (!guard.ok) return guard;
+
+  const { error } = await guard.supabase
+    .from("pollai")
+    .update({ descrizione_pubblica: clean || null })
+    .eq("id", guard.pollaioId);
+
+  if (error) return { ok: false, error: "Ops, riprova!" };
+  revalidatePath("/impostazioni");
   return { ok: true };
 }

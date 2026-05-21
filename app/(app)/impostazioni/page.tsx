@@ -41,6 +41,9 @@ export default async function ImpostazioniPage() {
             posizioneLng: pollaio.posizione_lng,
             conservazioneAmbienteGiorni: pollaio.conservazione_ambiente_giorni,
             conservazioneFrigoGiorni: pollaio.conservazione_frigo_giorni,
+            pubblicoAttivo: pollaio.pubblico_attivo,
+            pubblicoSlug: pollaio.pubblico_slug,
+            descrizionePubblica: pollaio.descrizione_pubblica,
           }}
           preferenze={{
             pushAttivo: prefRes.data?.push_attivo ?? true,

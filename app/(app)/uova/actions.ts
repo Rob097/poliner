@@ -89,6 +89,66 @@ export async function createUovo(input: NuovoUovoInput): Promise<ActionResult> {
   return { ok: true, id: input.id };
 }
 
+/**
+ * Crea più uova in un'unica operazione (raccolta veloce).
+ * Ogni "riga" definisce gallina + nido + quantità: produciamo N record
+ * per ogni riga, tutti con la stessa data/conservazione/note globali.
+ */
+export interface CreaUovaBulkRiga {
+  animaleId: string | null;     // null = "non so"
+  nidoId: string | null;
+  quantita: number;
+}
+
+export interface CreaUovaBulkInput {
+  dataDeposizione: string;       // ISO timestamp
+  conservazione: Conservazione;
+  noteGlobali: string | null;
+  righe: CreaUovaBulkRiga[];
+}
+
+export async function createUovaBulk(
+  input: CreaUovaBulkInput,
+): Promise<ActionResult & { creati?: number }> {
+  const { supabase, pollaio } = await requirePollaio();
+
+  const note = input.noteGlobali?.trim() || null;
+  type Row = {
+    pollaio_id: string;
+    animale_id: string | null;
+    nido_id: string | null;
+    data_deposizione: string;
+    conservazione: Conservazione;
+    note: string | null;
+  };
+  const rows: Row[] = [];
+  for (const r of input.righe) {
+    const q = Math.max(0, Math.floor(r.quantita));
+    for (let i = 0; i < q; i++) {
+      rows.push({
+        pollaio_id: pollaio.id,
+        animale_id: r.animaleId,
+        nido_id: r.nidoId,
+        data_deposizione: input.dataDeposizione,
+        conservazione: input.conservazione,
+        note,
+      });
+    }
+  }
+
+  if (rows.length === 0) {
+    return { ok: false, error: "Aggiungi almeno un uovo prima di salvare." };
+  }
+
+  const { error } = await supabase.from("uova").insert(rows);
+  if (error) {
+    return { ok: false, error: "Ops, non sono riuscita a registrare le uova." };
+  }
+  revalidatePath("/uova");
+  revalidatePath("/");
+  return { ok: true, creati: rows.length };
+}
+
 export async function deleteUovo(id: string): Promise<ActionResult> {
   const { supabase } = await requirePollaio();
   const { error } = await supabase.from("uova").delete().eq("id", id);

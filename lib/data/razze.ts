@@ -61,10 +61,18 @@ export const RAZZE: Razza[] = [
   { id: "olandese-ciuffata", nome: "Olandese Ciuffata", uovaAnnoMin: 100, uovaAnnoMax: 140, coloreUova: "Bianche", taglia: "media", temperamento: "Ornamentale, ciuffo grande", inizioProduzioneMesi: 6, fineProduzioneMesi: 30, origine: "internazionale" },
   { id: "phoenix", nome: "Phoenix", uovaAnnoMin: 70, uovaAnnoMax: 100, coloreUova: "Bianche/crema", taglia: "media", temperamento: "Ornamentale, coda lunghissima", inizioProduzioneMesi: 7, fineProduzioneMesi: 30, origine: "internazionale" },
   { id: "la-fleche", nome: "La Flèche", uovaAnnoMin: 150, uovaAnnoMax: 200, coloreUova: "Bianche", taglia: "grande", temperamento: "Rara francese, cresta a V", inizioProduzioneMesi: 6, fineProduzioneMesi: 30, origine: "internazionale" },
+  { id: "ayam-cemani", nome: "Ayam Cemani", uovaAnnoMin: 60, uovaAnnoMax: 100, coloreUova: "Crema chiare", taglia: "media", temperamento: "Rara, interamente nera (pelle e ossa)", inizioProduzioneMesi: 7, fineProduzioneMesi: 30, origine: "internazionale" },
+  { id: "barrata", nome: "Barrata (Plymouth)", uovaAnnoMin: 200, uovaAnnoMax: 250, coloreUova: "Marroni", taglia: "grande", temperamento: "Tranquilla, livrea barrata bianco-nera", inizioProduzioneMesi: 5, fineProduzioneMesi: 36, origine: "internazionale" },
 
   // ── Voce generica ─────────────────────────
   { id: "mista", nome: "Gallina mista / razza non conosciuta", uovaAnnoMin: 0, uovaAnnoMax: 0, coloreUova: "—", taglia: "media", temperamento: "—", inizioProduzioneMesi: 6, fineProduzioneMesi: 30, origine: "mista" },
 ];
+
+const razzeCollator = new Intl.Collator("it", { sensitivity: "base" });
+
+export const RAZZE_ORDINATE_PER_NOME = [...RAZZE].sort((left, right) =>
+  razzeCollator.compare(left.nome, right.nome),
+);
 
 export function trovaRazza(id: string | null | undefined): Razza | undefined {
   if (!id) return undefined;

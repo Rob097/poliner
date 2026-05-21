@@ -31,7 +31,7 @@ import { avatarBgFor, defaultEmojiFor } from "@/lib/utils/avatar";
 
 export interface StatsData {
   uova: { data: string; stato: "disponibile" | "consumato" | "regalato"; animaleId: string | null }[];
-  animali: { id: string; nome: string; fotoUrl: string | null; tipo: "gallina" | "gallo" }[];
+  animali: { id: string; nome: string; fotoUrl: string | null; tipo: "gallina" | "gallo"; defunta: boolean }[];
   spese: { data: string; importo: number; categoria: string | null }[];
   meteo: { data: string; tempMin: number | null; tempMax: number | null }[];
   periodiMuta: { animaleId: string; inizio: string; fine: string | null }[];
@@ -305,7 +305,11 @@ export function StatisticheClient({ data }: { data: StatsData }) {
                 <Card>
                   <div className="flex flex-col gap-2.5">
                     {perGallina.map((g) => (
-                      <div key={g.id} className="flex items-center gap-2.5">
+                      <div
+                        key={g.id}
+                        className="flex items-center gap-2.5"
+                        style={g.defunta ? { opacity: 0.55 } : undefined}
+                      >
                         <Avatar
                           size={28}
                           src={g.fotoUrl ?? undefined}
@@ -314,6 +318,7 @@ export function StatisticheClient({ data }: { data: StatsData }) {
                           name={g.nome}
                         />
                         <div className="text-sm font-semibold w-20 truncate">
+                          {g.defunta && <span className="mr-0.5" aria-hidden>💔</span>}
                           {g.nome}
                         </div>
                         <div className="flex-1 h-3 rounded-full bg-[var(--border)] overflow-hidden">

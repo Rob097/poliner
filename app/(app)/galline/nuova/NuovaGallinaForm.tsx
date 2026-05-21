@@ -5,12 +5,17 @@ import { useRouter } from "next/navigation";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { Button } from "@/components/ui/Button";
-import { Input, Select, Textarea } from "@/components/ui/Input";
+import { Input, Textarea } from "@/components/ui/Input";
 import { FormField } from "@/components/ui/FormField";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { ImageUploadField } from "@/components/ui/ImageUploadField";
-import { RAZZE, trovaRazza, uovaAnnoLabel } from "@/lib/data/razze";
+import { RazzaSelect } from "@/components/galline/RazzaSelect";
+import { trovaRazza, uovaAnnoLabel } from "@/lib/data/razze";
 import { compressAndUpload } from "@/lib/utils/images";
+import {
+  hideLoadingOverlay,
+  showLoadingOverlay,
+} from "@/components/layout/NavigationOverlay";
 import { createAnimale } from "../actions";
 
 type Tipo = "gallina" | "gallo";
@@ -28,6 +33,12 @@ export function NuovaGallinaForm() {
   const [note, setNote] = useState("");
   const [foto, setFoto] = useState<File | null>(null);
 
+  const [giaDefunta, setGiaDefunta] = useState(false);
+  const today = new Date().toISOString().slice(0, 10);
+  const [defuntaIl, setDefuntaIl] = useState(today);
+  const [causa, setCausa] = useState("");
+  const [noteDecesso, setNoteDecesso] = useState("");
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +50,7 @@ export function NuovaGallinaForm() {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+    showLoadingOverlay();
     try {
       let fotoUrl: string | null = null;
       if (foto) {
@@ -54,18 +66,26 @@ export function NuovaGallinaForm() {
         colorePiumaggio: colore,
         note,
         fotoUrl,
+        defuntaIl: giaDefunta ? defuntaIl : null,
+        causaDecesso: giaDefunta ? causa || null : null,
+        noteDecesso: giaDefunta ? noteDecesso || null : null,
       });
       if (!result.ok) {
         setError(result.error ?? "Ops, qualcosa non ha funzionato.");
         return;
       }
-      router.push(`/galline/${result.id}`);
+      if (giaDefunta) {
+        router.push(`/galline/in-memoria`);
+      } else {
+        router.push(`/galline/${result.id}`);
+      }
       router.refresh();
     } catch (e) {
       console.error(e);
       setError("Ops, qualcosa non ha funzionato. Riprova!");
     } finally {
       setSubmitting(false);
+      hideLoadingOverlay();
     }
   }
 
@@ -100,17 +120,7 @@ export function NuovaGallinaForm() {
           </FormField>
 
           <FormField label="Razza">
-            <Select
-              value={razzaId ?? ""}
-              onChange={(e) => setRazzaId(e.target.value || null)}
-            >
-              <option value="">Scegli una razza...</option>
-              {RAZZE.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.nome}
-                </option>
-              ))}
-            </Select>
+            <RazzaSelect value={razzaId} onChange={setRazzaId} />
           </FormField>
 
           {isCustomRazza && (
@@ -165,6 +175,66 @@ export function NuovaGallinaForm() {
               placeholder="Qualcosa da ricordare su questa gallina..."
             />
           </FormField>
+
+          <details className="mb-4 mt-2 group">
+            <summary
+              className="list-none cursor-pointer flex items-center justify-between px-1 py-2 text-[12px] uppercase tracking-wider font-bold text-[var(--text-secondary)]"
+            >
+              <span>Impostazioni delicate</span>
+              <span
+                className="text-[var(--text-secondary)] transition-transform group-open:rotate-90"
+                aria-hidden
+              >
+                ›
+              </span>
+            </summary>
+            <div className="rounded-[var(--radius)] border border-[var(--border)] p-3 mt-1">
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={giaDefunta}
+                  onChange={(e) => setGiaDefunta(e.target.checked)}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <div className="text-sm font-semibold">
+                    💔 Questa {tipo === "gallo" ? "gallo" : "gallina"} è già defunta
+                  </div>
+                  <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+                    La aggiungerò nella sezione “In memoria”, con il suo storico.
+                  </div>
+                </div>
+              </label>
+
+              {giaDefunta && (
+                <div className="mt-3 space-y-3">
+                  <FormField label="Data del decesso">
+                    <Input
+                      type="date"
+                      value={defuntaIl}
+                      onChange={(e) => setDefuntaIl(e.target.value)}
+                      max={today}
+                      required
+                    />
+                  </FormField>
+                  <FormField label="Causa (opzionale)">
+                    <Input
+                      value={causa}
+                      onChange={(e) => setCausa(e.target.value)}
+                      placeholder="Es. vecchiaia, predatore…"
+                    />
+                  </FormField>
+                  <FormField label="Note sul decesso (opzionale)">
+                    <Textarea
+                      value={noteDecesso}
+                      onChange={(e) => setNoteDecesso(e.target.value)}
+                      rows={2}
+                    />
+                  </FormField>
+                </div>
+              )}
+            </div>
+          </details>
 
           {error && (
             <p className="text-sm text-[#c0435a] text-center mb-3">{error}</p>

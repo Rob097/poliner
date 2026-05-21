@@ -26,10 +26,14 @@ import {
   isPushSupported,
   isSubscribed,
 } from "@/lib/push/client";
+import { suggestSlug, SLUG_REGEX } from "@/lib/utils/slug";
 import {
+  aggiornaDescrizionePubblica,
   aggiornaPollaio,
   aggiornaPreferenzeNotifiche,
   aggiornaProfilo,
+  attivaPaginaPubblica,
+  disattivaPaginaPubblica,
 } from "./actions";
 
 interface Profilo {
@@ -46,6 +50,9 @@ interface Pollaio {
   posizioneLng: number | null;
   conservazioneAmbienteGiorni: number;
   conservazioneFrigoGiorni: number;
+  pubblicoAttivo: boolean;
+  pubblicoSlug: string | null;
+  descrizionePubblica: string | null;
 }
 
 interface Preferenze {
@@ -140,6 +147,14 @@ export function ImpostazioniClient({
           <span className="text-[var(--text-secondary)] text-lg">›</span>
         </Link>
       </Card>
+
+      {/* Pagina pubblica (solo admin) */}
+      {ruolo === "admin" && (
+        <>
+          <SectionTitle>Pagina pubblica</SectionTitle>
+          <PaginaPubblicaSection pollaio={pollaio} />
+        </>
+      )}
 
       {/* Conservazione */}
       <SectionTitle>Conservazione uova</SectionTitle>
@@ -245,6 +260,213 @@ function KeyValueRow({
         )}
       </div>
     </div>
+  );
+}
+
+// ── PAGINA PUBBLICA SECTION ─────────────────────────────
+function PaginaPubblicaSection({ pollaio }: { pollaio: Pollaio }) {
+  const { show } = useToast();
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const slugDefault = pollaio.pubblicoSlug ?? suggestSlug(pollaio.nome) ?? "";
+  const [slug, setSlug] = useState(slugDefault);
+  const [descrizione, setDescrizione] = useState(pollaio.descrizionePubblica ?? "");
+  const [copied, setCopied] = useState(false);
+
+  const slugTrim = slug.trim().toLowerCase();
+  const slugValid = SLUG_REGEX.test(slugTrim);
+  const slugChanged = slugTrim !== (pollaio.pubblicoSlug ?? "");
+  const descChanged = descrizione !== (pollaio.descrizionePubblica ?? "");
+
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : "https://poliner.app";
+  const url = `${origin}/p/${pollaio.pubblicoSlug ?? slugTrim}`;
+
+  function onToggle(attiva: boolean) {
+    if (attiva) {
+      if (!slugValid) {
+        show("Slug non valido");
+        return;
+      }
+      startTransition(async () => {
+        const res = await attivaPaginaPubblica(slugTrim);
+        if (res.ok) {
+          show("✓ Pagina pubblica attivata");
+          router.refresh();
+        } else {
+          show(res.error ?? "Ops, riprova!");
+        }
+      });
+    } else {
+      startTransition(async () => {
+        const res = await disattivaPaginaPubblica();
+        if (res.ok) {
+          show("✓ Pagina pubblica disattivata");
+          router.refresh();
+        } else {
+          show(res.error ?? "Ops, riprova!");
+        }
+      });
+    }
+  }
+
+  function onSalvaSlug() {
+    if (!slugValid) {
+      show("Slug non valido");
+      return;
+    }
+    startTransition(async () => {
+      const res = await attivaPaginaPubblica(slugTrim);
+      if (res.ok) {
+        show("✓ Slug aggiornato");
+        router.refresh();
+      } else {
+        show(res.error ?? "Ops, riprova!");
+      }
+    });
+  }
+
+  function onSalvaDescrizione() {
+    startTransition(async () => {
+      const res = await aggiornaDescrizionePubblica(descrizione);
+      if (res.ok) {
+        show("✓ Descrizione salvata");
+        router.refresh();
+      } else {
+        show(res.error ?? "Ops, riprova!");
+      }
+    });
+  }
+
+  function copyLink() {
+    if (!navigator.clipboard) return;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    });
+  }
+
+  return (
+    <Card>
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="flex-1">
+          <div className="font-semibold text-[15px]">
+            {pollaio.pubblicoAttivo ? "🌐 Pagina pubblica attiva" : "🌐 Pagina pubblica"}
+          </div>
+          <div className="text-[13px] text-[var(--text-secondary)] mt-0.5">
+            {pollaio.pubblicoAttivo
+              ? "Chiunque ha il link può vedere nome, descrizione e galline del pollaio."
+              : "Genera un link condivisibile per mostrare il tuo pollaio."}
+          </div>
+        </div>
+        <Switch
+          checked={pollaio.pubblicoAttivo}
+          onChange={onToggle}
+          disabled={pending || (!pollaio.pubblicoAttivo && !slugValid)}
+        />
+      </div>
+
+      <FormField label="Slug (URL)">
+        <Input
+          value={slug}
+          onChange={(e) => setSlug(e.target.value)}
+          placeholder={suggestSlug(pollaio.nome) || "mio-pollaio"}
+          spellCheck={false}
+        />
+        {slug && !slugValid && (
+          <p className="text-xs text-[#c0435a] mt-1">
+            Usa 3-40 caratteri tra a-z, 0-9 e -.
+          </p>
+        )}
+      </FormField>
+
+      {pollaio.pubblicoAttivo && pollaio.pubblicoSlug && (
+        <div className="mb-3 flex items-center gap-2">
+          <Input value={url} readOnly className="flex-1" />
+          <Button type="button" variant="secondary" onClick={copyLink} disabled={pending}>
+            {copied ? "✓" : "Copia"}
+          </Button>
+        </div>
+      )}
+
+      {pollaio.pubblicoAttivo && slugChanged && (
+        <Button
+          type="button"
+          variant="secondary"
+          fullWidth
+          onClick={onSalvaSlug}
+          disabled={pending || !slugValid}
+          className="mb-3"
+        >
+          {pending ? "Sto salvando…" : "Salva nuovo slug"}
+        </Button>
+      )}
+
+      <FormField label="Descrizione (max 500 caratteri)">
+        <textarea
+          value={descrizione}
+          onChange={(e) => setDescrizione(e.target.value)}
+          rows={4}
+          maxLength={500}
+          placeholder="Racconta il tuo pollaio: storia, razze, perché lo hai aperto…"
+          className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-white px-3 py-2 text-sm font-sans focus:outline-none focus:border-[var(--primary)]"
+        />
+        <div className="text-xs text-[var(--text-secondary)] mt-1 text-right">
+          {descrizione.length}/500
+        </div>
+      </FormField>
+
+      {descChanged && (
+        <Button
+          type="button"
+          fullWidth
+          onClick={onSalvaDescrizione}
+          disabled={pending}
+          className="mb-2"
+        >
+          {pending ? "Sto salvando…" : "Salva descrizione"}
+        </Button>
+      )}
+
+      {pollaio.pubblicoAttivo && pollaio.pubblicoSlug && (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block text-center text-sm text-[var(--primary)] font-semibold mt-2"
+        >
+          Apri pagina pubblica ↗
+        </a>
+      )}
+    </Card>
+  );
+}
+
+// Toggle on/off semplice (riusato dentro la sezione pagina pubblica).
+function Switch({
+  checked,
+  onChange,
+  disabled,
+}: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className="relative inline-flex items-center w-11 h-6 rounded-full transition-colors disabled:opacity-50"
+      style={{ background: checked ? "var(--primary)" : "var(--border)" }}
+    >
+      <span
+        className="inline-block w-5 h-5 bg-white rounded-full shadow transition-transform"
+        style={{ transform: checked ? "translateX(22px)" : "translateX(2px)" }}
+      />
+    </button>
   );
 }
 

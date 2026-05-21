@@ -22,6 +22,7 @@ import { trovaRazza, uovaAnnoLabel } from "@/lib/data/razze";
 import { avatarBgFor, defaultEmojiFor } from "@/lib/utils/avatar";
 import { formatData, formatDataLunga } from "@/lib/utils/date";
 import {
+  aggiornaHomeHospital,
   aggiungiEventoSalute,
   aggiungiTrattamento,
   avviaMuta,
@@ -29,6 +30,16 @@ import {
   risolviEventoSalute,
   terminaMuta,
 } from "../actions";
+import { SegnaDefuntaSheet } from "@/components/galline/SegnaDefuntaSheet";
+import { MessaggioEmpaticoModal } from "@/components/galline/MessaggioEmpaticoModal";
+import {
+  InserimentoTab,
+  type EventoInserimento,
+} from "@/components/galline/InserimentoTab";
+import {
+  hideLoadingOverlay,
+  showLoadingOverlay,
+} from "@/components/layout/NavigationOverlay";
 
 type Tipo = "gallina" | "gallo";
 
@@ -42,6 +53,9 @@ interface Animale {
   colore_piumaggio: string | null;
   foto_url: string | null;
   note: string | null;
+  defunta_il: string | null;
+  causa_decesso: string | null;
+  note_decesso: string | null;
 }
 
 interface UovoRow {
@@ -77,6 +91,9 @@ interface EventoSalute {
   descrizione: string | null;
   stato: string;
   data_risoluzione: string | null;
+  home_hospital: boolean;
+  hh_da: string | null;
+  hh_a: string | null;
 }
 
 export interface ChickenData {
@@ -85,6 +102,7 @@ export interface ChickenData {
   trattamenti: Trattamento[];
   periodiMuta: PeriodoMuta[];
   eventiSalute: EventoSalute[];
+  eventiInserimento: EventoInserimento[];
   statsUova: {
     ultimaSettimana: number;
     totali: number;
@@ -92,7 +110,7 @@ export interface ChickenData {
   };
 }
 
-type TabId = "info" | "uova" | "salute";
+type TabId = "info" | "uova" | "salute" | "inserimento";
 
 const TIPI_PROBLEMA = [
   { value: "ferita", label: "Ferita" },
@@ -114,13 +132,20 @@ const SUGGERIMENTI_TRATTAMENTO = [
 
 export function ChickenDetail({ data }: { data: ChickenData }) {
   const router = useRouter();
-  const { animale, uova, trattamenti, periodiMuta, eventiSalute, statsUova } = data;
+  const { animale, uova, trattamenti, periodiMuta, eventiSalute, eventiInserimento, statsUova } = data;
+  const inInserimento =
+    eventiInserimento.length > 0 &&
+    !eventiInserimento.some((e) => e.tipo === "completato");
   const tipo = animale.tipo as Tipo;
 
   const [activeTab, setActiveTab] = useState<TabId>("info");
   const [showTrattamento, setShowTrattamento] = useState(false);
   const [showProblema, setShowProblema] = useState(false);
+  const [showDefunta, setShowDefunta] = useState(false);
+  const [showEmpatico, setShowEmpatico] = useState(false);
+  const [editingHHEvento, setEditingHHEvento] = useState<EventoSalute | null>(null);
 
+  const isDefunta = !!animale.defunta_il;
   const eta = animale.data_nascita ? calcolaEta(animale.data_nascita) : null;
   const fase = faseProduttiva({
     tipo,
@@ -139,10 +164,12 @@ export function ChickenDetail({ data }: { data: ChickenData }) {
         { value: "info" as const, label: "Info" },
         { value: "uova" as const, label: "Uova" },
         { value: "salute" as const, label: "Salute" },
+        { value: "inserimento" as const, label: "Inserimento" },
       ]
     : [
         { value: "info" as const, label: "Info" },
         { value: "salute" as const, label: "Salute" },
+        { value: "inserimento" as const, label: "Inserimento" },
       ];
 
   return (
@@ -151,13 +178,15 @@ export function ChickenDetail({ data }: { data: ChickenData }) {
         title={animale.nome}
         onBack={() => router.back()}
         right={
-          <Button
-            variant="icon"
-            onClick={() => router.push(`/galline/${animale.id}/modifica`)}
-            aria-label="Modifica"
-          >
-            <IconEdit size={20} color="var(--text-secondary)" />
-          </Button>
+          isDefunta ? null : (
+            <Button
+              variant="icon"
+              onClick={() => router.push(`/galline/${animale.id}/modifica`)}
+              aria-label="Modifica"
+            >
+              <IconEdit size={20} color="var(--text-secondary)" />
+            </Button>
+          )
         }
       />
 
@@ -186,12 +215,22 @@ export function ChickenDetail({ data }: { data: ChickenData }) {
           </div>
 
           <div className="flex justify-center gap-2 mt-3 flex-wrap">
-            {problemaAttivo && (
+            {isDefunta && (
+              <Badge bg="#E8E2DC" color="#5b4d3e">
+                💔 In memoria
+              </Badge>
+            )}
+            {!isDefunta && inInserimento && (
+              <Badge bg="#FFE07A55" color="#7a5d1a">
+                🏠+→ In inserimento
+              </Badge>
+            )}
+            {!isDefunta && problemaAttivo && (
               <Badge bg="#FFD6E0" color="#c0435a">
                 ❤️‍🩹 Problema salute
               </Badge>
             )}
-            {muta.inMuta && (
+            {!isDefunta && muta.inMuta && (
               <Badge bg="#E8DAFF" color="#7b5ea7">
                 🪶 In muta da {muta.giorni} {muta.giorni === 1 ? "giorno" : "giorni"}
               </Badge>
@@ -226,7 +265,14 @@ export function ChickenDetail({ data }: { data: ChickenData }) {
         </div>
 
         {activeTab === "info" && (
-          <InfoTab animale={animale} eta={eta} fase={fase} problema={problemaAttivo} />
+          <InfoTab
+            animale={animale}
+            eta={eta}
+            fase={fase}
+            problema={problemaAttivo}
+            isDefunta={isDefunta}
+            onSegnaDefunta={() => setShowDefunta(true)}
+          />
         )}
 
         {activeTab === "uova" && tipo === "gallina" && (
@@ -240,8 +286,18 @@ export function ChickenDetail({ data }: { data: ChickenData }) {
             periodiMuta={periodiMuta}
             eventiSalute={eventiSalute}
             mutaInCorso={muta.inMuta}
+            readOnly={isDefunta}
             onAddTrattamento={() => setShowTrattamento(true)}
             onAddProblema={() => setShowProblema(true)}
+            onEditHH={(e) => setEditingHHEvento(e)}
+          />
+        )}
+
+        {activeTab === "inserimento" && (
+          <InserimentoTab
+            animaleId={animale.id}
+            eventi={eventiInserimento}
+            readOnly={isDefunta}
           />
         )}
       </div>
@@ -258,6 +314,33 @@ export function ChickenDetail({ data }: { data: ChickenData }) {
           onClose={() => setShowProblema(false)}
         />
       )}
+      {showDefunta && (
+        <SegnaDefuntaSheet
+          animaleId={animale.id}
+          animaleNome={animale.nome}
+          onClose={() => setShowDefunta(false)}
+          onConfirmed={() => {
+            setShowDefunta(false);
+            setShowEmpatico(true);
+          }}
+        />
+      )}
+      {showEmpatico && (
+        <MessaggioEmpaticoModal
+          nome={animale.nome}
+          onClose={() => {
+            setShowEmpatico(false);
+            router.push("/galline/in-memoria");
+          }}
+        />
+      )}
+      {editingHHEvento && (
+        <AggiornaHomeHospitalSheet
+          evento={editingHHEvento}
+          animaleId={animale.id}
+          onClose={() => setEditingHHEvento(null)}
+        />
+      )}
     </>
   );
 }
@@ -268,11 +351,15 @@ function InfoTab({
   eta,
   fase,
   problema,
+  isDefunta,
+  onSegnaDefunta,
 }: {
   animale: Animale;
   eta: string | null;
   fase: ReturnType<typeof faseProduttiva>;
   problema: EventoSalute | undefined;
+  isDefunta: boolean;
+  onSegnaDefunta: () => void;
 }) {
   const razza = trovaRazza(animale.razza_id);
   const showRazzaInfo = razza && razza.origine !== "mista";
@@ -318,7 +405,7 @@ function InfoTab({
         </>
       )}
 
-      {problema && (
+      {problema && !isDefunta && (
         <>
           <SectionTitle>Problema attivo</SectionTitle>
           <Card style={{ borderLeft: "4px solid #E8678A" }}>
@@ -330,6 +417,60 @@ function InfoTab({
             </div>
           </Card>
         </>
+      )}
+
+      {isDefunta && animale.defunta_il && (
+        <>
+          <SectionTitle>In memoria</SectionTitle>
+          <Card style={{ borderLeft: "4px solid #b89a7a" }}>
+            <div className="font-semibold text-sm mb-1">
+              💔 Defunta il {formatDataLunga(animale.defunta_il)}
+            </div>
+            {animale.causa_decesso && (
+              <div className="text-xs text-[var(--text-secondary)] mt-1">
+                Causa: {animale.causa_decesso}
+              </div>
+            )}
+            {animale.note_decesso && (
+              <p className="text-sm text-text leading-relaxed mt-2 whitespace-pre-wrap m-0">
+                {animale.note_decesso}
+              </p>
+            )}
+          </Card>
+        </>
+      )}
+
+      {!isDefunta && (
+        <details className="mt-5 group">
+          <summary
+            className="list-none cursor-pointer flex items-center justify-between px-1 py-2 text-[12px] uppercase tracking-wider font-bold text-[var(--text-secondary)]"
+          >
+            <span>Zona delicata</span>
+            <span
+              className="text-[var(--text-secondary)] transition-transform group-open:rotate-90"
+              aria-hidden
+            >
+              ›
+            </span>
+          </summary>
+          <Card className="mt-2">
+            <button
+              type="button"
+              onClick={onSegnaDefunta}
+              className="w-full text-left flex items-center justify-between gap-3 py-1"
+            >
+              <div>
+                <div className="font-semibold text-sm text-[#c0435a]">
+                  💔 Segna come defunta
+                </div>
+                <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+                  Lo storico resta intatto, la trovi in “In memoria”.
+                </div>
+              </div>
+              <span className="text-[var(--text-secondary)]" aria-hidden>›</span>
+            </button>
+          </Card>
+        </details>
       )}
     </div>
   );
@@ -424,21 +565,26 @@ function SaluteTab({
   periodiMuta,
   eventiSalute,
   mutaInCorso,
+  readOnly,
   onAddTrattamento,
   onAddProblema,
+  onEditHH,
 }: {
   animaleId: string;
   trattamenti: Trattamento[];
   periodiMuta: PeriodoMuta[];
   eventiSalute: EventoSalute[];
   mutaInCorso: boolean;
+  readOnly: boolean;
   onAddTrattamento: () => void;
   onAddProblema: () => void;
+  onEditHH: (e: EventoSalute) => void;
 }) {
   const { show } = useToast();
   const [pending, startTransition] = useTransition();
 
   function toggleMuta() {
+    showLoadingOverlay();
     startTransition(async () => {
       const fn = mutaInCorso ? terminaMuta : avviaMuta;
       const res = await fn(animaleId);
@@ -447,20 +593,25 @@ function SaluteTab({
       } else {
         show("Ops, riprova!");
       }
+      hideLoadingOverlay();
     });
   }
 
   function risolvi(eventoId: string) {
+    showLoadingOverlay();
     startTransition(async () => {
       const res = await risolviEventoSalute(eventoId, animaleId);
       if (res.ok) show("✓ Problema risolto!");
+      hideLoadingOverlay();
     });
   }
 
   function eliminaTratt(id: string) {
+    showLoadingOverlay();
     startTransition(async () => {
       const res = await eliminaTrattamento(id, animaleId);
       if (res.ok) show("✓ Trattamento eliminato");
+      hideLoadingOverlay();
     });
   }
 
@@ -480,15 +631,17 @@ function SaluteTab({
                 : "Segna l'inizio della muta quando inizia a perdere le penne"}
             </div>
           </div>
-          <Button
-            size="md"
-            variant={mutaInCorso ? "secondary" : "primary"}
-            onClick={toggleMuta}
-            disabled={pending}
-            className="whitespace-nowrap"
-          >
-            {mutaInCorso ? "Termina muta" : "Inizia muta"}
-          </Button>
+          {!readOnly && (
+            <Button
+              size="md"
+              variant={mutaInCorso ? "secondary" : "primary"}
+              onClick={toggleMuta}
+              disabled={pending}
+              className="whitespace-nowrap"
+            >
+              {mutaInCorso ? "Termina muta" : "Inizia muta"}
+            </Button>
+          )}
         </div>
 
         {periodiMuta.length > 0 && (
@@ -511,13 +664,15 @@ function SaluteTab({
       {/* Eventi salute */}
       <SectionTitle
         right={
-          <button
-            type="button"
-            onClick={onAddProblema}
-            className="text-xs text-[var(--primary)] font-semibold flex items-center gap-1"
-          >
-            <IconPlus size={14} /> Registra problema
-          </button>
+          readOnly ? undefined : (
+            <button
+              type="button"
+              onClick={onAddProblema}
+              className="text-xs text-[var(--primary)] font-semibold flex items-center gap-1"
+            >
+              <IconPlus size={14} /> Registra problema
+            </button>
+          )
         }
       >
         Problemi di salute
@@ -530,49 +685,78 @@ function SaluteTab({
         </Card>
       ) : (
         <div className="flex flex-col gap-2">
-          {eventiSalute.map((e) => (
-            <Card key={e.id}>
-              <div className="flex justify-between items-start mb-1">
-                <div className="font-semibold text-sm">
-                  {e.stato === "in_corso" ? "❤️‍🩹" : "✓"}{" "}
-                  {e.descrizione ?? tipoEventoLabel(e.tipo)}
+          {eventiSalute.map((e) => {
+            const hhAttivo = e.home_hospital && !e.hh_a;
+            return (
+              <Card key={e.id}>
+                <div className="flex justify-between items-start mb-1 gap-2">
+                  <div className="font-semibold text-sm">
+                    {e.stato === "in_corso" ? "❤️‍🩹" : "✓"}{" "}
+                    {e.descrizione ?? tipoEventoLabel(e.tipo)}
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                    {e.home_hospital && (
+                      <Badge small bg="#FFE07A55" color="#7a5d1a">
+                        🏠 {hhAttivo ? "In casa" : "Casa"}
+                      </Badge>
+                    )}
+                    <Badge
+                      small
+                      bg={e.stato === "in_corso" ? "#FFD6E0" : "#B5D4B533"}
+                      color={e.stato === "in_corso" ? "#c0435a" : "#3d6b3d"}
+                    >
+                      {e.stato === "in_corso" ? "In corso" : "Risolto"}
+                    </Badge>
+                  </div>
                 </div>
-                <Badge
-                  small
-                  bg={e.stato === "in_corso" ? "#FFD6E0" : "#B5D4B533"}
-                  color={e.stato === "in_corso" ? "#c0435a" : "#3d6b3d"}
-                >
-                  {e.stato === "in_corso" ? "In corso" : "Risolto"}
-                </Badge>
-              </div>
-              <div className="text-xs text-[var(--text-secondary)]">
-                {formatData(e.data)} · Tipo: {tipoEventoLabel(e.tipo)}
-              </div>
-              {e.stato === "in_corso" && (
-                <button
-                  type="button"
-                  onClick={() => risolvi(e.id)}
-                  disabled={pending}
-                  className="mt-2 text-xs text-[var(--primary)] font-semibold"
-                >
-                  Segna come risolto
-                </button>
-              )}
-            </Card>
-          ))}
+                <div className="text-xs text-[var(--text-secondary)]">
+                  {formatData(e.data)} · Tipo: {tipoEventoLabel(e.tipo)}
+                </div>
+                {e.home_hospital && (e.hh_da || e.hh_a) && (
+                  <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+                    🏠 {e.hh_da ? `Dal ${formatData(e.hh_da)}` : ""}
+                    {e.hh_a ? ` al ${formatData(e.hh_a)}` : e.hh_da ? " — ancora a casa" : ""}
+                  </div>
+                )}
+                <div className="mt-2 flex items-center gap-3 flex-wrap">
+                  {e.stato === "in_corso" && !readOnly && (
+                    <button
+                      type="button"
+                      onClick={() => risolvi(e.id)}
+                      disabled={pending}
+                      className="text-xs text-[var(--primary)] font-semibold"
+                    >
+                      Segna come risolto
+                    </button>
+                  )}
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      onClick={() => onEditHH(e)}
+                      className="text-xs text-[#7a5d1a] font-semibold"
+                    >
+                      {e.home_hospital ? "Aggiorna Home Hospital" : "🏠 Porta in casa"}
+                    </button>
+                  )}
+                </div>
+              </Card>
+            );
+          })}
         </div>
       )}
 
       {/* Trattamenti */}
       <SectionTitle
         right={
-          <button
-            type="button"
-            onClick={onAddTrattamento}
-            className="text-xs text-[var(--primary)] font-semibold flex items-center gap-1"
-          >
-            <IconPlus size={14} /> Aggiungi
-          </button>
+          readOnly ? undefined : (
+            <button
+              type="button"
+              onClick={onAddTrattamento}
+              className="text-xs text-[var(--primary)] font-semibold flex items-center gap-1"
+            >
+              <IconPlus size={14} /> Aggiungi
+            </button>
+          )
         }
       >
         Trattamenti
@@ -614,7 +798,7 @@ function SaluteTab({
                 </div>
               )}
               {/* Eliminazione possibile solo se è del singolo animale */}
-              {!t.applica_a_tutti && (
+              {!t.applica_a_tutti && !readOnly && (
                 <button
                   type="button"
                   onClick={() => eliminaTratt(t.id)}
@@ -657,6 +841,7 @@ function AggiungiTrattamentoSheet({
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    showLoadingOverlay();
     startTransition(async () => {
       const res = await aggiungiTrattamento({
         animaleId,
@@ -674,6 +859,7 @@ function AggiungiTrattamentoSheet({
       } else {
         show("Ops, riprova!");
       }
+      hideLoadingOverlay();
     });
   }
 
@@ -765,15 +951,23 @@ function RegistraProblemaSheet({
   const [tipo, setTipo] =
     useState<(typeof TIPI_PROBLEMA)[number]["value"]>("ferita");
   const [descrizione, setDescrizione] = useState("");
+  const today = new Date().toISOString().slice(0, 10);
+  const [homeHospital, setHomeHospital] = useState(false);
+  const [hhDa, setHhDa] = useState(today);
+  const [hhA, setHhA] = useState("");
   const [pending, startTransition] = useTransition();
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    showLoadingOverlay();
     startTransition(async () => {
       const res = await aggiungiEventoSalute({
         animaleId,
         tipo,
         descrizione: descrizione || null,
+        homeHospital,
+        hhDa: homeHospital ? hhDa : null,
+        hhA: homeHospital && hhA ? hhA : null,
       });
       if (res.ok) {
         show("✓ Problema registrato");
@@ -781,6 +975,7 @@ function RegistraProblemaSheet({
       } else {
         show("Ops, riprova!");
       }
+      hideLoadingOverlay();
     });
   }
 
@@ -812,6 +1007,47 @@ function RegistraProblemaSheet({
           />
         </FormField>
 
+        <div className="mb-4 rounded-[var(--radius)] border border-[var(--border)] p-3">
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={homeHospital}
+              onChange={(ev) => setHomeHospital(ev.target.checked)}
+              className="mt-1"
+            />
+            <div className="flex-1">
+              <div className="text-sm font-semibold">
+                🏠 Portata a casa (Home Hospital)
+              </div>
+              <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+                Tracciamo separatamente il periodo di cura a casa.
+              </div>
+            </div>
+          </label>
+
+          {homeHospital && (
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <FormField label="Da">
+                <Input
+                  type="date"
+                  value={hhDa}
+                  onChange={(ev) => setHhDa(ev.target.value)}
+                  max={today}
+                  required
+                />
+              </FormField>
+              <FormField label="A (opzionale)">
+                <Input
+                  type="date"
+                  value={hhA}
+                  onChange={(ev) => setHhA(ev.target.value)}
+                  min={hhDa}
+                />
+              </FormField>
+            </div>
+          )}
+        </div>
+
         <Button
           type="submit"
           size="lg"
@@ -820,6 +1056,132 @@ function RegistraProblemaSheet({
           className="mt-2"
         >
           {pending ? "Sto registrando..." : "Registra problema"}
+        </Button>
+      </form>
+    </Modal>
+  );
+}
+
+function AggiornaHomeHospitalSheet({
+  evento,
+  animaleId,
+  onClose,
+}: {
+  evento: EventoSalute;
+  animaleId: string;
+  onClose: () => void;
+}) {
+  const { show } = useToast();
+  const today = new Date().toISOString().slice(0, 10);
+  const [homeHospital, setHomeHospital] = useState(evento.home_hospital);
+  const [hhDa, setHhDa] = useState(evento.hh_da ?? today);
+  const [hhA, setHhA] = useState(evento.hh_a ?? "");
+  const [pending, startTransition] = useTransition();
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    showLoadingOverlay();
+    startTransition(async () => {
+      const res = await aggiornaHomeHospital({
+        eventoId: evento.id,
+        animaleId,
+        homeHospital,
+        hhDa: homeHospital ? hhDa : null,
+        hhA: homeHospital ? hhA || null : null,
+      });
+      if (res.ok) {
+        show("✓ Home Hospital aggiornato");
+        onClose();
+      } else {
+        show("Ops, riprova!");
+      }
+      hideLoadingOverlay();
+    });
+  }
+
+  function chiudiOggi() {
+    showLoadingOverlay();
+    startTransition(async () => {
+      const res = await aggiornaHomeHospital({
+        eventoId: evento.id,
+        animaleId,
+        homeHospital: true,
+        hhDa: evento.hh_da ?? today,
+        hhA: today,
+      });
+      if (res.ok) {
+        show("✓ Tornata nel pollaio");
+        onClose();
+      } else {
+        show("Ops, riprova!");
+      }
+      hideLoadingOverlay();
+    });
+  }
+
+  return (
+    <Modal title="🏠 Home Hospital" onClose={onClose}>
+      <p className="text-sm text-[var(--text-secondary)] mb-4 leading-relaxed">
+        Tieni traccia del periodo in cui la gallina è in casa per cure.
+      </p>
+
+      <form onSubmit={onSubmit}>
+        <div className="mb-3 rounded-[var(--radius)] border border-[var(--border)] p-3">
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={homeHospital}
+              onChange={(ev) => setHomeHospital(ev.target.checked)}
+              className="mt-1"
+            />
+            <div className="flex-1">
+              <div className="text-sm font-semibold">
+                {homeHospital ? "🏠 Attualmente in Home Hospital" : "Non in Home Hospital"}
+              </div>
+              <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+                Togli la spunta per disattivare il tracciamento Home Hospital.
+              </div>
+            </div>
+          </label>
+
+          {homeHospital && (
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <FormField label="Da">
+                <Input
+                  type="date"
+                  value={hhDa}
+                  onChange={(ev) => setHhDa(ev.target.value)}
+                  max={today}
+                  required
+                />
+              </FormField>
+              <FormField label="A (opzionale)">
+                <Input
+                  type="date"
+                  value={hhA}
+                  onChange={(ev) => setHhA(ev.target.value)}
+                  min={hhDa}
+                />
+              </FormField>
+            </div>
+          )}
+        </div>
+
+        {homeHospital && !evento.hh_a && (
+          <Button
+            type="button"
+            variant="secondary"
+            fullWidth
+            onClick={chiudiOggi}
+            disabled={pending}
+            className="mb-2"
+          >
+            ✓ Tornata nel pollaio oggi
+          </Button>
+        )}
+
+        <Button type="submit" size="lg" fullWidth disabled={pending}>
+          {pending ? "Sto salvando…" : "Salva"}
         </Button>
       </form>
     </Modal>

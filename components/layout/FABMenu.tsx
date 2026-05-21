@@ -21,36 +21,32 @@ export function FABMenu({ open, onClose }: FABMenuProps) {
 
   if (!open) return null;
 
+  function go(href: string) {
+    router.push(href);
+    onClose();
+  }
+
   const actions: Action[] = [
     {
       id: "add-egg",
-      label: "Aggiungi uovo",
+      label: "Aggiungi uova",
       icon: "🥚",
       bg: "#FFE4D0",
-      onClick: () => {
-        router.push("/uova/nuovo");
-        onClose();
-      },
+      onClick: () => go("/uova/nuovo"),
     },
     {
       id: "go-manutenzione",
       label: "Manutenzione",
       icon: "🧹",
       bg: "#B5D4B5",
-      onClick: () => {
-        router.push("/manutenzione");
-        onClose();
-      },
+      onClick: () => go("/manutenzione"),
     },
     {
       id: "add-note",
       label: "Nota rapida",
       icon: "📝",
       bg: "#E8DAFF",
-      onClick: () => {
-        router.push("/note?nuova=1");
-        onClose();
-      },
+      onClick: () => go("/note?nuova=1"),
     },
   ];
 

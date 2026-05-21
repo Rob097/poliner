@@ -16,6 +16,10 @@ import { useToast } from "@/components/ui/Toast";
 import { avatarBgFor, defaultEmojiFor } from "@/lib/utils/avatar";
 import { compressAndUpload } from "@/lib/utils/images";
 import { cn } from "@/lib/utils/cn";
+import {
+  hideLoadingOverlay,
+  showLoadingOverlay,
+} from "@/components/layout/NavigationOverlay";
 import { createUovo } from "../actions";
 
 export interface Gallina {
@@ -60,6 +64,7 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
     e.preventDefault();
     setPending(true);
     setError(null);
+    showLoadingOverlay();
     try {
       let fotoUrl: string | null = null;
       if (foto) {
@@ -86,6 +91,7 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
       setError("Ops, qualcosa non ha funzionato. Riprova!");
     } finally {
       setPending(false);
+      hideLoadingOverlay();
     }
   }
 
@@ -93,6 +99,22 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
     <>
       <Header title="Aggiungi uovo" onBack={() => router.back()} />
       <ScreenContainer>
+        <Link
+          href="/uova/batch"
+          className="flex items-center justify-between gap-2 mb-3 px-3 py-2.5 rounded-[var(--radius)] border border-[var(--border)] bg-white"
+        >
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl" aria-hidden>🧺</span>
+            <div>
+              <div className="font-semibold text-sm">Raccolta veloce</div>
+              <div className="text-xs text-[var(--text-secondary)]">
+                Aggiungi più uova insieme con un counter per gallina
+              </div>
+            </div>
+          </div>
+          <span className="text-[var(--text-secondary)]" aria-hidden>›</span>
+        </Link>
+
         <form onSubmit={onSubmit}>
           <div className="text-center my-3">
             <div className="text-6xl">🥚</div>

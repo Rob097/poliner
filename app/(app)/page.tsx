@@ -44,6 +44,7 @@ export default async function HomePage() {
     promemoriaRes,
     uscitaOggiRes,
     notificheNonLetteRes,
+    homeHospitalRes,
   ] = await Promise.all([
     supabase
       .from("uova")
@@ -112,6 +113,13 @@ export default async function HomePage() {
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id)
       .is("letta_il", null),
+    supabase
+      .from("eventi_salute")
+      .select("id, animale_id, hh_da, animali(nome, foto_url)")
+      .eq("pollaio_id", pollaio.id)
+      .eq("home_hospital", true)
+      .is("hh_a", null)
+      .order("hh_da", { ascending: true }),
   ]);
 
   // ── Manutenzioni: stati dalle voci attive ───────────────
@@ -269,6 +277,32 @@ export default async function HomePage() {
   const notificheDaLeggere = notificheNonLetteRes.count ?? 0;
   const dateStr = formatDataCompleta(new Date());
 
+  // ── Galline in Home Hospital ────────────────────────────
+  type HHRow = {
+    id: string;
+    animale_id: string;
+    hh_da: string | null;
+    animali: { nome: string; foto_url: string | null } | { nome: string; foto_url: string | null }[] | null;
+  };
+  const hhRows = (homeHospitalRes.data ?? []) as unknown as HHRow[];
+  // Dedup per animale_id (una gallina può avere più eventi HH attivi teoricamente)
+  const hhByAnimale = new Map<string, { nome: string; fotoUrl: string | null; hhDa: string | null }>();
+  for (const r of hhRows) {
+    if (hhByAnimale.has(r.animale_id)) continue;
+    const a = Array.isArray(r.animali) ? r.animali[0] : r.animali;
+    hhByAnimale.set(r.animale_id, {
+      nome: a?.nome ?? "Una gallina",
+      fotoUrl: a?.foto_url ?? null,
+      hhDa: r.hh_da,
+    });
+  }
+  const hhList = Array.from(hhByAnimale.entries()).map(([animaleId, v]) => {
+    const giorni = v.hhDa
+      ? Math.max(0, Math.floor((Date.now() - new Date(v.hhDa).getTime()) / (1000 * 60 * 60 * 24)))
+      : 0;
+    return { animaleId, ...v, giorni };
+  });
+
   return (
     <>
       <Header
@@ -355,6 +389,44 @@ export default async function HomePage() {
             </Card>
           </Link>
         </div>
+
+        {/* Galline in Home Hospital */}
+        {hhList.length > 0 && (
+          <Link href="/galline?filtro=home-hospital" className="block mt-3">
+            <Card
+              clickable
+              style={{
+                background: "#FFE07A22",
+                border: "1px solid #FFE07A66",
+              }}
+            >
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="font-semibold text-sm flex items-center gap-1.5">
+                  <span aria-hidden>🏠</span> In casa (Home Hospital)
+                </div>
+                <span className="text-xs font-bold text-[#7a5d1a]">{hhList.length}</span>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {hhList.slice(0, 3).map((g) => (
+                  <div key={g.animaleId} className="flex items-center gap-2.5 text-xs">
+                    <span className="text-base" aria-hidden>🐔</span>
+                    <span className="font-semibold text-text flex-1 truncate">{g.nome}</span>
+                    <span className="text-[var(--text-secondary)]">
+                      {g.giorni === 0
+                        ? "da oggi"
+                        : `da ${g.giorni} ${g.giorni === 1 ? "giorno" : "giorni"}`}
+                    </span>
+                  </div>
+                ))}
+                {hhList.length > 3 && (
+                  <div className="text-[11px] text-[var(--text-secondary)] text-right mt-0.5">
+                    +{hhList.length - 3} altre →
+                  </div>
+                )}
+              </div>
+            </Card>
+          </Link>
+        )}
 
         {/* Azioni rapide */}
         <SectionTitle>Azioni rapide</SectionTitle>

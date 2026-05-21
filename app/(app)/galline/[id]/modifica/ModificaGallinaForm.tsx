@@ -5,13 +5,18 @@ import { useRouter } from "next/navigation";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { Button } from "@/components/ui/Button";
-import { Input, Select, Textarea } from "@/components/ui/Input";
+import { Input, Textarea } from "@/components/ui/Input";
 import { FormField } from "@/components/ui/FormField";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { ImageUploadField } from "@/components/ui/ImageUploadField";
+import { RazzaSelect } from "@/components/galline/RazzaSelect";
 import { useToast } from "@/components/ui/Toast";
-import { RAZZE, trovaRazza, uovaAnnoLabel } from "@/lib/data/razze";
+import { trovaRazza, uovaAnnoLabel } from "@/lib/data/razze";
 import { compressAndUpload } from "@/lib/utils/images";
+import {
+  hideLoadingOverlay,
+  showLoadingOverlay,
+} from "@/components/layout/NavigationOverlay";
 import { archiviaAnimale, updateAnimale } from "../../actions";
 
 type Tipo = "gallina" | "gallo";
@@ -55,6 +60,7 @@ export function ModificaGallinaForm({ initial }: Props) {
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    showLoadingOverlay();
     startTransition(async () => {
       try {
         let nextFotoUrl: string | null = fotoUrl;
@@ -77,6 +83,7 @@ export function ModificaGallinaForm({ initial }: Props) {
         });
         if (!res.ok) {
           setError(res.error ?? "Ops, riprova!");
+          hideLoadingOverlay();
           return;
         }
         show("✓ Modifiche salvate");
@@ -85,6 +92,7 @@ export function ModificaGallinaForm({ initial }: Props) {
       } catch (e) {
         console.error(e);
         setError("Ops, qualcosa non ha funzionato. Riprova!");
+        hideLoadingOverlay();
       }
     });
   }
@@ -94,6 +102,7 @@ export function ModificaGallinaForm({ initial }: Props) {
       `Vuoi archiviare ${initial.nome}? Non apparirà più nelle liste, ma lo storico delle sue uova resterà.`,
     );
     if (!confirmed) return;
+    showLoadingOverlay();
     startTransition(async () => {
       const res = await archiviaAnimale(initial.id);
       if (res.ok) {
@@ -102,6 +111,7 @@ export function ModificaGallinaForm({ initial }: Props) {
         router.refresh();
       } else {
         show("Ops, riprova!");
+        hideLoadingOverlay();
       }
     });
   }
@@ -143,17 +153,7 @@ export function ModificaGallinaForm({ initial }: Props) {
           </FormField>
 
           <FormField label="Razza">
-            <Select
-              value={razzaId ?? ""}
-              onChange={(e) => setRazzaId(e.target.value || null)}
-            >
-              <option value="">Scegli una razza...</option>
-              {RAZZE.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.nome}
-                </option>
-              ))}
-            </Select>
+            <RazzaSelect value={razzaId} onChange={setRazzaId} />
           </FormField>
 
           {isCustomRazza && (

@@ -13,7 +13,14 @@ export default async function GallinePage() {
     .select("*")
     .eq("pollaio_id", pollaio.id)
     .eq("attivo", true)
+    .is("defunta_il", null)
     .order("nome");
+
+  const { count: defunteCount } = await supabase
+    .from("animali")
+    .select("id", { count: "exact", head: true })
+    .eq("pollaio_id", pollaio.id)
+    .not("defunta_il", "is", null);
 
   const aIds = (animali ?? []).map((a) => a.id);
 
@@ -22,30 +29,50 @@ export default async function GallinePage() {
       <>
         <Header title="Le tue galline" subtitle="0 galline" />
         <ScreenContainer>
-          <GallineListClient galline={[]} pollaioId={pollaio.id} />
+          <GallineListClient
+            galline={[]}
+            pollaioId={pollaio.id}
+            defunteCount={defunteCount ?? 0}
+          />
         </ScreenContainer>
       </>
     );
   }
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const [uovaRes, mutaRes, saluteRes] = await Promise.all([
-    supabase
-      .from("uova")
-      .select("animale_id")
-      .in("animale_id", aIds)
-      .gte("data_deposizione", sevenDaysAgo),
-    supabase
-      .from("periodi_muta")
-      .select("animale_id, data_inizio")
-      .in("animale_id", aIds)
-      .is("data_fine", null),
-    supabase
-      .from("eventi_salute")
-      .select("animale_id, tipo, descrizione")
-      .in("animale_id", aIds)
-      .eq("stato", "in_corso"),
-  ]);
+  const [uovaRes, mutaRes, saluteRes, hhRes, insAllRes, insCompletatiRes] =
+    await Promise.all([
+      supabase
+        .from("uova")
+        .select("animale_id")
+        .in("animale_id", aIds)
+        .gte("data_deposizione", sevenDaysAgo),
+      supabase
+        .from("periodi_muta")
+        .select("animale_id, data_inizio")
+        .in("animale_id", aIds)
+        .is("data_fine", null),
+      supabase
+        .from("eventi_salute")
+        .select("animale_id, tipo, descrizione")
+        .in("animale_id", aIds)
+        .eq("stato", "in_corso"),
+      supabase
+        .from("eventi_salute")
+        .select("animale_id")
+        .in("animale_id", aIds)
+        .eq("home_hospital", true)
+        .is("hh_a", null),
+      supabase
+        .from("eventi_inserimento")
+        .select("animale_id")
+        .in("animale_id", aIds),
+      supabase
+        .from("eventi_inserimento")
+        .select("animale_id")
+        .in("animale_id", aIds)
+        .eq("tipo", "completato"),
+    ]);
 
   const uovaCount = new Map<string, number>();
   for (const u of uovaRes.data ?? []) {
@@ -65,6 +92,18 @@ export default async function GallinePage() {
     }
   }
 
+  const hhSet = new Set<string>();
+  for (const r of hhRes.data ?? []) hhSet.add(r.animale_id);
+
+  const insAllSet = new Set<string>();
+  for (const r of insAllRes.data ?? []) insAllSet.add(r.animale_id);
+  const insCompletatiSet = new Set<string>();
+  for (const r of insCompletatiRes.data ?? []) insCompletatiSet.add(r.animale_id);
+  const inInserimentoSet = new Set<string>();
+  for (const id of insAllSet) {
+    if (!insCompletatiSet.has(id)) inInserimentoSet.add(id);
+  }
+
   const galline: GallinaDisplay[] = (animali ?? []).map((a) => ({
     id: a.id,
     nome: a.nome,
@@ -75,6 +114,8 @@ export default async function GallinePage() {
     fotoUrl: a.foto_url,
     inMutaDal: mutaMap.get(a.id) ?? null,
     problemaAttivo: saluteMap.get(a.id) ?? null,
+    inHomeHospital: hhSet.has(a.id),
+    inInserimento: inInserimentoSet.has(a.id),
     uovaUltimaSettimana: uovaCount.get(a.id) ?? 0,
   }));
 
@@ -91,7 +132,11 @@ export default async function GallinePage() {
     <>
       <Header title="Le tue galline" subtitle={subtitle || "Nessuna ancora"} />
       <ScreenContainer>
-        <GallineListClient galline={galline} pollaioId={pollaio.id} />
+        <GallineListClient
+          galline={galline}
+          pollaioId={pollaio.id}
+          defunteCount={defunteCount ?? 0}
+        />
       </ScreenContainer>
     </>
   );

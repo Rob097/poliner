@@ -17,14 +17,17 @@ export type Database = {
       animali: {
         Row: {
           attivo: boolean
+          causa_decesso: string | null
           colore_piumaggio: string | null
           created_at: string
           data_nascita: string | null
+          defunta_il: string | null
           eta_approssimativa_mesi: number | null
           foto_url: string | null
           id: string
           nome: string
           note: string | null
+          note_decesso: string | null
           pollaio_id: string
           razza_custom: string | null
           razza_id: string | null
@@ -33,14 +36,17 @@ export type Database = {
         }
         Insert: {
           attivo?: boolean
+          causa_decesso?: string | null
           colore_piumaggio?: string | null
           created_at?: string
           data_nascita?: string | null
+          defunta_il?: string | null
           eta_approssimativa_mesi?: number | null
           foto_url?: string | null
           id?: string
           nome: string
           note?: string | null
+          note_decesso?: string | null
           pollaio_id: string
           razza_custom?: string | null
           razza_id?: string | null
@@ -49,14 +55,17 @@ export type Database = {
         }
         Update: {
           attivo?: boolean
+          causa_decesso?: string | null
           colore_piumaggio?: string | null
           created_at?: string
           data_nascita?: string | null
+          defunta_il?: string | null
           eta_approssimativa_mesi?: number | null
           foto_url?: string | null
           id?: string
           nome?: string
           note?: string | null
+          note_decesso?: string | null
           pollaio_id?: string
           razza_custom?: string | null
           razza_id?: string | null
@@ -117,6 +126,57 @@ export type Database = {
           },
         ]
       }
+      eventi_inserimento: {
+        Row: {
+          animale_id: string
+          created_at: string
+          created_by: string | null
+          data: string
+          foto_url: string | null
+          id: string
+          note: string | null
+          pollaio_id: string
+          tipo: Database["public"]["Enums"]["tipo_evento_inserimento"]
+        }
+        Insert: {
+          animale_id: string
+          created_at?: string
+          created_by?: string | null
+          data?: string
+          foto_url?: string | null
+          id?: string
+          note?: string | null
+          pollaio_id: string
+          tipo: Database["public"]["Enums"]["tipo_evento_inserimento"]
+        }
+        Update: {
+          animale_id?: string
+          created_at?: string
+          created_by?: string | null
+          data?: string
+          foto_url?: string | null
+          id?: string
+          note?: string | null
+          pollaio_id?: string
+          tipo?: Database["public"]["Enums"]["tipo_evento_inserimento"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventi_inserimento_animale_id_fkey"
+            columns: ["animale_id"]
+            isOneToOne: false
+            referencedRelation: "animali"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventi_inserimento_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eventi_salute: {
         Row: {
           animale_id: string
@@ -125,6 +185,9 @@ export type Database = {
           data_risoluzione: string | null
           descrizione: string | null
           foto_url: string | null
+          hh_a: string | null
+          hh_da: string | null
+          home_hospital: boolean
           id: string
           note_followup: string | null
           pollaio_id: string
@@ -139,6 +202,9 @@ export type Database = {
           data_risoluzione?: string | null
           descrizione?: string | null
           foto_url?: string | null
+          hh_a?: string | null
+          hh_da?: string | null
+          home_hospital?: boolean
           id?: string
           note_followup?: string | null
           pollaio_id: string
@@ -153,6 +219,9 @@ export type Database = {
           data_risoluzione?: string | null
           descrizione?: string | null
           foto_url?: string | null
+          hh_a?: string | null
+          hh_da?: string | null
+          home_hospital?: boolean
           id?: string
           note_followup?: string | null
           pollaio_id?: string
@@ -563,12 +632,15 @@ export type Database = {
           conservazione_ambiente_giorni: number
           conservazione_frigo_giorni: number
           created_at: string
+          descrizione_pubblica: string | null
           foto_url: string | null
           id: string
           nome: string
           posizione_lat: number | null
           posizione_lng: number | null
           posizione_nome: string | null
+          pubblico_attivo: boolean
+          pubblico_slug: string | null
           updated_at: string
           user_id: string
         }
@@ -576,12 +648,15 @@ export type Database = {
           conservazione_ambiente_giorni?: number
           conservazione_frigo_giorni?: number
           created_at?: string
+          descrizione_pubblica?: string | null
           foto_url?: string | null
           id?: string
           nome: string
           posizione_lat?: number | null
           posizione_lng?: number | null
           posizione_nome?: string | null
+          pubblico_attivo?: boolean
+          pubblico_slug?: string | null
           updated_at?: string
           user_id: string
         }
@@ -589,12 +664,15 @@ export type Database = {
           conservazione_ambiente_giorni?: number
           conservazione_frigo_giorni?: number
           created_at?: string
+          descrizione_pubblica?: string | null
           foto_url?: string | null
           id?: string
           nome?: string
           posizione_lat?: number | null
           posizione_lng?: number | null
           posizione_nome?: string | null
+          pubblico_attivo?: boolean
+          pubblico_slug?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1146,16 +1224,32 @@ export type Database = {
     Functions: {
       accept_invito: { Args: { p_token: string }; Returns: Json }
       accetta_richiesta_uova: { Args: { p_richiesta: string }; Returns: Json }
+      animale_in_inserimento: { Args: { p_animale_id: string }; Returns: boolean }
       is_my_pollaio: { Args: { p_pollaio: string }; Returns: boolean }
       merge_contatto_con_utente: {
         Args: { p_contatto: string; p_rinomina?: string; p_utente: string }
         Returns: Json
       }
       my_pollaio_role: { Args: { p_pollaio: string }; Returns: string }
+      public_pollaio_stats: {
+        Args: { p_slug: string }
+        Returns: {
+          uova_totali: number
+          uova_ultimo_mese: number
+          galline_count: number
+        }[]
+      }
       rifiuta_richiesta_uova: { Args: { p_richiesta: string }; Returns: Json }
     }
     Enums: {
-      [_ in never]: never
+      tipo_evento_inserimento:
+        | "quarantena_inizio"
+        | "quarantena_fine"
+        | "presentazione_visiva_inizio"
+        | "presentazione_visiva_fine"
+        | "convivenza_inizio"
+        | "completato"
+        | "nota"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1282,6 +1376,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      tipo_evento_inserimento: [
+        "quarantena_inizio",
+        "quarantena_fine",
+        "presentazione_visiva_inizio",
+        "presentazione_visiva_fine",
+        "convivenza_inizio",
+        "completato",
+        "nota",
+      ],
+    },
   },
 } as const

@@ -10,7 +10,7 @@ const PUBLIC_PATHS = [
 ];
 
 // Path accessibili sia da loggati che non loggati (no redirect)
-const OPEN_PATHS = ["/invito"];
+const OPEN_PATHS = ["/invito", "/p/"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });

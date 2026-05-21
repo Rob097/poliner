@@ -50,7 +50,11 @@
       "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\('js',p.get\\('version'\\)\\)\")",
       "Bash(npx supabase *)",
       "Bash(git stash *)",
-      "WebSearch"
+      "WebSearch",
+      "Read(//usr/bin/**)",
+      "Read(//usr/local/bin/**)",
+      "Bash(command -v nvm)",
+      "Bash([ -s \"$HOME/.nvm/nvm.sh\" ])"
     ],
     "additionalDirectories": [
       "/tmp"

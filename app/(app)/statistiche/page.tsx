@@ -15,9 +15,8 @@ export default async function StatistichePage() {
         .eq("pollaio_id", pollaio.id),
       supabase
         .from("animali")
-        .select("id, nome, foto_url, tipo")
-        .eq("pollaio_id", pollaio.id)
-        .eq("attivo", true),
+        .select("id, nome, foto_url, tipo, defunta_il")
+        .eq("pollaio_id", pollaio.id),
       supabase
         .from("spese")
         .select("data, importo_euro, categoria")
@@ -43,6 +42,7 @@ export default async function StatistichePage() {
       nome: a.nome,
       fotoUrl: a.foto_url,
       tipo: a.tipo as "gallina" | "gallo",
+      defunta: !!a.defunta_il,
     })),
     spese: (speseRes.data ?? []).map((s) => ({
       data: s.data,

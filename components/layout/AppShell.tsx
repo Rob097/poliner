@@ -4,12 +4,15 @@ import { useState, type ReactNode } from "react";
 import { TabBar } from "./TabBar";
 import { FABMenu } from "./FABMenu";
 import { InstallPrompt } from "./InstallPrompt";
+import { NavigationOverlayProvider } from "./NavigationOverlay";
 import { ToastProvider } from "@/components/ui/Toast";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <ToastProvider>
-      <AppShellInner>{children}</AppShellInner>
+      <NavigationOverlayProvider>
+        <AppShellInner>{children}</AppShellInner>
+      </NavigationOverlayProvider>
     </ToastProvider>
   );
 }
