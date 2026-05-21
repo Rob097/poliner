@@ -36,6 +36,7 @@ import {
   attivaPaginaPubblica,
   disattivaPaginaPubblica,
 } from "./actions";
+import { PwaInstallSection } from "./PwaInstallSection";
 
 interface Profilo {
   id: string;
@@ -184,6 +185,8 @@ export function ImpostazioniClient({
           Esporta dati, assistenza e altre opzioni avanzate arriveranno con i prossimi aggiornamenti.
         </p>
       </Card>
+
+      <PwaInstallSection />
 
       <Button
         variant="secondary"

@@ -3,47 +3,42 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { IconClose } from "@/components/ui/icons";
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
+import { usePwaInstall } from "./PwaInstallProvider";
 
 const DISMISS_KEY = "poliner.install.dismissedAt";
 const DISMISS_DAYS = 30;
 
 export function InstallPrompt() {
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [show, setShow] = useState(false);
+  const { availability, isSafari, requestInstall } = usePwaInstall();
+  const isIosManual = availability === "ios-manual";
 
   useEffect(() => {
-    // Se già installata (display-mode: standalone), non mostrare nulla
     if (typeof window === "undefined") return;
-    if (window.matchMedia("(display-mode: standalone)").matches) return;
+
+    if (availability === "unavailable") {
+      setShow(false);
+      return;
+    }
 
     // Se l'utente l'ha già rifiutato di recente, non mostrare
     const dismissedAt = localStorage.getItem(DISMISS_KEY);
     if (dismissedAt) {
       const age = Date.now() - Number(dismissedAt);
-      if (age < DISMISS_DAYS * 24 * 60 * 60 * 1000) return;
+      if (age < DISMISS_DAYS * 24 * 60 * 60 * 1000) {
+        setShow(false);
+        return;
+      }
     }
 
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferred(e as BeforeInstallPromptEvent);
-      setShow(true);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
+    setShow(true);
+  }, [availability]);
 
   async function onInstall() {
-    if (!deferred) return;
-    await deferred.prompt();
-    const result = await deferred.userChoice;
-    if (result.outcome === "accepted") {
+    const result = await requestInstall();
+
+    if (result === "accepted") {
       setShow(false);
-      setDeferred(null);
     } else {
       onDismiss();
     }
@@ -68,21 +63,35 @@ export function InstallPrompt() {
       >
         <div className="text-3xl">🐔</div>
         <div className="flex-1 min-w-0">
-          <div className="font-bold text-sm">Installa Poliner</div>
+          <div className="font-bold text-sm">
+            {isIosManual ? "Installa Poliner su iPhone o iPad" : "Installa Poliner"}
+          </div>
           <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">
-            Aggiungi l&apos;app alla schermata principale per accedere più velocemente.
+            {isIosManual
+              ? isSafari
+                ? "Su iPhone e iPad l'installazione passa da Safari: tocca Condividi e poi Aggiungi a Home."
+                : "Per installare Poliner su iPhone o iPad, apri questa pagina in Safari e poi tocca Condividi e Aggiungi a Home."
+              : "Aggiungi l'app alla schermata principale per accedere più velocemente."}
           </p>
           <div className="flex gap-2 mt-3">
-            <Button size="md" onClick={onInstall} className="text-xs px-3 py-2">
-              Installa
-            </Button>
-            <Button
-              variant="text"
-              onClick={onDismiss}
-              className="text-xs"
-            >
-              Più tardi
-            </Button>
+            {isIosManual ? (
+              <Button size="md" onClick={onDismiss} className="text-xs px-3 py-2">
+                Ho capito
+              </Button>
+            ) : (
+              <>
+                <Button size="md" onClick={onInstall} className="text-xs px-3 py-2">
+                  Installa
+                </Button>
+                <Button
+                  variant="text"
+                  onClick={onDismiss}
+                  className="text-xs"
+                >
+                  Più tardi
+                </Button>
+              </>
+            )}
           </div>
         </div>
         <button

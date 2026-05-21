@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState, type ReactNode } from "react";
 import { TabBar } from "./TabBar";
 import { FABMenu } from "./FABMenu";
 import { InstallPrompt } from "./InstallPrompt";
+import { PwaInstallProvider } from "./PwaInstallProvider";
 import { NavigationOverlayProvider } from "./NavigationOverlay";
 import { ToastProvider } from "@/components/ui/Toast";
 import {
@@ -17,11 +18,13 @@ const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <ToastProvider>
-      <Suspense fallback={<AppShellInner>{children}</AppShellInner>}>
-        <NavigationOverlayProvider>
-          <AppShellInner>{children}</AppShellInner>
-        </NavigationOverlayProvider>
-      </Suspense>
+      <PwaInstallProvider>
+        <Suspense fallback={<AppShellInner>{children}</AppShellInner>}>
+          <NavigationOverlayProvider>
+            <AppShellInner>{children}</AppShellInner>
+          </NavigationOverlayProvider>
+        </Suspense>
+      </PwaInstallProvider>
     </ToastProvider>
   );
 }
