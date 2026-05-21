@@ -14,6 +14,7 @@ export type PushStatus =
 const PUSH_SERVICE_WORKER_URL = "/sw.js";
 const SERVICE_WORKER_READY_TIMEOUT_MS = 10_000;
 const SERVICE_WORKER_POLL_INTERVAL_MS = 150;
+let pushRegistrationPromise: Promise<ServiceWorkerRegistration> | null = null;
 
 export function isPushSupported(): boolean {
   if (typeof window === "undefined") return false;
@@ -75,6 +76,12 @@ function isPushRegistration(
   );
 }
 
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
 async function getExistingRegistration(): Promise<ServiceWorkerRegistration | null> {
   const directRegistration =
     (await navigator.serviceWorker.getRegistration(PUSH_SERVICE_WORKER_URL)) ??
@@ -88,34 +95,62 @@ async function getExistingRegistration(): Promise<ServiceWorkerRegistration | nu
   return registrations.find((registration) => isPushRegistration(registration)) ?? null;
 }
 
-async function waitForActivePushRegistration(): Promise<ServiceWorkerRegistration> {
+async function waitForActivePushRegistration(
+  initialRegistration?: ServiceWorkerRegistration | null,
+): Promise<ServiceWorkerRegistration> {
   const startedAt = Date.now();
+  let currentRegistration = initialRegistration ?? null;
 
   while (Date.now() - startedAt < SERVICE_WORKER_READY_TIMEOUT_MS) {
-    const registration = await getExistingRegistration();
-    if (registration?.active) return registration;
+    if (currentRegistration?.active && isPushWorker(currentRegistration.active)) {
+      return currentRegistration;
+    }
 
-    await new Promise((resolve) => {
-      window.setTimeout(resolve, SERVICE_WORKER_POLL_INTERVAL_MS);
-    });
+    const latestRegistration = await getExistingRegistration();
+    if (latestRegistration) {
+      currentRegistration = latestRegistration;
+      if (latestRegistration.active && isPushWorker(latestRegistration.active)) {
+        return latestRegistration;
+      }
+    }
+
+    await wait(SERVICE_WORKER_POLL_INTERVAL_MS);
   }
 
   try {
-    return await waitForServiceWorkerReady();
+    const readyRegistration = await waitForServiceWorkerReady();
+    if (isPushRegistration(readyRegistration)) return readyRegistration;
   } catch {
-    throw new Error("Service worker non pronto: ricarica la pagina e riprova");
+    // Ignoriamo l'errore originale per restituire un messaggio coerente alla UI.
   }
+
+  throw new Error("Service worker non pronto: ricarica la pagina e riprova");
 }
 
 async function getOrCreatePushRegistration(): Promise<ServiceWorkerRegistration> {
   const existingRegistration = await getExistingRegistration();
-  if (existingRegistration?.active) return existingRegistration;
-
-  if (!existingRegistration) {
-    await navigator.serviceWorker.register(PUSH_SERVICE_WORKER_URL, { scope: "/" });
+  if (existingRegistration?.active && isPushWorker(existingRegistration.active)) {
+    return existingRegistration;
   }
 
-  return await waitForActivePushRegistration();
+  const registration =
+    existingRegistration ??
+    (await navigator.serviceWorker.register(PUSH_SERVICE_WORKER_URL, { scope: "/" }));
+
+  return await waitForActivePushRegistration(registration);
+}
+
+export async function ensurePushServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  if (!isPushSupported()) return null;
+
+  if (!pushRegistrationPromise) {
+    pushRegistrationPromise = getOrCreatePushRegistration().catch((error) => {
+      pushRegistrationPromise = null;
+      throw error;
+    });
+  }
+
+  return await pushRegistrationPromise;
 }
 
 /**
@@ -144,7 +179,10 @@ export async function enablePushNotifications(
       return { ok: false, error: "Permesso negato" };
     }
 
-    const registration = await getOrCreatePushRegistration();
+    const registration = await ensurePushServiceWorker();
+    if (!registration) {
+      return { ok: false, error: "Service worker non disponibile" };
+    }
 
     // Se esiste già una subscription, ricicliamo
     let subscription = await registration.pushManager.getSubscription();

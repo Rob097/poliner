@@ -116,6 +116,36 @@ async function requireAdmin(): Promise<
   return { ok: true, supabase, pollaioId: pollaio.id };
 }
 
+async function getCurrentPublicSlug(
+  supabase: Awaited<ReturnType<typeof requirePollaio>>["supabase"],
+  pollaioId: string,
+) {
+  const { data } = await supabase
+    .from("pollai")
+    .select("pubblico_slug")
+    .eq("id", pollaioId)
+    .maybeSingle();
+
+  return data?.pubblico_slug ?? null;
+}
+
+function getPublicSlugSaveError(
+  error: { code?: string | null; message?: string | null; details?: string | null } | null,
+) {
+  if (!error) return null;
+
+  if (error.code === "23505") {
+    return "Questo slug è già usato, prova un altro.";
+  }
+
+  const raw = `${error.message ?? ""} ${error.details ?? ""}`.toLowerCase();
+  if (raw.includes("pubblico_slug") || raw.includes("pollai_pubblico_slug_key")) {
+    return "Questo slug è già usato, prova un altro.";
+  }
+
+  return "Ops, riprova!";
+}
+
 export async function attivaPaginaPubblica(slug: string): Promise<ActionResult> {
   const slugClean = slug.trim().toLowerCase();
   if (!SLUG_REGEX.test(slugClean)) {
@@ -127,6 +157,8 @@ export async function attivaPaginaPubblica(slug: string): Promise<ActionResult> 
 
   const guard = await requireAdmin();
   if (!guard.ok) return guard;
+
+  const previousSlug = await getCurrentPublicSlug(guard.supabase, guard.pollaioId);
 
   // Verifica unicità slug fra pollai diversi
   const { data: esistente } = await guard.supabase
@@ -147,16 +179,22 @@ export async function attivaPaginaPubblica(slug: string): Promise<ActionResult> 
     .eq("id", guard.pollaioId);
 
   if (error) {
-    return { ok: false, error: "Ops, riprova!" };
+    return { ok: false, error: getPublicSlugSaveError(error) ?? "Ops, riprova!" };
   }
 
   revalidatePath("/impostazioni");
+  revalidatePath(`/p/${slugClean}`);
+  if (previousSlug && previousSlug !== slugClean) {
+    revalidatePath(`/p/${previousSlug}`);
+  }
   return { ok: true };
 }
 
 export async function disattivaPaginaPubblica(): Promise<ActionResult> {
   const guard = await requireAdmin();
   if (!guard.ok) return guard;
+
+  const currentSlug = await getCurrentPublicSlug(guard.supabase, guard.pollaioId);
 
   const { error } = await guard.supabase
     .from("pollai")
@@ -165,6 +203,9 @@ export async function disattivaPaginaPubblica(): Promise<ActionResult> {
 
   if (error) return { ok: false, error: "Ops, riprova!" };
   revalidatePath("/impostazioni");
+  if (currentSlug) {
+    revalidatePath(`/p/${currentSlug}`);
+  }
   return { ok: true };
 }
 
@@ -176,6 +217,8 @@ export async function aggiornaDescrizionePubblica(testo: string): Promise<Action
   const guard = await requireAdmin();
   if (!guard.ok) return guard;
 
+  const currentSlug = await getCurrentPublicSlug(guard.supabase, guard.pollaioId);
+
   const { error } = await guard.supabase
     .from("pollai")
     .update({ descrizione_pubblica: clean || null })
@@ -183,5 +226,8 @@ export async function aggiornaDescrizionePubblica(testo: string): Promise<Action
 
   if (error) return { ok: false, error: "Ops, riprova!" };
   revalidatePath("/impostazioni");
+  if (currentSlug) {
+    revalidatePath(`/p/${currentSlug}`);
+  }
   return { ok: true };
 }

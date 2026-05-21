@@ -23,6 +23,7 @@ import {
 import {
   disablePushNotifications,
   enablePushNotifications,
+  ensurePushServiceWorker,
   isPushSupported,
   isSubscribed,
 } from "@/lib/push/client";
@@ -502,15 +503,17 @@ function NotificheSection({
 
     const syncVersion = ++pushSyncVersion.current;
 
-    isSubscribed()
-      .then((subscribed) => {
+    void (async () => {
+      try {
+        await ensurePushServiceWorker();
+        const subscribed = await isSubscribed();
         if (pushSyncVersion.current !== syncVersion) return;
         setBrowserPushAttivo(subscribed || hasPushSubscription);
-      })
-      .catch(() => {
+      } catch {
         if (pushSyncVersion.current !== syncVersion) return;
         setBrowserPushAttivo(hasPushSubscription);
-      });
+      }
+    })();
   }, [hasPushSubscription]);
 
   function persistChanges(next: {
