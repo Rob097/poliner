@@ -59,16 +59,59 @@ async function waitForServiceWorkerReady(): Promise<ServiceWorkerRegistration> {
   });
 }
 
+async function waitForServiceWorkerActivation(
+  registration: ServiceWorkerRegistration,
+): Promise<ServiceWorkerRegistration> {
+  if (registration.active) return registration;
+
+  const worker = registration.installing ?? registration.waiting;
+  if (!worker) {
+    return await waitForServiceWorkerReady();
+  }
+
+  const activationWorker = worker;
+
+  return await new Promise((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      activationWorker.removeEventListener("statechange", onStateChange);
+      reject(new Error("Service worker non pronto: ricarica la pagina e riprova"));
+    }, SERVICE_WORKER_READY_TIMEOUT_MS);
+
+    function cleanup() {
+      window.clearTimeout(timeoutId);
+      activationWorker.removeEventListener("statechange", onStateChange);
+    }
+
+    function onStateChange() {
+      if (activationWorker.state === "activated") {
+        cleanup();
+        resolve(registration);
+        return;
+      }
+
+      if (activationWorker.state === "redundant") {
+        cleanup();
+        reject(new Error("Service worker non attivato correttamente"));
+      }
+    }
+
+    activationWorker.addEventListener("statechange", onStateChange);
+    onStateChange();
+  });
+}
+
 async function getExistingRegistration(): Promise<ServiceWorkerRegistration | null> {
   return (await navigator.serviceWorker.getRegistration()) ?? null;
 }
 
 async function getOrCreatePushRegistration(): Promise<ServiceWorkerRegistration> {
   const existingRegistration = await getExistingRegistration();
-  if (existingRegistration) return existingRegistration;
+  if (existingRegistration) {
+    return await waitForServiceWorkerActivation(existingRegistration);
+  }
 
-  await navigator.serviceWorker.register(PUSH_SERVICE_WORKER_URL);
-  return await waitForServiceWorkerReady();
+  const registration = await navigator.serviceWorker.register(PUSH_SERVICE_WORKER_URL);
+  return await waitForServiceWorkerActivation(registration);
 }
 
 /**

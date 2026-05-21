@@ -119,7 +119,7 @@ export default async function NotifichePage() {
           <>
             {unreadCount > 0 && (
               <form action={segnaTutteComeLette} className="flex justify-end mb-3">
-                <Button variant="secondary" size="md" className="text-xs px-3 py-2">
+                <Button type="submit" variant="secondary" size="md" className="text-xs px-3 py-2">
                   Segna tutte come lette
                 </Button>
               </form>
