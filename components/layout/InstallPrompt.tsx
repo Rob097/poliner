@@ -58,7 +58,7 @@ export function InstallPrompt() {
 
   return (
     <div
-      className="absolute left-3 right-3 z-40 animate-slide-up"
+      className="fixed left-3 right-3 z-40 animate-slide-up min-[500px]:absolute"
       style={{
         bottom: "calc(80px + env(safe-area-inset-bottom, 0px))",
       }}
