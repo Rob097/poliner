@@ -30,6 +30,7 @@ interface InitialValues {
   dataNascita: string | null;
   colorePiumaggio: string | null;
   note: string | null;
+  descrizionePubblica: string | null;
   fotoUrl: string | null;
 }
 
@@ -48,6 +49,9 @@ export function ModificaGallinaForm({ initial }: Props) {
   const [dataNascita, setDataNascita] = useState(initial.dataNascita ?? "");
   const [colore, setColore] = useState(initial.colorePiumaggio ?? "");
   const [note, setNote] = useState(initial.note ?? "");
+  const [descrizionePubblica, setDescrizionePubblica] = useState(
+    initial.descrizionePubblica ?? "",
+  );
   const [foto, setFoto] = useState<File | null>(null);
   const [fotoUrl, setFotoUrl] = useState<string | null>(initial.fotoUrl);
   const [pending, startTransition] = useTransition();
@@ -79,6 +83,7 @@ export function ModificaGallinaForm({ initial }: Props) {
           dataNascita: dataNascita || null,
           colorePiumaggio: colore,
           note,
+          descrizionePubblica: descrizionePubblica.trim() || null,
           fotoUrl: nextFotoUrl,
         });
         if (!res.ok) {
@@ -204,6 +209,18 @@ export function ModificaGallinaForm({ initial }: Props) {
               onChange={(e) => setNote(e.target.value)}
               rows={3}
             />
+          </FormField>
+
+          <FormField label="Presentazione pubblica">
+            <Textarea
+              value={descrizionePubblica}
+              onChange={(e) => setDescrizionePubblica(e.target.value)}
+              rows={3}
+              placeholder={`Es. "Una gran chiocciona, ama farsi grattare la testa…"`}
+            />
+            <p className="text-[11px] text-[var(--text-secondary)] mt-1 leading-snug">
+              Appare nella pagina pubblica del pollaio quando un visitatore tocca la sua scheda. Lasciare vuoto per non mostrarla.
+            </p>
           </FormField>
 
           {error && (

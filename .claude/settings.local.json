@@ -54,7 +54,8 @@
       "Read(//usr/bin/**)",
       "Read(//usr/local/bin/**)",
       "Bash(command -v nvm)",
-      "Bash([ -s \"$HOME/.nvm/nvm.sh\" ])"
+      "Bash([ -s \"$HOME/.nvm/nvm.sh\" ])",
+      "Bash(nvm --version)"
     ],
     "additionalDirectories": [
       "/tmp"

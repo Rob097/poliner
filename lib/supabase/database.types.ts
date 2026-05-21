@@ -22,6 +22,7 @@ export type Database = {
           created_at: string
           data_nascita: string | null
           defunta_il: string | null
+          descrizione_pubblica: string | null
           eta_approssimativa_mesi: number | null
           foto_url: string | null
           id: string
@@ -41,6 +42,7 @@ export type Database = {
           created_at?: string
           data_nascita?: string | null
           defunta_il?: string | null
+          descrizione_pubblica?: string | null
           eta_approssimativa_mesi?: number | null
           foto_url?: string | null
           id?: string
@@ -60,6 +62,7 @@ export type Database = {
           created_at?: string
           data_nascita?: string | null
           defunta_il?: string | null
+          descrizione_pubblica?: string | null
           eta_approssimativa_mesi?: number | null
           foto_url?: string | null
           id?: string

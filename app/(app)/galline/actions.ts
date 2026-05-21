@@ -66,11 +66,12 @@ export interface ModificaGallinaInput {
   dataNascita: string | null;
   colorePiumaggio: string | null;
   note: string | null;
+  descrizionePubblica: string | null;
   fotoUrl: string | null;
 }
 
 export async function updateAnimale(input: ModificaGallinaInput): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase, pollaio } = await requirePollaio();
 
   const { error } = await supabase
     .from("animali")
@@ -82,6 +83,7 @@ export async function updateAnimale(input: ModificaGallinaInput): Promise<Action
       data_nascita: input.dataNascita,
       colore_piumaggio: input.colorePiumaggio?.trim() || null,
       note: input.note?.trim() || null,
+      descrizione_pubblica: input.descrizionePubblica?.trim() || null,
       foto_url: input.fotoUrl,
     })
     .eq("id", input.id);
@@ -93,6 +95,9 @@ export async function updateAnimale(input: ModificaGallinaInput): Promise<Action
   revalidatePath("/galline");
   revalidatePath(`/galline/${input.id}`);
   revalidatePath("/");
+  if (pollaio.pubblico_slug) {
+    revalidatePath(`/p/${pollaio.pubblico_slug}`);
+  }
   return { ok: true, id: input.id };
 }
 

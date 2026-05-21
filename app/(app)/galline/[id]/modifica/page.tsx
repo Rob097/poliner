@@ -32,6 +32,7 @@ export default async function ModificaGallinaPage({
         dataNascita: animale.data_nascita,
         colorePiumaggio: animale.colore_piumaggio,
         note: animale.note,
+        descrizionePubblica: animale.descrizione_pubblica,
         fotoUrl: animale.foto_url,
       }}
     />

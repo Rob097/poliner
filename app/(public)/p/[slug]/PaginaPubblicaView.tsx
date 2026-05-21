@@ -1,9 +1,6 @@
 import Link from "next/link";
-import { Avatar } from "@/components/ui/Avatar";
 import { Card } from "@/components/ui/Card";
-import { avatarBgFor, defaultEmojiFor } from "@/lib/utils/avatar";
-import { calcolaEta } from "@/lib/utils/eta";
-import { trovaRazza } from "@/lib/data/razze";
+import { GalleriaAnimali } from "./GalleriaAnimali";
 
 export interface PollaioPubblico {
   id: string;
@@ -22,6 +19,7 @@ export interface AnimalePubblico {
   dataNascita: string | null;
   tipo: "gallina" | "gallo";
   colorePiumaggio: string | null;
+  descrizionePubblica: string | null;
 }
 
 export interface StatsPubbliche {
@@ -30,17 +28,47 @@ export interface StatsPubbliche {
   gallineCount: number;
 }
 
+export interface RazzaChip {
+  key: string;
+  nome: string;
+  count: number;
+}
+
+export interface StatsAnagrafica {
+  etaMediaMesi: number | null;
+  capostipiteNome: string | null;
+  capostipiteEtaMesi: number | null;
+}
+
+function mesiInTesto(mesi: number): string {
+  if (mesi < 12) return `${mesi} mes${mesi === 1 ? "e" : "i"}`;
+  const anni = Math.floor(mesi / 12);
+  const resto = mesi % 12;
+  if (resto === 0) return `${anni} ann${anni === 1 ? "o" : "i"}`;
+  return `${anni} ann${anni === 1 ? "o" : "i"} e ${resto} mes${resto === 1 ? "e" : "i"}`;
+}
+
 export function PaginaPubblicaView({
   pollaio,
   animali,
   stats,
+  razzeChips,
+  anagrafica,
+  curiosita,
 }: {
   pollaio: PollaioPubblico;
   animali: AnimalePubblico[];
   stats: StatsPubbliche;
+  razzeChips: RazzaChip[];
+  anagrafica: StatsAnagrafica;
+  curiosita: string;
 }) {
   const galline = animali.filter((a) => a.tipo === "gallina");
   const galli = animali.filter((a) => a.tipo === "gallo");
+
+  const mapsUrl = pollaio.posizioneNome
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pollaio.posizioneNome)}`
+    : null;
 
   return (
     <main className="min-h-dvh pb-12">
@@ -95,29 +123,112 @@ export function PaginaPubblicaView({
         </div>
       </section>
 
-      {/* Galline */}
-      {galline.length > 0 && (
-        <section className="px-5 mt-6">
-          <h2 className="font-serif text-lg font-bold mb-2">Le galline</h2>
-          <div className="grid grid-cols-2 gap-2">
-            {galline.map((g) => (
-              <AnimaleCard key={g.id} a={g} />
-            ))}
-          </div>
+      {/* Sapevi che… */}
+      <section className="px-5 mt-4">
+        <Card
+          style={{
+            background: "#FFE07A22",
+            border: "1px solid #FFE07A66",
+          }}
+        >
+          <div className="text-[13px] font-semibold mb-1">💡 Sapevi che…</div>
+          <p className="text-sm text-text leading-relaxed m-0">{curiosita}</p>
+        </Card>
+      </section>
+
+      {/* Anagrafica del pollaio */}
+      {(anagrafica.etaMediaMesi !== null || anagrafica.capostipiteNome) && (
+        <section className="px-5 mt-4">
+          <Card>
+            <div className="text-[13px] font-semibold mb-2">
+              👵 La famiglia del pollaio
+            </div>
+            <div className="flex flex-col gap-1 text-sm text-text">
+              {anagrafica.etaMediaMesi !== null && (
+                <div>
+                  <span className="text-[var(--text-secondary)]">Età media: </span>
+                  <span className="font-semibold">
+                    {mesiInTesto(anagrafica.etaMediaMesi)}
+                  </span>
+                </div>
+              )}
+              {anagrafica.capostipiteNome && anagrafica.capostipiteEtaMesi !== null && (
+                <div>
+                  <span className="text-[var(--text-secondary)]">
+                    La più anziana:{" "}
+                  </span>
+                  <span className="font-semibold">
+                    {anagrafica.capostipiteNome}
+                  </span>
+                  <span className="text-[var(--text-secondary)]">
+                    {" "}
+                    ({mesiInTesto(anagrafica.capostipiteEtaMesi)})
+                  </span>
+                </div>
+              )}
+            </div>
+          </Card>
         </section>
       )}
 
-      {/* Galli */}
-      {galli.length > 0 && (
+      {/* Razze del pollaio */}
+      {razzeChips.length > 0 && (
+        <section className="px-5 mt-4">
+          <Card>
+            <div className="text-[13px] font-semibold mb-2">
+              🐓 Razze del pollaio
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {razzeChips.map((r) => (
+                <span
+                  key={r.key}
+                  className="inline-flex items-center gap-1 text-[12px] px-2 py-1 rounded-full"
+                  style={{ background: "var(--primary-lighter)", color: "var(--primary)" }}
+                >
+                  <span className="font-semibold">{r.nome}</span>
+                  {r.count > 1 && (
+                    <span className="text-[var(--text-secondary)]">×{r.count}</span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </Card>
+        </section>
+      )}
+
+      {/* Galline + Galli con modale */}
+      <GalleriaAnimali galline={galline} galli={galli} />
+
+      {/* Mini mappa / posizione */}
+      {mapsUrl && pollaio.posizioneNome && (
         <section className="px-5 mt-6">
-          <h2 className="font-serif text-lg font-bold mb-2">
-            {galli.length === 1 ? "Il gallo" : "I galli"}
-          </h2>
-          <div className="grid grid-cols-2 gap-2">
-            {galli.map((g) => (
-              <AnimaleCard key={g.id} a={g} />
-            ))}
-          </div>
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="block"
+          >
+            <Card className="flex items-center gap-3 active:scale-[0.99] transition-transform">
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0"
+                style={{ background: "var(--primary-lighter)" }}
+                aria-hidden
+              >
+                📍
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[11px] text-[var(--text-secondary)] leading-tight">
+                  Posizione
+                </div>
+                <div className="font-semibold text-sm truncate">
+                  {pollaio.posizioneNome}
+                </div>
+                <div className="text-[11px] text-[var(--primary)] mt-0.5">
+                  Apri su Google Maps →
+                </div>
+              </div>
+            </Card>
+          </a>
         </section>
       )}
 
@@ -153,35 +264,6 @@ function StatCard({
         {value}
       </div>
       <div className="text-[11px] text-[var(--text-secondary)] mt-0.5">{label}</div>
-    </Card>
-  );
-}
-
-function AnimaleCard({ a }: { a: AnimalePubblico }) {
-  const razza = trovaRazza(a.razzaId);
-  const razzaNome = razza?.nome ?? a.razzaCustom ?? null;
-  const eta = a.dataNascita ? calcolaEta(a.dataNascita) : null;
-
-  return (
-    <Card className="text-center py-3">
-      <div className="flex justify-center mb-1.5">
-        <Avatar
-          src={a.fotoUrl ?? undefined}
-          emoji={!a.fotoUrl ? defaultEmojiFor(a.tipo) : undefined}
-          bg={avatarBgFor(a.id)}
-          name={a.nome}
-          size={64}
-        />
-      </div>
-      <div className="font-semibold text-sm truncate px-2">{a.nome}</div>
-      {razzaNome && (
-        <div className="text-[11px] text-[var(--text-secondary)] mt-0.5 truncate px-2">
-          {razzaNome}
-        </div>
-      )}
-      {eta && (
-        <div className="text-[11px] text-[var(--text-secondary)] mt-0.5">{eta}</div>
-      )}
     </Card>
   );
 }
