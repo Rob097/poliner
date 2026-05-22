@@ -13,6 +13,8 @@ import { useToast } from "@/components/ui/Toast";
 import { IconPlus, IconEdit } from "@/components/ui/icons";
 import { formatData, todayIso } from "@/lib/utils/date";
 import { createSpesa, deleteSpesa, updateSpesa } from "./actions";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { LoadMoreButton } from "@/components/ui/LoadMoreButton";
 
 export interface SpesaItem {
   id: string;
@@ -84,6 +86,13 @@ export function SpeseClient({ spese, uovaDate, suggerimenti }: Props) {
     }
     return Array.from(m.entries()).sort((a, b) => b[1] - a[1]);
   }, [speseFiltrate]);
+
+  const {
+    visible: speseVisible,
+    hasMore: speseHasMore,
+    remaining: speseRemaining,
+    loadMore: speseLoadMore,
+  } = usePagination(speseFiltrate);
 
   return (
     <>
@@ -183,11 +192,16 @@ export function SpeseClient({ spese, uovaDate, suggerimenti }: Props) {
           onAction={() => setCreating(true)}
         />
       ) : (
-        <div className="flex flex-col gap-1.5">
-          {speseFiltrate.map((s) => (
-            <SpesaRow key={s.id} spesa={s} onEdit={() => setEditing(s)} />
-          ))}
-        </div>
+        <>
+          <div className="flex flex-col gap-1.5">
+            {speseVisible.map((s) => (
+              <SpesaRow key={s.id} spesa={s} onEdit={() => setEditing(s)} />
+            ))}
+          </div>
+          {speseHasMore && (
+            <LoadMoreButton onClick={speseLoadMore} remaining={speseRemaining} />
+          )}
+        </>
       )}
 
       <Button fullWidth className="mt-4" onClick={() => setCreating(true)}>
