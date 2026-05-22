@@ -10,8 +10,9 @@ import { SectionTitle } from "@/components/ui/SectionTitle";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { StatNumber } from "@/components/ui/StatNumber";
 import { ContattoActions } from "./ContattoActions";
+import { RegaliList, type RegaloItem } from "./RegaliList";
 import { avatarBgFor } from "@/lib/utils/avatar";
-import { formatData, formatDataLunga } from "@/lib/utils/date";
+import { formatData } from "@/lib/utils/date";
 
 export const dynamic = "force-dynamic";
 
@@ -109,22 +110,7 @@ export default async function ContattoDetailPage({
             subtitle="I regali fatti a questa persona appariranno qui."
           />
         ) : (
-          <div className="flex flex-col gap-1.5">
-            {regali.map((r) => (
-              <Card key={r.id} className="flex items-center gap-3 py-2.5 px-3.5">
-                <span className="text-xl">🎁</span>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold">
-                    {r.quantita} uova
-                  </div>
-                  <div className="text-xs text-(--text-secondary)">
-                    {formatDataLunga(r.data)}
-                    {r.note ? ` · ${r.note}` : ""}
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+          <RegaliList items={(regali ?? []) as RegaloItem[]} />
         )}
 
         {ultimaData && (
