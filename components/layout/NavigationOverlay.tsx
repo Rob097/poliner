@@ -201,6 +201,7 @@ export function NavigationOverlayProvider({ children }: { children: ReactNode })
     if (lastLocationRef.current === currentLocation) return;
     lastLocationRef.current = currentLocation;
     commitNavigation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentLocation]);
 
   useEffect(() => {
@@ -233,6 +234,7 @@ export function NavigationOverlayProvider({ children }: { children: ReactNode })
     // useCapture = true: scattiamo prima dei listener bubble di Next/<Link>.
     document.addEventListener("click", onClick, true);
     return () => document.removeEventListener("click", onClick, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -242,6 +244,7 @@ export function NavigationOverlayProvider({ children }: { children: ReactNode })
     });
     observer.observe(document.body, { childList: true, subtree: true });
     return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -279,6 +282,7 @@ export function NavigationOverlayProvider({ children }: { children: ReactNode })
       window.history.replaceState = originalReplaceState;
       window.removeEventListener("popstate", onPopState);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Espone funzioni globali per mostrare/nascondere l'overlay durante
@@ -302,6 +306,7 @@ export function NavigationOverlayProvider({ children }: { children: ReactNode })
       (window as W).__polinerShowOverlay = undefined;
       (window as W).__polinerHideOverlay = undefined;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
