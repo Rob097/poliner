@@ -11,6 +11,8 @@ import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { useToast } from "@/components/ui/Toast";
 import { IconPlus } from "@/components/ui/icons";
 import { formatData, etichettaGiornoRelativo } from "@/lib/utils/date";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { LoadMoreButton } from "@/components/ui/LoadMoreButton";
 import {
   calcolaScadenza,
   statoUovoColors,
@@ -120,15 +122,22 @@ function Scorte({
   );
 
   // Raggruppa disponibili per data deposizione (solo data, no orario)
+  const {
+    visible: disponibiliVisible,
+    hasMore: scorteHasMore,
+    remaining: scorteRemaining,
+    loadMore: scorteLoadMore,
+  } = usePagination(disponibili);
+
   const grouped = useMemo(() => {
     const m = new Map<string, UovoDisplay[]>();
-    for (const u of disponibili) {
+    for (const u of disponibiliVisible) {
       const k = u.dataDeposizione.slice(0, 10);
       if (!m.has(k)) m.set(k, []);
       m.get(k)!.push(u);
     }
     return Array.from(m.entries()).sort(([a], [b]) => b.localeCompare(a));
-  }, [disponibili]);
+  }, [disponibiliVisible]);
 
   return (
     <div>
@@ -195,23 +204,28 @@ function Scorte({
           subtitle="Quando raccoglierai un uovo, apparirà qui."
         />
       ) : (
-        grouped.map(([date, eggs]) => (
-          <div key={date}>
-            <div className="flex justify-between items-center mt-3 mb-2">
-              <div className="text-[13px] font-bold text-(--text-secondary)">
-                {etichettaGiornoRelativo(date)} · {formatData(date)}
+        <>
+          {grouped.map(([date, eggs]) => (
+            <div key={date}>
+              <div className="flex justify-between items-center mt-3 mb-2">
+                <div className="text-[13px] font-bold text-(--text-secondary)">
+                  {etichettaGiornoRelativo(date)} · {formatData(date)}
+                </div>
+                <Badge small bg="var(--primary-lighter)" color="var(--primary)">
+                  {eggs.length} 🥚
+                </Badge>
               </div>
-              <Badge small bg="var(--primary-lighter)" color="var(--primary)">
-                {eggs.length} 🥚
-              </Badge>
+              <div className="flex flex-col gap-1.5">
+                {eggs.map((u) => (
+                  <UovoRow key={u.id} u={u} settings={settings} variant="scorta" isAdmin={isAdmin} />
+                ))}
+              </div>
             </div>
-            <div className="flex flex-col gap-1.5">
-              {eggs.map((u) => (
-                <UovoRow key={u.id} u={u} settings={settings} variant="scorta" isAdmin={isAdmin} />
-              ))}
-            </div>
-          </div>
-        ))
+          ))}
+          {scorteHasMore && (
+            <LoadMoreButton onClick={scorteLoadMore} remaining={scorteRemaining} />
+          )}
+        </>
       )}
 
       {isAdmin && (
@@ -256,6 +270,8 @@ function Storico({
   settings: ConservazioneSettings;
   isAdmin: boolean;
 }) {
+  const { visible, hasMore, remaining, loadMore } = usePagination(uova);
+
   if (uova.length === 0) {
     return (
       <EmptyState
@@ -266,11 +282,14 @@ function Storico({
     );
   }
   return (
-    <div className="flex flex-col gap-1.5">
-      {uova.map((u) => (
-        <UovoRow key={u.id} u={u} settings={settings} variant="storico" isAdmin={isAdmin} />
-      ))}
-    </div>
+    <>
+      <div className="flex flex-col gap-1.5">
+        {visible.map((u) => (
+          <UovoRow key={u.id} u={u} settings={settings} variant="storico" isAdmin={isAdmin} />
+        ))}
+      </div>
+      {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
+    </>
   );
 }
 
