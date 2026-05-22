@@ -11,6 +11,8 @@ import { Modal } from "@/components/ui/Modal";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { useToast } from "@/components/ui/Toast";
 import { IconEdit, IconTrash } from "@/components/ui/icons";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { LoadMoreButton } from "@/components/ui/LoadMoreButton";
 import type { ConsiglioManutenzione } from "@/lib/constants/manutenzione";
 import { colorePerStato, labelStato, type StatoVoce } from "@/lib/utils/manutenzione";
 import { formatData, etichettaGiornoRelativo } from "@/lib/utils/date";
@@ -58,6 +60,12 @@ const VOCE_FORM_DEFAULT: VoceForm = {
 
 export function ManutenzioneClient({ ruolo, stati, consigli, ultimi }: Props) {
   const isAdmin = ruolo === "admin";
+  const {
+    visible: ultimiVisible,
+    hasMore: ultimiHasMore,
+    remaining: ultimiRemaining,
+    loadMore: ultimiLoadMore,
+  } = usePagination(ultimi);
   const [showRegistra, setShowRegistra] = useState<StatoVoce | null>(null);
   const [showVoceForm, setShowVoceForm] = useState<{
     mode: "create" | "edit";
@@ -156,11 +164,16 @@ export function ManutenzioneClient({ ruolo, stati, consigli, ultimi }: Props) {
           </p>
         </Card>
       ) : (
-        <div className="flex flex-col gap-1.5">
-          {ultimi.map((l) => (
-            <LogRow key={l.id} log={l} isAdmin={isAdmin} />
-          ))}
-        </div>
+        <>
+          <div className="flex flex-col gap-1.5">
+            {ultimiVisible.map((l) => (
+              <LogRow key={l.id} log={l} isAdmin={isAdmin} />
+            ))}
+          </div>
+          {ultimiHasMore && (
+            <LoadMoreButton onClick={ultimiLoadMore} remaining={ultimiRemaining} />
+          )}
+        </>
       )}
 
       {showRegistra && (
