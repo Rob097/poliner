@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { IconHome, IconChicken, IconEgg, IconMenu, IconPlus } from "@/components/ui/icons";
@@ -27,6 +28,55 @@ interface TabBarProps {
 
 export function TabBar({ onFab }: TabBarProps) {
   const pathname = usePathname();
+  const navRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const rootStyle = document.documentElement.style;
+    let rafId = 0;
+
+    const syncHeight = () => {
+      const navHeight = Math.ceil(nav.getBoundingClientRect().height);
+
+      // Ignora misure transitorie troppo basse durante resize/keyboard animation.
+      if (navHeight < 56) return;
+
+      rootStyle.setProperty("--tab-bar-height", `${navHeight}px`);
+    };
+
+    const scheduleSync = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        rafId = requestAnimationFrame(syncHeight);
+      });
+    };
+
+    scheduleSync();
+
+    const resizeObserver = new ResizeObserver(scheduleSync);
+    resizeObserver.observe(nav);
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") scheduleSync();
+    };
+
+    window.addEventListener("resize", scheduleSync);
+    window.addEventListener("pageshow", scheduleSync);
+    window.visualViewport?.addEventListener("resize", scheduleSync);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", scheduleSync);
+      window.removeEventListener("pageshow", scheduleSync);
+      window.visualViewport?.removeEventListener("resize", scheduleSync);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      rootStyle.removeProperty("--tab-bar-height");
+    };
+  }, []);
 
   // Match attivo: home solo per "/", altri prefisso
   const isActive = (href: string) => {
@@ -36,6 +86,7 @@ export function TabBar({ onFab }: TabBarProps) {
 
   return (
     <nav
+      ref={navRef}
       className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around bg-white border-t border-[var(--border)] px-2 min-[500px]:absolute"
       style={{ paddingTop: 6, paddingBottom: "calc(env(safe-area-inset-bottom, 4px) + 6px)" }}
     >

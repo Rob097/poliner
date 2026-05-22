@@ -27,7 +27,7 @@
     /* Sizing */
     --radius: 16px;
     --radius-sm: 12px;
-    --tab-bar-height: 96px;
+    --tab-bar-height: calc(96px + env(safe-area-inset-bottom, 0px));
   }
 
   *, *::before, *::after {
@@ -121,6 +121,6 @@
 
 @layer utilities {
   .pad-tab {
-    padding-bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: var(--tab-bar-height);
   }
 }
