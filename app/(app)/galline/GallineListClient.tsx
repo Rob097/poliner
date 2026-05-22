@@ -14,6 +14,8 @@ import { calcolaEta } from "@/lib/utils/eta";
 import { avatarBgFor, defaultEmojiFor } from "@/lib/utils/avatar";
 import { trovaRazza } from "@/lib/data/razze";
 import { cn } from "@/lib/utils/cn";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { LoadMoreButton } from "@/components/ui/LoadMoreButton";
 
 export interface GallinaDisplay {
   id: string;
@@ -69,6 +71,8 @@ export function GallineListClient({ galline, defunteCount }: Props) {
       );
     });
   }, [galline, query, filtro]);
+
+  const { visible, hasMore, remaining, loadMore } = usePagination(filtered);
 
   return (
     <>
@@ -128,11 +132,14 @@ export function GallineListClient({ galline, defunteCount }: Props) {
           subtitle="Prova con un altro nome o razza."
         />
       ) : (
-        <div className="flex flex-col gap-2">
-          {filtered.map((g) => (
-            <GallinaRow key={g.id} g={g} />
-          ))}
-        </div>
+        <>
+          <div className="flex flex-col gap-2">
+            {visible.map((g) => (
+              <GallinaRow key={g.id} g={g} />
+            ))}
+          </div>
+          {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
+        </>
       )}
 
       <Link href="/galline/nuova" className="block mt-4">
