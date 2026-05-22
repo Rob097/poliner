@@ -19,9 +19,48 @@ export const GIORNI = [
   "Giovedì", "Venerdì", "Sabato",
 ] as const;
 
+/** Timezone applicativo per date/ore legate al comportamento del pollaio. */
+export const APP_TIME_ZONE = "Europe/Rome";
+
+function getDateTimePartsInTimeZone(input: Date, timeZone: string): Record<string, string> {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(input);
+
+  return parts.reduce<Record<string, string>>((acc, part) => {
+    if (part.type !== "literal") acc[part.type] = part.value;
+    return acc;
+  }, {});
+}
+
 /** Data di oggi in formato YYYY-MM-DD (UTC, coerente con colonne DATE). */
 export function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+/** Data in formato YYYY-MM-DD nel fuso indicato. */
+export function dateIsoInTimeZone(
+  input: Date = new Date(),
+  timeZone: string = APP_TIME_ZONE,
+): string {
+  const parts = getDateTimePartsInTimeZone(input, timeZone);
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+/** Orario in formato HH:MM:SS nel fuso indicato. */
+export function timeIsoInTimeZone(
+  input: Date = new Date(),
+  timeZone: string = APP_TIME_ZONE,
+): string {
+  const parts = getDateTimePartsInTimeZone(input, timeZone);
+  return `${parts.hour}:${parts.minute}:${parts.second}`;
 }
 
 /** Mezzanotte locale di oggi in ISO 8601 — utile per query "da inizio giornata". */

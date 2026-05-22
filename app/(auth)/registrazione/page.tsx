@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { PolinerLogo } from "@/components/brand/PolinerLogo";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { FormField } from "@/components/ui/FormField";
+import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 export default function RegistrazionePage() {
   const router = useRouter();
@@ -66,8 +67,7 @@ export default function RegistrazionePage() {
           />
         </FormField>
         <FormField label="Password">
-          <Input
-            type="password"
+          <PasswordInput
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Almeno 8 caratteri"

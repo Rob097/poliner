@@ -24,7 +24,7 @@ import {
   creaUscitaManuale,
   eliminaUscita,
 } from "@/lib/actions/uscite";
-import { etichettaGiornoRelativo, formatData, todayIso } from "@/lib/utils/date";
+import { dateIsoInTimeZone, etichettaGiornoRelativo, formatData } from "@/lib/utils/date";
 
 export interface UscitaRow {
   id: string;
@@ -325,7 +325,7 @@ function EditUscitaModal({
 function NuovaUscitaModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const { show } = useToast();
-  const [data, setData] = useState(todayIso());
+  const [data, setData] = useState(dateIsoInTimeZone());
   const [oraUscita, setOraUscita] = useState("");
   const [oraRientro, setOraRientro] = useState("");
   const [note, setNote] = useState("");

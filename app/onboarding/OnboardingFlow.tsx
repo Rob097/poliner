@@ -425,6 +425,7 @@ function StepGallina({
 }) {
   const razza = trovaRazza(razzaId);
   const showRazzaInfo = razza && razza.origine !== "mista";
+  const showEggInfo = tipo === "gallina";
 
   return (
     <div className="flex-1 flex flex-col">
@@ -482,9 +483,9 @@ function StepGallina({
               Info sulla razza {razza.nome.split(" (")[0]}
             </div>
             <div className="grid grid-cols-2 gap-1.5 text-xs text-[var(--text-secondary)]">
-              <span>🥚 {uovaAnnoLabel(razza)} uova/anno</span>
+              {showEggInfo && <span>🥚 {uovaAnnoLabel(razza)} uova/anno</span>}
               <span>📏 Taglia {razza.taglia}</span>
-              <span>🎨 Uova {razza.coloreUova}</span>
+              {showEggInfo && <span>🎨 Uova {razza.coloreUova}</span>}
               <span>💛 {razza.temperamento}</span>
             </div>
           </div>

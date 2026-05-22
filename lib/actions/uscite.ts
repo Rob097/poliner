@@ -2,21 +2,22 @@
 
 import { revalidatePath } from "next/cache";
 import { requirePollaio } from "@/lib/supabase/queries";
-import { todayIso } from "@/lib/utils/date";
+import { dateIsoInTimeZone, timeIsoInTimeZone } from "@/lib/utils/date";
 import type { ActionResult } from "@/lib/types";
 
 export type { ActionResult };
 
 /**
- * HH:MM:SS dell'istante corrente in fuso locale del server.
+ * Data e orario correnti nel fuso del pollaio.
  * log_uscite.ora_uscita/ora_rientro è TIME (no timezone).
  */
-function oraCorrenteIso(): string {
-  const d = new Date();
-  const h = d.getHours().toString().padStart(2, "0");
-  const m = d.getMinutes().toString().padStart(2, "0");
-  const s = d.getSeconds().toString().padStart(2, "0");
-  return `${h}:${m}:${s}`;
+function nowUscita() {
+  const now = new Date();
+
+  return {
+    data: dateIsoInTimeZone(now),
+    ora: timeIsoInTimeZone(now),
+  };
 }
 
 /**
@@ -25,8 +26,7 @@ function oraCorrenteIso(): string {
  */
 export async function registraApertura(): Promise<ActionResult> {
   const { supabase, pollaio } = await requirePollaio();
-  const data = todayIso();
-  const ora = oraCorrenteIso();
+  const { data, ora } = nowUscita();
 
   // Verifica se la riga di oggi esiste già
   const { data: existing } = await supabase
@@ -64,8 +64,7 @@ export async function registraApertura(): Promise<ActionResult> {
  */
 export async function registraChiusura(): Promise<ActionResult> {
   const { supabase, pollaio } = await requirePollaio();
-  const data = todayIso();
-  const ora = oraCorrenteIso();
+  const { data, ora } = nowUscita();
 
   const { data: existing } = await supabase
     .from("log_uscite")

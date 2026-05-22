@@ -363,6 +363,7 @@ function InfoTab({
 }) {
   const razza = trovaRazza(animale.razza_id);
   const showRazzaInfo = razza && razza.origine !== "mista";
+  const showEggInfo = animale.tipo === "gallina";
 
   return (
     <div className="mt-3">
@@ -371,9 +372,9 @@ function InfoTab({
           <SectionTitle>Informazioni razza</SectionTitle>
           <Card>
             <div className="grid grid-cols-2 gap-3">
-              <KV label="Produzione" value={`🥚 ${uovaAnnoLabel(razza)}/anno`} />
+              {showEggInfo && <KV label="Produzione" value={`🥚 ${uovaAnnoLabel(razza)}/anno`} />}
               <KV label="Taglia" value={`📏 ${razza.taglia}`} />
-              <KV label="Colore uova" value={`🎨 ${razza.coloreUova}`} />
+              {showEggInfo && <KV label="Colore uova" value={`🎨 ${razza.coloreUova}`} />}
               <KV label="Temperamento" value={`💛 ${razza.temperamento}`} />
             </div>
           </Card>

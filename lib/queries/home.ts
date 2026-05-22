@@ -6,7 +6,7 @@ import type {
 } from "@/lib/utils/manutenzione";
 import { calcolaStatiManutenzione } from "@/lib/utils/manutenzione";
 import { calcolaScadenza } from "@/lib/utils/uova";
-import { startOfTodayIso, todayIso } from "@/lib/utils/date";
+import { dateIsoInTimeZone, startOfTodayIso } from "@/lib/utils/date";
 import type { Conservazione } from "@/lib/types";
 
 type Supa = SupabaseClient<Database>;
@@ -79,7 +79,7 @@ export async function loadHomeData(
   userId: string,
   conservazione: { ambiente: number; frigo: number },
 ): Promise<HomeData> {
-  const oggiIso = todayIso();
+  const oggiIso = dateIsoInTimeZone();
   const inizioOggiIso = startOfTodayIso();
   const fra24hIso = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 

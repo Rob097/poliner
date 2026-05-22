@@ -137,7 +137,7 @@ function SchedaAnimale({ animale }: { animale: AnimalePubblico }) {
 
       {/* Scheda razza */}
       {razza && razza.id !== "mista" && (
-        <SchedaRazza razza={razza} />
+        <SchedaRazza razza={razza} tipo={animale.tipo} />
       )}
     </div>
   );
@@ -158,8 +158,16 @@ const TAGLIA_LABEL: Record<Razza["taglia"], string> = {
   leggera: "Leggera",
 };
 
-function SchedaRazza({ razza }: { razza: Razza }) {
+function SchedaRazza({
+  razza,
+  tipo,
+}: {
+  razza: Razza;
+  tipo: AnimalePubblico["tipo"];
+}) {
   const origine = ORIGINE_LABEL[razza.origine];
+  const showEggInfo = tipo === "gallina";
+
   return (
     <div
       className="rounded-[var(--radius)] p-4"
@@ -169,8 +177,8 @@ function SchedaRazza({ razza }: { razza: Razza }) {
         Caratteristiche della razza
       </div>
       <div className="grid grid-cols-2 gap-y-2 gap-x-3 text-[12px] text-text">
-        <RigaScheda emoji="🥚" label="Uova/anno" value={uovaAnnoLabel(razza)} />
-        <RigaScheda emoji="🎨" label="Colore uova" value={razza.coloreUova} />
+        {showEggInfo && <RigaScheda emoji="🥚" label="Uova/anno" value={uovaAnnoLabel(razza)} />}
+        {showEggInfo && <RigaScheda emoji="🎨" label="Colore uova" value={razza.coloreUova} />}
         <RigaScheda emoji="📏" label="Taglia" value={TAGLIA_LABEL[razza.taglia]} />
         <RigaScheda emoji={origine.emoji} label="Origine" value={origine.label} />
       </div>

@@ -60,6 +60,7 @@ export function ModificaGallinaForm({ initial }: Props) {
   const razza = trovaRazza(razzaId);
   const showRazzaInfo = razza && razza.origine !== "mista";
   const isCustomRazza = razzaId === "mista";
+  const showEggInfo = tipo === "gallina";
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -179,9 +180,9 @@ export function ModificaGallinaForm({ initial }: Props) {
                 Info sulla razza
               </div>
               <div className="grid grid-cols-2 gap-1.5 text-xs text-[var(--text-secondary)]">
-                <span>🥚 {uovaAnnoLabel(razza)} uova/anno</span>
+                {showEggInfo && <span>🥚 {uovaAnnoLabel(razza)} uova/anno</span>}
                 <span>📏 Taglia {razza.taglia}</span>
-                <span>🎨 Uova {razza.coloreUova}</span>
+                {showEggInfo && <span>🎨 Uova {razza.coloreUova}</span>}
                 <span>💛 {razza.temperamento}</span>
               </div>
             </div>

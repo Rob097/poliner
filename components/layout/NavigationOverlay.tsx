@@ -10,7 +10,16 @@ import {
 import { usePathname, useSearchParams } from "next/navigation";
 import { createPortal } from "react-dom";
 
-const FRASI = ["Finisco di beccare…", "Un attimo, mangio…", "Adoro le granaie!"];
+const FRASI = [
+  "Finisco di beccare…",
+  "Adoro le granaglie…",
+  "Solo un altro chicco…",
+  "Sto facendo un giretto…",
+  "Coccode…",
+  "Spero ci siano vermetti…",
+  "Sto solo curiosando…",
+  "Razzolando…"
+];
 // Durata della transizione di fade per il fade-out.
 const FADE_MS = 200;
 // Ritardo prima di mostrare la scritta sotto la gallina. Se l'overlay
@@ -136,6 +145,12 @@ export function NavigationOverlayProvider({ children }: { children: ReactNode })
     settleOverlayVisibility();
   }
 
+  function commitNavigation() {
+    if (!navigationPendingRef.current || navigationCommittedRef.current) return;
+    navigationCommittedRef.current = true;
+    queueNavigationCompletionCheck();
+  }
+
   function queueNavigationCompletionCheck() {
     if (!navigationPendingRef.current || !navigationCommittedRef.current) return;
     if (navigationCheckRafRef.current !== null) {
@@ -185,9 +200,7 @@ export function NavigationOverlayProvider({ children }: { children: ReactNode })
   useEffect(() => {
     if (lastLocationRef.current === currentLocation) return;
     lastLocationRef.current = currentLocation;
-    if (!navigationPendingRef.current) return;
-    navigationCommittedRef.current = true;
-    queueNavigationCompletionCheck();
+    commitNavigation();
   }, [currentLocation]);
 
   useEffect(() => {
@@ -246,7 +259,17 @@ export function NavigationOverlayProvider({ children }: { children: ReactNode })
     };
 
     function onPopState() {
+      const nextLocation = `${window.location.pathname}${window.location.search}`;
+      if (nextLocation === lastLocationRef.current) return;
+
       startNavigation();
+
+      // Con browser back / edge-swipe su mobile la URL è già cambiata quando
+      // arriva il popstate, ma `usePathname()` può aggiornarsi più tardi.
+      // Segniamo quindi subito la navigation come committata, così il provider
+      // può chiudersi appena non vede più loading markers invece di attendere
+      // il failsafe da 10s.
+      commitNavigation();
     }
 
     window.addEventListener("popstate", onPopState);
