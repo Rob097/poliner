@@ -40,11 +40,10 @@ export default async function NidiPage() {
   }));
 
   return (
-    <>
-      <Header title="Gestione nidi" subtitle={`${items.length} nid${items.length === 1 ? "o" : "i"}`} />
-      <ScreenContainer>
-        <NidiManager items={items} />
-      </ScreenContainer>
-    </>
+    <ScreenContainer
+      header={<Header title="Gestione nidi" subtitle={`${items.length} nid${items.length === 1 ? "o" : "i"}`} />}
+    >
+      <NidiManager items={items} />
+    </ScreenContainer>
   );
 }

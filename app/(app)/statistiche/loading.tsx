@@ -5,9 +5,7 @@ import { Card } from "@/components/ui/Card";
 // Skeleton mostrato mentre Recharts carica.
 export default function StatisticheLoading() {
   return (
-    <>
-      <Header title="Statistiche" />
-      <ScreenContainer>
+    <ScreenContainer header={<Header title="Statistiche" />}>
         <div className="grid grid-cols-3 gap-2 mt-1">
           {[1, 2, 3].map((i) => (
             <Card key={i} className="py-4 px-2">
@@ -26,7 +24,6 @@ export default function StatisticheLoading() {
             </div>
           ))}
         </div>
-      </ScreenContainer>
-    </>
+    </ScreenContainer>
   );
 }

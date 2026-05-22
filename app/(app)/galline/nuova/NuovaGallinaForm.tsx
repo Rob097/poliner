@@ -91,10 +91,8 @@ export function NuovaGallinaForm() {
   }
 
   return (
-    <>
-      <Header title="Nuova gallina" onBack={() => router.back()} />
-      <ScreenContainer>
-        <form onSubmit={onSubmit}>
+    <ScreenContainer header={<Header title="Nuova gallina" onBack={() => router.back()} />}>
+      <form onSubmit={onSubmit}>
           <div className="my-4">
             <ImageUploadField onChange={setFoto} size={140} label="Aggiungi foto" />
           </div>
@@ -260,8 +258,7 @@ export function NuovaGallinaForm() {
                 : `Aggiungi ${tipo === "gallo" ? "gallo" : "gallina"}`}
             </Button>
           </div>
-        </form>
-      </ScreenContainer>
-    </>
+      </form>
+    </ScreenContainer>
   );
 }

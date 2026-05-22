@@ -27,12 +27,14 @@ export default async function GallineInMemoriaPage() {
   const lista = animali ?? [];
 
   return (
-    <>
-      <Header
-        title="In memoria"
-        subtitle={`${lista.length} ${lista.length === 1 ? "ricordata" : "ricordate"}`}
-      />
-      <ScreenContainer>
+    <ScreenContainer
+      header={(
+        <Header
+          title="In memoria"
+          subtitle={`${lista.length} ${lista.length === 1 ? "ricordata" : "ricordate"}`}
+        />
+      )}
+    >
         {lista.length === 0 ? (
           <EmptyState
             icon="🤍"
@@ -85,7 +87,6 @@ export default async function GallineInMemoriaPage() {
             })}
           </div>
         )}
-      </ScreenContainer>
-    </>
+    </ScreenContainer>
   );
 }

@@ -120,17 +120,14 @@ export default async function MembriPage() {
   }
 
   return (
-    <>
-      <Header title="Membri" subtitle={pollaio.nome} />
-      <ScreenContainer>
-        <MembriClient
-          pollaioId={pollaio.id}
-          ruoloCorrente={ruolo}
-          membri={membri}
-          inviti={inviti}
-          contattiLinkabili={contattiLinkabili}
-        />
-      </ScreenContainer>
-    </>
+    <ScreenContainer header={<Header title="Membri" subtitle={pollaio.nome} />}>
+      <MembriClient
+        pollaioId={pollaio.id}
+        ruoloCorrente={ruolo}
+        membri={membri}
+        inviti={inviti}
+        contattiLinkabili={contattiLinkabili}
+      />
+    </ScreenContainer>
   );
 }

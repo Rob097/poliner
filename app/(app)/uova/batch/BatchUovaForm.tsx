@@ -154,13 +154,15 @@ export function BatchUovaForm({ galline, nidi }: Props) {
   }
 
   return (
-    <>
-      <Header
-        title="Raccolta veloce"
-        subtitle={`${totale} ${totale === 1 ? "uovo" : "uova"} in totale`}
-        onBack={() => router.back()}
-      />
-      <ScreenContainer>
+    <ScreenContainer
+      header={(
+        <Header
+          title="Raccolta veloce"
+          subtitle={`${totale} ${totale === 1 ? "uovo" : "uova"} in totale`}
+          onBack={() => router.back()}
+        />
+      )}
+    >
         <div className="text-[13px] text-[var(--text-secondary)] mb-3">
           Tocca <span className="font-bold">+</span> per ogni uovo trovato. In fondo,
           conferma per salvarle tutte insieme.{" "}
@@ -278,8 +280,7 @@ export function BatchUovaForm({ galline, nidi }: Props) {
               ? "Aggiungi almeno un uovo"
               : `Registra ${totale} ${totale === 1 ? "uovo" : "uova"} 🥚`}
         </Button>
-      </ScreenContainer>
-    </>
+    </ScreenContainer>
   );
 }
 

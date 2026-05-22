@@ -90,16 +90,13 @@ export default async function ManutenzionePage() {
   });
 
   return (
-    <>
-      <Header title="Manutenzione" subtitle="Pulizie e interventi" />
-      <ScreenContainer>
-        <ManutenzioneClient
-          ruolo={ruolo}
-          stati={stati}
-          consigli={consigliDisponibili}
-          ultimi={ultimi}
-        />
-      </ScreenContainer>
-    </>
+    <ScreenContainer header={<Header title="Manutenzione" subtitle="Pulizie e interventi" />}>
+      <ManutenzioneClient
+        ruolo={ruolo}
+        stati={stati}
+        consigli={consigliDisponibili}
+        ultimi={ultimi}
+      />
+    </ScreenContainer>
   );
 }

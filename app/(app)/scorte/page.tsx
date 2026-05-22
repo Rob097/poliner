@@ -26,18 +26,19 @@ export default async function ScortePage() {
   const nomiUsati = Array.from(new Set(items.map((i) => i.nome)));
 
   return (
-    <>
-      <Header
-        title="Scorte cibo"
-        subtitle={
-          items.length === 0
-            ? "Tieni traccia di mais, pellet, lettiera..."
-            : `${items.length} voce${items.length === 1 ? "" : "i"}`
-        }
-      />
-      <ScreenContainer>
-        <ScorteClient items={items} nomiUsati={nomiUsati} />
-      </ScreenContainer>
-    </>
+    <ScreenContainer
+      header={(
+        <Header
+          title="Scorte cibo"
+          subtitle={
+            items.length === 0
+              ? "Tieni traccia di mais, pellet, lettiera..."
+              : `${items.length} voce${items.length === 1 ? "" : "i"}`
+          }
+        />
+      )}
+    >
+      <ScorteClient items={items} nomiUsati={nomiUsati} />
+    </ScreenContainer>
   );
 }

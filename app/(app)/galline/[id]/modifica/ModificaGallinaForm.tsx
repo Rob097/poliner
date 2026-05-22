@@ -123,10 +123,8 @@ export function ModificaGallinaForm({ initial }: Props) {
   }
 
   return (
-    <>
-      <Header title="Modifica gallina" onBack={() => router.back()} />
-      <ScreenContainer>
-        <form onSubmit={onSubmit}>
+    <ScreenContainer header={<Header title="Modifica gallina" onBack={() => router.back()} />}>
+      <form onSubmit={onSubmit}>
           <div className="my-4">
             <ImageUploadField
               existingUrl={fotoUrl}
@@ -254,8 +252,7 @@ export function ModificaGallinaForm({ initial }: Props) {
           >
             Archivia animale
           </button>
-        </form>
-      </ScreenContainer>
-    </>
+      </form>
+    </ScreenContainer>
   );
 }

@@ -38,15 +38,12 @@ export default async function SpesePage() {
   );
 
   return (
-    <>
-      <Header title="Registro spese" />
-      <ScreenContainer>
-        <SpeseClient
-          spese={items}
-          uovaDate={dateUova}
-          suggerimenti={suggerimenti}
-        />
-      </ScreenContainer>
-    </>
+    <ScreenContainer header={<Header title="Registro spese" />}>
+      <SpeseClient
+        spese={items}
+        uovaDate={dateUova}
+        suggerimenti={suggerimenti}
+      />
+    </ScreenContainer>
   );
 }

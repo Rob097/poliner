@@ -1,11 +1,10 @@
 import { Header } from "@/components/ui/Header";
 import { Card } from "@/components/ui/Card";
+import { ScreenContainer } from "@/components/ui/ScreenContainer";
 
 export default function GallinaDetailLoading() {
   return (
-    <>
-      <Header title="…" />
-      <div className="screen-scroll pad-tab px-4 pt-2">
+    <ScreenContainer header={<Header title="…" />}>
         <Card className="text-center py-6">
           <div className="h-20 w-20 rounded-full bg-[var(--border)] animate-pulse mx-auto" />
           <div className="h-6 bg-[var(--border)] rounded animate-pulse mt-3 mx-auto w-32" />
@@ -24,7 +23,6 @@ export default function GallinaDetailLoading() {
             </Card>
           ))}
         </div>
-      </div>
-    </>
+    </ScreenContainer>
   );
 }

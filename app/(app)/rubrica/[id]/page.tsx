@@ -42,12 +42,14 @@ export default async function ContattoDetailPage({
   const ultimaData = regali?.[0]?.data ?? null;
 
   return (
-    <>
-      <Header
-        title={contatto.nome}
-        subtitle={contatto.relazione ?? undefined}
-      />
-      <ScreenContainer>
+    <ScreenContainer
+      header={(
+        <Header
+          title={contatto.nome}
+          subtitle={contatto.relazione ?? undefined}
+        />
+      )}
+    >
         <Card className="text-center" style={{ background: `${avatarBgFor(contatto.id)}33` }}>
           <div className="flex justify-center mb-3">
             <Avatar name={contatto.nome} size={72} bg={avatarBgFor(contatto.id)} />
@@ -137,7 +139,6 @@ export default async function ContattoDetailPage({
           telefono: contatto.telefono,
           note: contatto.note,
         }} />
-      </ScreenContainer>
-    </>
+    </ScreenContainer>
   );
 }

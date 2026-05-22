@@ -129,31 +129,33 @@ export default async function HomePage() {
   const { counters, uscitaOggi, hhList } = data;
 
   return (
-    <>
-      <Header
-        subtitle={<PollaioSwitcher pollai={pollaiConRuolo} attivoId={pollaio.id} prominent />}
-        right={
-          ruolo === "admin" ? (
-            <Link
-              href="/notifiche"
-              className="relative p-1.5 -mr-1.5"
-              aria-label={
-                counters.notificheDaLeggere > 0
-                  ? `Notifiche, ${counters.notificheDaLeggere} da leggere`
-                  : "Notifiche"
-              }
-            >
-              <span className="text-xl">🔔</span>
-              {counters.notificheDaLeggere > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E8678A] text-white text-[10px] font-bold leading-[18px] text-center shadow-[0_1px_3px_rgba(0,0,0,0.18)]">
-                  {counters.notificheDaLeggere > 99 ? "99+" : counters.notificheDaLeggere}
-                </span>
-              )}
-            </Link>
-          ) : null
-        }
-      />
-      <ScreenContainer>
+    <ScreenContainer
+      header={(
+        <Header
+          subtitle={<PollaioSwitcher pollai={pollaiConRuolo} attivoId={pollaio.id} prominent />}
+          right={
+            ruolo === "admin" ? (
+              <Link
+                href="/notifiche"
+                className="relative p-1.5 -mr-1.5"
+                aria-label={
+                  counters.notificheDaLeggere > 0
+                    ? `Notifiche, ${counters.notificheDaLeggere} da leggere`
+                    : "Notifiche"
+                }
+              >
+                <span className="text-xl">🔔</span>
+                {counters.notificheDaLeggere > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E8678A] text-white text-[10px] font-bold leading-[18px] text-center shadow-[0_1px_3px_rgba(0,0,0,0.18)]">
+                    {counters.notificheDaLeggere > 99 ? "99+" : counters.notificheDaLeggere}
+                  </span>
+                )}
+              </Link>
+            ) : null
+          }
+        />
+      )}
+    >
         <div className="text-[13px] text-[var(--text-secondary)] mt-1 mb-2">
           {dateStr}
         </div>
@@ -325,8 +327,7 @@ export default async function HomePage() {
             </p>
           </div>
         </Card>
-      </ScreenContainer>
-    </>
+    </ScreenContainer>
   );
 }
 

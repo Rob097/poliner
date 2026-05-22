@@ -52,14 +52,15 @@ export default async function RubricaPage() {
   }));
 
   return (
-    <>
-      <Header
-        title="Rubrica"
-        subtitle={items.length === 0 ? "Aggiungi il primo contatto" : "I tuoi contatti del pollaio"}
-      />
-      <ScreenContainer>
-        <RubricaClient items={items} />
-      </ScreenContainer>
-    </>
+    <ScreenContainer
+      header={(
+        <Header
+          title="Rubrica"
+          subtitle={items.length === 0 ? "Aggiungi il primo contatto" : "I tuoi contatti del pollaio"}
+        />
+      )}
+    >
+      <RubricaClient items={items} />
+    </ScreenContainer>
   );
 }

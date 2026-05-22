@@ -27,9 +27,7 @@ export function MenuClient({ items }: { items: MenuItem[] }) {
   }
 
   return (
-    <>
-      <Header title="Menu" />
-      <ScreenContainer>
+    <ScreenContainer header={<Header title="Menu" />}>
         <div className="grid grid-cols-2 gap-2.5">
           {items.map((item) => (
             <Card
@@ -55,7 +53,6 @@ export function MenuClient({ items }: { items: MenuItem[] }) {
             {"Esci dall'account"}
           </Button>
         </div>
-      </ScreenContainer>
-    </>
+    </ScreenContainer>
   );
 }

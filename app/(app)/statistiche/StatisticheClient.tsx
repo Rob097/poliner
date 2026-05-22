@@ -15,6 +15,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { Card } from "@/components/ui/Card";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
@@ -190,7 +191,7 @@ export function StatisticheClient({ data }: { data: StatsData }) {
   const hasMeteoData = meteoOverlay.some((m) => m.tempMaxMedia !== null);
 
   return (
-    <ScreenContainer pad={false}>
+    <ScreenContainer header={<Header title="Statistiche" />} pad={false}>
       <div className="px-4">
         <SegmentedControl
           options={[

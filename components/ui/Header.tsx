@@ -16,7 +16,7 @@ export function Header({ title, subtitle, onBack, right, transparent, className 
   return (
     <div
       className={cn(
-        "flex items-center gap-3 px-4 py-3 sticky top-0 z-20",
+        "flex items-center gap-3 px-4 py-3",
         transparent ? "bg-transparent" : "bg-[var(--bg)] border-b border-[var(--border)]",
         className,
       )}

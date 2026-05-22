@@ -67,7 +67,13 @@
       "Bash(grep -E \"\\\\.sql$\")",
       "Bash(grep -v \"^--$\")",
       "Bash(grep -nA 15 \"create table.*periodi_muta\\\\|create table public.periodi_muta\" /home/roberto/personal-projects/claude-code/poliner/supabase/migrations/0001_init.sql)",
-      "Bash(grep -nA 12 \"create table .* public.manutenzioni_voci\" /home/roberto/personal-projects/claude-code/poliner/supabase/migrations/0013_manutenzione_dinamica.sql)"
+      "Bash(grep -nA 12 \"create table .* public.manutenzioni_voci\" /home/roberto/personal-projects/claude-code/poliner/supabase/migrations/0013_manutenzione_dinamica.sql)",
+      "Bash(git -C /home/roberto/personal-projects/claude-code/poliner log --oneline -20)",
+      "Bash(git -C /home/roberto/personal-projects/claude-code/poliner show --stat 4645640)",
+      "Bash(git -C /home/roberto/personal-projects/claude-code/poliner show --stat 6c23609)",
+      "Bash(git -C /home/roberto/personal-projects/claude-code/poliner show --stat 141af1e)",
+      "Bash(git -C /home/roberto/personal-projects/claude-code/poliner/ show 4645640 -- components/layout/AppShell.tsx app/globals.css)",
+      "Bash(git -C /home/roberto/personal-projects/claude-code/poliner/ show 6c23609)"
     ],
     "additionalDirectories": [
       "/tmp",

@@ -104,18 +104,20 @@ export default async function NotifichePage() {
   }
 
   return (
-    <>
-      <Header
-        title="Notifiche"
-        subtitle={
-          items && items.length > 0
-            ? unreadCount > 0
-              ? `${unreadCount} da leggere · ultimi ${items.length} avvisi`
-              : `Ultimi ${items.length} avvisi inviati`
-            : "Storico avvisi"
-        }
-      />
-      <ScreenContainer>
+    <ScreenContainer
+      header={(
+        <Header
+          title="Notifiche"
+          subtitle={
+            items && items.length > 0
+              ? unreadCount > 0
+                ? `${unreadCount} da leggere · ultimi ${items.length} avvisi`
+                : `Ultimi ${items.length} avvisi inviati`
+              : "Storico avvisi"
+          }
+        />
+      )}
+    >
         {!items || items.length === 0 ? (
           <EmptyState
             icon="🔔"
@@ -222,7 +224,6 @@ export default async function NotifichePage() {
             </p>
           </>
         )}
-      </ScreenContainer>
-    </>
+    </ScreenContainer>
   );
 }

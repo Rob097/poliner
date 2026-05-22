@@ -27,6 +27,7 @@
     /* Sizing */
     --radius: 16px;
     --radius-sm: 12px;
+    --tab-bar-height: 96px;
   }
 
   *, *::before, *::after {
@@ -113,15 +114,13 @@
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
   }
 }
 
 @layer utilities {
-  /* Padding-bottom dinamico per evitare contenuto sotto il TabBar.
-     Usa l'altezza reale del TabBar quando disponibile e mantiene
-     un fallback conservativo durante il primo paint. */
   .pad-tab {
-    padding-bottom: var(--tab-bar-offset, calc(96px + env(safe-area-inset-bottom, 0px)));
+    padding-bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
   }
 }

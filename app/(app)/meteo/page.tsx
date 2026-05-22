@@ -16,21 +16,18 @@ export default async function MeteoPage() {
 
   if (!hasCoords(pollaio)) {
     return (
-      <>
-        <Header title="Meteo" />
-        <ScreenContainer>
-          <EmptyState
-            icon="📍"
-            title="Posizione non impostata"
-            subtitle="Per mostrarti il meteo ci serve la posizione del pollaio. Aggiungila dalle impostazioni."
-          />
-          <div className="text-center mt-2">
-            <Link href="/impostazioni">
-              <Button>Vai alle impostazioni</Button>
-            </Link>
-          </div>
-        </ScreenContainer>
-      </>
+      <ScreenContainer header={<Header title="Meteo" />}>
+        <EmptyState
+          icon="📍"
+          title="Posizione non impostata"
+          subtitle="Per mostrarti il meteo ci serve la posizione del pollaio. Aggiungila dalle impostazioni."
+        />
+        <div className="text-center mt-2">
+          <Link href="/impostazioni">
+            <Button>Vai alle impostazioni</Button>
+          </Link>
+        </div>
+      </ScreenContainer>
     );
   }
 
@@ -40,16 +37,13 @@ export default async function MeteoPage() {
   } catch (e) {
     console.error("Errore Open-Meteo", e);
     return (
-      <>
-        <Header title="Meteo" />
-        <ScreenContainer>
-          <EmptyState
-            icon="🌫️"
-            title="Meteo non disponibile"
-            subtitle="Ops, non sono riuscita a recuperare le previsioni. Riprova tra poco."
-          />
-        </ScreenContainer>
-      </>
+      <ScreenContainer header={<Header title="Meteo" />}>
+        <EmptyState
+          icon="🌫️"
+          title="Meteo non disponibile"
+          subtitle="Ops, non sono riuscita a recuperare le previsioni. Riprova tra poco."
+        />
+      </ScreenContainer>
     );
   }
 
@@ -59,12 +53,14 @@ export default async function MeteoPage() {
   const forecastUrl = getForecastUrl(pollaio.posizione_nome);
 
   return (
-    <>
-      <Header
-        title="Meteo"
-        subtitle={pollaio.posizione_nome ?? "La tua posizione"}
-      />
-      <ScreenContainer>
+    <ScreenContainer
+      header={(
+        <Header
+          title="Meteo"
+          subtitle={pollaio.posizione_nome ?? "La tua posizione"}
+        />
+      )}
+    >
         {/* Attuale */}
         <Card
           className="text-center"
@@ -177,7 +173,6 @@ export default async function MeteoPage() {
             <p className="text-sm text-text leading-relaxed">{meteo.consiglio}</p>
           </Card>
         )}
-      </ScreenContainer>
-    </>
+    </ScreenContainer>
   );
 }

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Header } from "@/components/ui/Header";
+import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -183,23 +184,25 @@ export function ChickenDetail({ data, ruolo }: { data: ChickenData; ruolo: Ruolo
 
   return (
     <>
-      <Header
-        title={animale.nome}
-        onBack={() => router.back()}
-        right={
-          isDefunta || !isAdmin ? null : (
-            <Button
-              variant="icon"
-              onClick={() => router.push(`/galline/${animale.id}/modifica`)}
-              aria-label="Modifica"
-            >
-              <IconEdit size={20} color="var(--text-secondary)" />
-            </Button>
-          )
-        }
-      />
-
-      <div className="screen-scroll pad-tab px-4 pt-2">
+      <ScreenContainer
+        header={(
+          <Header
+            title={animale.nome}
+            onBack={() => router.back()}
+            right={
+              isDefunta || !isAdmin ? null : (
+                <Button
+                  variant="icon"
+                  onClick={() => router.push(`/galline/${animale.id}/modifica`)}
+                  aria-label="Modifica"
+                >
+                  <IconEdit size={20} color="var(--text-secondary)" />
+                </Button>
+              )
+            }
+          />
+        )}
+      >
         {/* Hero card */}
         <Card
           className="text-center"
@@ -310,7 +313,7 @@ export function ChickenDetail({ data, ruolo }: { data: ChickenData; ruolo: Ruolo
             readOnly={isDefunta}
           />
         )}
-      </div>
+      </ScreenContainer>
 
       {showTrattamento && (
         <AggiungiTrattamentoSheet

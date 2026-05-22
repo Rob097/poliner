@@ -109,28 +109,30 @@ export function ListaSpesaClient({ items, pollaioNome }: Props) {
   }
 
   return (
-    <>
-      <Header
-        title="Lista della spesa"
-        subtitle={
-          pending2.length === 0
-            ? "Tutto comprato! 🎉"
-            : `${pending2.length} da comprare`
-        }
-        right={
-          pending2.length > 0 ? (
-            <button
-              type="button"
-              onClick={onShare}
-              className="p-1.5"
-              aria-label="Condividi lista"
-            >
-              <IconShare size={20} color="var(--text-secondary)" />
-            </button>
-          ) : null
-        }
-      />
-      <ScreenContainer>
+    <ScreenContainer
+      header={(
+        <Header
+          title="Lista della spesa"
+          subtitle={
+            pending2.length === 0
+              ? "Tutto comprato! 🎉"
+              : `${pending2.length} da comprare`
+          }
+          right={
+            pending2.length > 0 ? (
+              <button
+                type="button"
+                onClick={onShare}
+                className="p-1.5"
+                aria-label="Condividi lista"
+              >
+                <IconShare size={20} color="var(--text-secondary)" />
+              </button>
+            ) : null
+          }
+        />
+      )}
+    >
         {/* Pending */}
         {pending2.length === 0 ? (
           <EmptyState
@@ -207,8 +209,7 @@ export function ListaSpesaClient({ items, pollaioNome }: Props) {
             Usa &quot;Condividi&quot; per inviare la lista a chi fa la spesa.
           </p>
         )}
-      </ScreenContainer>
-    </>
+    </ScreenContainer>
   );
 }
 

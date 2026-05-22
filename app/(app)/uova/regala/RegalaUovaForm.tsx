@@ -44,18 +44,15 @@ export function RegalaUovaForm({ contatti, disponibili }: Props) {
 
   if (disponibili === 0) {
     return (
-      <>
-        <Header title="Regala uova" onBack={() => router.back()} />
-        <ScreenContainer>
-          <EmptyState
-            icon="🥚"
-            title="Nessun uovo disponibile"
-            subtitle="Aggiungi qualche uovo prima di poterlo regalare."
-            action="Aggiungi uovo"
-            onAction={() => router.push("/uova/nuovo")}
-          />
-        </ScreenContainer>
-      </>
+      <ScreenContainer header={<Header title="Regala uova" onBack={() => router.back()} />}>
+        <EmptyState
+          icon="🥚"
+          title="Nessun uovo disponibile"
+          subtitle="Aggiungi qualche uovo prima di poterlo regalare."
+          action="Aggiungi uovo"
+          onAction={() => router.push("/uova/nuovo")}
+        />
+      </ScreenContainer>
     );
   }
 
@@ -86,8 +83,7 @@ export function RegalaUovaForm({ contatti, disponibili }: Props) {
 
   return (
     <>
-      <Header title="Regala uova" onBack={() => router.back()} />
-      <ScreenContainer>
+      <ScreenContainer header={<Header title="Regala uova" onBack={() => router.back()} />}>
         <form onSubmit={onSubmit}>
           <div className="text-center my-3">
             <div className="text-6xl">🎁</div>

@@ -34,11 +34,8 @@ export default async function UscitePage() {
   }));
 
   return (
-    <>
-      <Header title="Aperture & chiusure" subtitle={pollaio.nome} />
-      <ScreenContainer>
-        <UsciteClient log={log} isAdmin={ruolo === "admin"} />
-      </ScreenContainer>
-    </>
+    <ScreenContainer header={<Header title="Aperture & chiusure" subtitle={pollaio.nome} />}>
+      <UsciteClient log={log} isAdmin={ruolo === "admin"} />
+    </ScreenContainer>
   );
 }

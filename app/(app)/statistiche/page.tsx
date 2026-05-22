@@ -1,5 +1,4 @@
 import { requireAdminPollaio } from "@/lib/supabase/queries";
-import { Header } from "@/components/ui/Header";
 import { StatisticheClient, type StatsData } from "./StatisticheClient";
 
 export const dynamic = "force-dynamic";
@@ -61,10 +60,5 @@ export default async function StatistichePage() {
     })),
   };
 
-  return (
-    <>
-      <Header title="Statistiche" />
-      <StatisticheClient data={data} />
-    </>
-  );
+  return <StatisticheClient data={data} />;
 }

@@ -96,9 +96,7 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
   }
 
   return (
-    <>
-      <Header title="Aggiungi uovo" onBack={() => router.back()} />
-      <ScreenContainer>
+    <ScreenContainer header={<Header title="Aggiungi uovo" onBack={() => router.back()} />}>
         <Link
           href="/uova/batch"
           className="flex items-center justify-between gap-2 mb-3 px-3 py-2.5 rounded-[var(--radius)] border border-[var(--border)] bg-white"
@@ -262,8 +260,7 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
             {pending ? "Sto salvando..." : "Registra uovo 🥚"}
           </Button>
         </form>
-      </ScreenContainer>
-    </>
+    </ScreenContainer>
   );
 }
 

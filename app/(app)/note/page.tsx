@@ -37,18 +37,19 @@ export default async function NotePage({
   const apriNuova = searchParams.nuova === "1";
 
   return (
-    <>
-      <Header
-        title="Note e promemoria"
-        subtitle={
-          items.length === 0
-            ? "Appunta tutto quello che ti viene in mente"
-            : `${items.length} not${items.length === 1 ? "a" : "e"}`
-        }
-      />
-      <ScreenContainer>
-        <NoteClient items={items} apriNuova={apriNuova} />
-      </ScreenContainer>
-    </>
+    <ScreenContainer
+      header={(
+        <Header
+          title="Note e promemoria"
+          subtitle={
+            items.length === 0
+              ? "Appunta tutto quello che ti viene in mente"
+              : `${items.length} not${items.length === 1 ? "a" : "e"}`
+          }
+        />
+      )}
+    >
+      <NoteClient items={items} apriNuova={apriNuova} />
+    </ScreenContainer>
   );
 }

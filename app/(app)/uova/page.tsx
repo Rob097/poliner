@@ -121,12 +121,15 @@ export default async function UovaPage({
   }));
 
   return (
-    <>
-      <Header
-        title="Le tue uova"
-        subtitle={`${uovaDisponibili} disponibili`}
-      />
-      <ScreenContainer pad={false}>
+    <ScreenContainer
+      header={(
+        <Header
+          title="Le tue uova"
+          subtitle={`${uovaDisponibili} disponibili`}
+        />
+      )}
+      pad={false}
+    >
         <RichiesteSection
           richieste={richieste}
           uovaDisponibili={uovaDisponibili}
@@ -141,7 +144,6 @@ export default async function UovaPage({
           }}
           isAdmin={ruolo === "admin"}
         />
-      </ScreenContainer>
-    </>
+    </ScreenContainer>
   );
 }

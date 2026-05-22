@@ -26,16 +26,13 @@ export default async function GallinePage() {
 
   if (aIds.length === 0) {
     return (
-      <>
-        <Header title="Le tue galline" subtitle="0 galline" />
-        <ScreenContainer>
-          <GallineListClient
-            galline={[]}
-            pollaioId={pollaio.id}
-            defunteCount={defunteCount ?? 0}
-          />
-        </ScreenContainer>
-      </>
+      <ScreenContainer header={<Header title="Le tue galline" subtitle="0 galline" />}>
+        <GallineListClient
+          galline={[]}
+          pollaioId={pollaio.id}
+          defunteCount={defunteCount ?? 0}
+        />
+      </ScreenContainer>
     );
   }
 
@@ -129,15 +126,12 @@ export default async function GallinePage() {
     .join(" · ");
 
   return (
-    <>
-      <Header title="Le tue galline" subtitle={subtitle || "Nessuna ancora"} />
-      <ScreenContainer>
-        <GallineListClient
-          galline={galline}
-          pollaioId={pollaio.id}
-          defunteCount={defunteCount ?? 0}
-        />
-      </ScreenContainer>
-    </>
+    <ScreenContainer header={<Header title="Le tue galline" subtitle={subtitle || "Nessuna ancora"} />}>
+      <GallineListClient
+        galline={galline}
+        pollaioId={pollaio.id}
+        defunteCount={defunteCount ?? 0}
+      />
+    </ScreenContainer>
   );
 }
