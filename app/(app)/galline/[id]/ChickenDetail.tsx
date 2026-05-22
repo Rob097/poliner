@@ -17,6 +17,8 @@ import { Input, Textarea, Select } from "@/components/ui/Input";
 import { FormField } from "@/components/ui/FormField";
 import { IconEdit, IconPlus } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { LoadMoreButton } from "@/components/ui/LoadMoreButton";
 import { calcolaEta, faseProduttiva } from "@/lib/utils/eta";
 import { statoMutaCorrente } from "@/lib/utils/muta";
 import { trovaRazza, uovaAnnoLabel } from "@/lib/data/razze";
@@ -599,6 +601,27 @@ function SaluteTab({
   const { show } = useToast();
   const [pending, startTransition] = useTransition();
 
+  const {
+    visible: muteVisible,
+    hasMore: muteHasMore,
+    remaining: muteRemaining,
+    loadMore: muteLoadMore,
+  } = usePagination(periodiMuta);
+
+  const {
+    visible: eventiVisible,
+    hasMore: eventiHasMore,
+    remaining: eventiRemaining,
+    loadMore: eventiLoadMore,
+  } = usePagination(eventiSalute);
+
+  const {
+    visible: trattamentiVisible,
+    hasMore: trattamentiHasMore,
+    remaining: trattamentiRemaining,
+    loadMore: trattamentiLoadMore,
+  } = usePagination(trattamenti);
+
   function toggleMuta() {
     showLoadingOverlay();
     startTransition(async () => {
@@ -666,12 +689,15 @@ function SaluteTab({
               Storico mute ({periodiMuta.length})
             </summary>
             <div className="mt-2 space-y-1.5">
-              {periodiMuta.map((p) => (
+              {muteVisible.map((p) => (
                 <div key={p.id} className="text-xs text-(--text-secondary)">
                   {formatData(p.data_inizio)} →{" "}
                   {p.data_fine ? formatData(p.data_fine) : "in corso"}
                 </div>
               ))}
+              {muteHasMore && (
+                <LoadMoreButton onClick={muteLoadMore} remaining={muteRemaining} />
+              )}
             </div>
           </details>
         )}
@@ -700,65 +726,70 @@ function SaluteTab({
           </p>
         </Card>
       ) : (
-        <div className="flex flex-col gap-2">
-          {eventiSalute.map((e) => {
-            const hhAttivo = e.home_hospital && !e.hh_a;
-            return (
-              <Card key={e.id}>
-                <div className="flex justify-between items-start mb-1 gap-2">
-                  <div className="font-semibold text-sm">
-                    {e.stato === "in_corso" ? "❤️‍🩹" : "✓"}{" "}
-                    {e.descrizione ?? tipoEventoLabel(e.tipo)}
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                    {e.home_hospital && (
-                      <Badge small bg="#FFE07A55" color="#7a5d1a">
-                        🏠 {hhAttivo ? "In casa" : "Casa"}
+        <>
+          <div className="flex flex-col gap-2">
+            {eventiVisible.map((e) => {
+              const hhAttivo = e.home_hospital && !e.hh_a;
+              return (
+                <Card key={e.id}>
+                  <div className="flex justify-between items-start mb-1 gap-2">
+                    <div className="font-semibold text-sm">
+                      {e.stato === "in_corso" ? "❤️‍🩹" : "✓"}{" "}
+                      {e.descrizione ?? tipoEventoLabel(e.tipo)}
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                      {e.home_hospital && (
+                        <Badge small bg="#FFE07A55" color="#7a5d1a">
+                          🏠 {hhAttivo ? "In casa" : "Casa"}
+                        </Badge>
+                      )}
+                      <Badge
+                        small
+                        bg={e.stato === "in_corso" ? "#FFD6E0" : "#B5D4B533"}
+                        color={e.stato === "in_corso" ? "#c0435a" : "#3d6b3d"}
+                      >
+                        {e.stato === "in_corso" ? "In corso" : "Risolto"}
                       </Badge>
+                    </div>
+                  </div>
+                  <div className="text-xs text-(--text-secondary)">
+                    {formatData(e.data)} · Tipo: {tipoEventoLabel(e.tipo)}
+                  </div>
+                  {e.home_hospital && (e.hh_da || e.hh_a) && (
+                    <div className="text-xs text-(--text-secondary) mt-0.5">
+                      🏠 {e.hh_da ? `Dal ${formatData(e.hh_da)}` : ""}
+                      {e.hh_a ? ` al ${formatData(e.hh_a)}` : e.hh_da ? " — ancora a casa" : ""}
+                    </div>
+                  )}
+                  <div className="mt-2 flex items-center gap-3 flex-wrap">
+                    {e.stato === "in_corso" && !readOnly && (
+                      <button
+                        type="button"
+                        onClick={() => risolvi(e.id)}
+                        disabled={pending}
+                        className="text-xs text-(--primary) font-semibold"
+                      >
+                        Segna come risolto
+                      </button>
                     )}
-                    <Badge
-                      small
-                      bg={e.stato === "in_corso" ? "#FFD6E0" : "#B5D4B533"}
-                      color={e.stato === "in_corso" ? "#c0435a" : "#3d6b3d"}
-                    >
-                      {e.stato === "in_corso" ? "In corso" : "Risolto"}
-                    </Badge>
+                    {!readOnly && (
+                      <button
+                        type="button"
+                        onClick={() => onEditHH(e)}
+                        className="text-xs text-[#7a5d1a] font-semibold"
+                      >
+                        {e.home_hospital ? "Aggiorna Home Hospital" : "🏠 Porta in casa"}
+                      </button>
+                    )}
                   </div>
-                </div>
-                <div className="text-xs text-(--text-secondary)">
-                  {formatData(e.data)} · Tipo: {tipoEventoLabel(e.tipo)}
-                </div>
-                {e.home_hospital && (e.hh_da || e.hh_a) && (
-                  <div className="text-xs text-(--text-secondary) mt-0.5">
-                    🏠 {e.hh_da ? `Dal ${formatData(e.hh_da)}` : ""}
-                    {e.hh_a ? ` al ${formatData(e.hh_a)}` : e.hh_da ? " — ancora a casa" : ""}
-                  </div>
-                )}
-                <div className="mt-2 flex items-center gap-3 flex-wrap">
-                  {e.stato === "in_corso" && !readOnly && (
-                    <button
-                      type="button"
-                      onClick={() => risolvi(e.id)}
-                      disabled={pending}
-                      className="text-xs text-(--primary) font-semibold"
-                    >
-                      Segna come risolto
-                    </button>
-                  )}
-                  {!readOnly && (
-                    <button
-                      type="button"
-                      onClick={() => onEditHH(e)}
-                      className="text-xs text-[#7a5d1a] font-semibold"
-                    >
-                      {e.home_hospital ? "Aggiorna Home Hospital" : "🏠 Porta in casa"}
-                    </button>
-                  )}
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+                </Card>
+              );
+            })}
+          </div>
+          {eventiHasMore && (
+            <LoadMoreButton onClick={eventiLoadMore} remaining={eventiRemaining} />
+          )}
+        </>
       )}
 
       {/* Trattamenti */}
@@ -784,49 +815,54 @@ function SaluteTab({
           </p>
         </Card>
       ) : (
-        <div className="flex flex-col gap-2">
-          {trattamenti.map((t) => (
-            <Card key={t.id}>
-              <div className="flex justify-between items-start mb-1">
-                <div className="font-semibold text-sm">💊 {t.tipo}</div>
-                <div className="text-xs text-(--text-secondary)">
-                  {formatData(t.data)}
+        <>
+          <div className="flex flex-col gap-2">
+            {trattamentiVisible.map((t) => (
+              <Card key={t.id}>
+                <div className="flex justify-between items-start mb-1">
+                  <div className="font-semibold text-sm">💊 {t.tipo}</div>
+                  <div className="text-xs text-(--text-secondary)">
+                    {formatData(t.data)}
+                  </div>
                 </div>
-              </div>
-              <div className="text-[13px] text-(--text-secondary) leading-relaxed">
-                {t.applica_a_tutti && (
-                  <div>
-                    <Badge small bg="#A8D1FF44" color="#3a5a7a">
-                      Tutto il pollaio
-                    </Badge>
+                <div className="text-[13px] text-(--text-secondary) leading-relaxed">
+                  {t.applica_a_tutti && (
+                    <div>
+                      <Badge small bg="#A8D1FF44" color="#3a5a7a">
+                        Tutto il pollaio
+                      </Badge>
+                    </div>
+                  )}
+                  {t.prodotto && <div>Prodotto: {t.prodotto}</div>}
+                  {t.dose && <div>Dose: {t.dose}</div>}
+                  {t.note && <div>Note: {t.note}</div>}
+                </div>
+                {t.prossima_data && (
+                  <div
+                    className="mt-2 px-2.5 py-1.5 rounded-lg text-xs"
+                    style={{ background: "#FFE07A33" }}
+                  >
+                    📅 Prossimo trattamento: {formatData(t.prossima_data)}
                   </div>
                 )}
-                {t.prodotto && <div>Prodotto: {t.prodotto}</div>}
-                {t.dose && <div>Dose: {t.dose}</div>}
-                {t.note && <div>Note: {t.note}</div>}
-              </div>
-              {t.prossima_data && (
-                <div
-                  className="mt-2 px-2.5 py-1.5 rounded-lg text-xs"
-                  style={{ background: "#FFE07A33" }}
-                >
-                  📅 Prossimo trattamento: {formatData(t.prossima_data)}
-                </div>
-              )}
-              {/* Eliminazione possibile solo se è del singolo animale */}
-              {!t.applica_a_tutti && !readOnly && (
-                <button
-                  type="button"
-                  onClick={() => eliminaTratt(t.id)}
-                  disabled={pending}
-                  className="mt-2 text-xs text-[#c0435a]"
-                >
-                  Elimina
-                </button>
-              )}
-            </Card>
-          ))}
-        </div>
+                {/* Eliminazione possibile solo se è del singolo animale */}
+                {!t.applica_a_tutti && !readOnly && (
+                  <button
+                    type="button"
+                    onClick={() => eliminaTratt(t.id)}
+                    disabled={pending}
+                    className="mt-2 text-xs text-[#c0435a]"
+                  >
+                    Elimina
+                  </button>
+                )}
+              </Card>
+            ))}
+          </div>
+          {trattamentiHasMore && (
+            <LoadMoreButton onClick={trattamentiLoadMore} remaining={trattamentiRemaining} />
+          )}
+        </>
       )}
     </div>
   );
