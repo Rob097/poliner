@@ -12,6 +12,8 @@ import { SectionTitle } from "@/components/ui/SectionTitle";
 import { useToast } from "@/components/ui/Toast";
 import { IconCheck, IconPlus, IconShare, IconTrash } from "@/components/ui/icons";
 import { cn } from "@/lib/utils/cn";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { LoadMoreButton } from "@/components/ui/LoadMoreButton";
 import {
   aggiungiVoce,
   eliminaVoce,
@@ -55,6 +57,20 @@ export function ListaSpesaClient({ items, pollaioNome }: Props) {
 
   const pending2 = items.filter((i) => !i.comprato);
   const done = items.filter((i) => i.comprato);
+
+  const {
+    visible: pendingVisible,
+    hasMore: pendingHasMore,
+    remaining: pendingRemaining,
+    loadMore: pendingLoadMore,
+  } = usePagination(pending2);
+
+  const {
+    visible: doneVisible,
+    hasMore: doneHasMore,
+    remaining: doneRemaining,
+    loadMore: doneLoadMore,
+  } = usePagination(done);
 
   function onAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -141,11 +157,16 @@ export function ListaSpesaClient({ items, pollaioNome }: Props) {
             subtitle="Aggiungi sotto la prima voce della lista."
           />
         ) : (
-          <div className="flex flex-col gap-1.5">
-            {pending2.map((v) => (
-              <VoceRow key={v.id} voce={v} disabled={pending} />
-            ))}
-          </div>
+          <>
+            <div className="flex flex-col gap-1.5">
+              {pendingVisible.map((v) => (
+                <VoceRow key={v.id} voce={v} disabled={pending} />
+              ))}
+            </div>
+            {pendingHasMore && (
+              <LoadMoreButton onClick={pendingLoadMore} remaining={pendingRemaining} />
+            )}
+          </>
         )}
 
         {/* Aggiungi inline */}
@@ -194,10 +215,13 @@ export function ListaSpesaClient({ items, pollaioNome }: Props) {
               Acquistati ({done.length})
             </SectionTitle>
             <div className="flex flex-col gap-1.5">
-              {done.map((v) => (
+              {doneVisible.map((v) => (
                 <VoceRow key={v.id} voce={v} disabled={pending} />
               ))}
             </div>
+            {doneHasMore && (
+              <LoadMoreButton onClick={doneLoadMore} remaining={doneRemaining} />
+            )}
           </>
         )}
 
