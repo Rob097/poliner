@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -57,8 +57,10 @@ export function NoteClient({ items, apriNuova }: Props) {
     if (apriNuova) setCreating(true);
   }, [apriNuova]);
 
-  const filtered =
-    filtro === "tutte" ? items : items.filter((n) => n.tag === filtro);
+  const filtered = useMemo(
+    () => (filtro === "tutte" ? items : items.filter((n) => n.tag === filtro)),
+    [items, filtro],
+  );
 
   const { visible, hasMore, remaining, loadMore } = usePagination(filtered);
 

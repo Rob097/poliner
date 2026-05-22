@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -31,7 +31,10 @@ export interface ContattoItem {
 export function RubricaClient({ items }: { items: ContattoItem[] }) {
   const [creating, setCreating] = useState(false);
 
-  const sorted = [...items].sort((a, b) => b.totale - a.totale);
+  const sorted = useMemo(
+    () => [...items].sort((a, b) => b.totale - a.totale),
+    [items],
+  );
 
   const { visible, hasMore, remaining, loadMore } = usePagination(sorted);
 
@@ -47,43 +50,41 @@ export function RubricaClient({ items }: { items: ContattoItem[] }) {
         />
       ) : (
         <>
-          <>
-            <div className="flex flex-col gap-2">
-              {visible.map((c, i) => (
-                <Link key={c.id} href={`/rubrica/${c.id}`}>
-                  <Card clickable className="flex items-center gap-3">
-                    <Avatar
-                      name={c.nome}
-                      size={48}
-                      bg={avatarBgFor(c.id + String(i))}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-[15px] truncate">
-                        {c.nome}
-                      </div>
-                      <div className="text-xs text-(--text-secondary) truncate">
-                        {[
-                          c.relazione,
-                          c.totale > 0
-                            ? `${c.totale} uova in ${c.volte} regal${c.volte === 1 ? "o" : "i"}`
-                            : null,
-                        ]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </div>
-                      {c.ultimaData && (
-                        <div className="text-[11px] text-(--text-secondary) mt-0.5">
-                          Ultimo regalo: {formatData(c.ultimaData)}
-                        </div>
-                      )}
+          <div className="flex flex-col gap-2">
+            {visible.map((c, i) => (
+              <Link key={c.id} href={`/rubrica/${c.id}`}>
+                <Card clickable className="flex items-center gap-3">
+                  <Avatar
+                    name={c.nome}
+                    size={48}
+                    bg={avatarBgFor(c.id + String(i))}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-[15px] truncate">
+                      {c.nome}
                     </div>
-                    <IconChevron size={18} color="var(--text-secondary)" />
-                  </Card>
-                </Link>
-              ))}
-            </div>
-            {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
-          </>
+                    <div className="text-xs text-(--text-secondary) truncate">
+                      {[
+                        c.relazione,
+                        c.totale > 0
+                          ? `${c.totale} uova in ${c.volte} regal${c.volte === 1 ? "o" : "i"}`
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </div>
+                    {c.ultimaData && (
+                      <div className="text-[11px] text-(--text-secondary) mt-0.5">
+                        Ultimo regalo: {formatData(c.ultimaData)}
+                      </div>
+                    )}
+                  </div>
+                  <IconChevron size={18} color="var(--text-secondary)" />
+                </Card>
+              </Link>
+            ))}
+          </div>
+          {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
 
           <Button fullWidth onClick={() => setCreating(true)} className="mt-4">
             <IconPlus size={18} /> Aggiungi contatto

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { Badge } from "@/components/ui/Badge";
@@ -55,8 +55,8 @@ export function ListaSpesaClient({ items, pollaioNome }: Props) {
   const [nuovaCategoria, setNuovaCategoria] = useState<CategoriaLista>("cibo");
   const [pending, startTransition] = useTransition();
 
-  const pending2 = items.filter((i) => !i.comprato);
-  const done = items.filter((i) => i.comprato);
+  const pending2 = useMemo(() => items.filter((i) => !i.comprato), [items]);
+  const done = useMemo(() => items.filter((i) => i.comprato), [items]);
 
   const {
     visible: pendingVisible,
