@@ -25,6 +25,8 @@ import {
   eliminaUscita,
 } from "@/lib/actions/uscite";
 import { dateIsoInTimeZone, etichettaGiornoRelativo, formatData } from "@/lib/utils/date";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { LoadMoreButton } from "@/components/ui/LoadMoreButton";
 
 export interface UscitaRow {
   id: string;
@@ -101,6 +103,13 @@ export function UsciteClient({ log, isAdmin }: Props) {
   }, [log]);
 
   const hasData = chartData.some((d) => d.uscita !== null || d.rientro !== null);
+
+  const {
+    visible: logVisible,
+    hasMore: logHasMore,
+    remaining: logRemaining,
+    loadMore: logLoadMore,
+  } = usePagination(log);
 
   return (
     <>
@@ -188,39 +197,42 @@ export function UsciteClient({ log, isAdmin }: Props) {
           }
         />
       ) : (
-        <div className="flex flex-col gap-1.5">
-          {log.map((r) => (
-            <Card key={r.id} className="flex items-center gap-3 py-2.5 px-3.5">
-              <div className="w-10 h-10 rounded-xl bg-(--primary-lighter) flex items-center justify-center text-lg shrink-0">
-                {r.oraUscita && r.oraRientro ? "🐔" : r.oraUscita ? "☀️" : "🌙"}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-sm">
-                  {etichettaGiornoRelativo(r.data)} · {formatData(r.data)}
+        <>
+          <div className="flex flex-col gap-1.5">
+            {logVisible.map((r) => (
+              <Card key={r.id} className="flex items-center gap-3 py-2.5 px-3.5">
+                <div className="w-10 h-10 rounded-xl bg-(--primary-lighter) flex items-center justify-center text-lg shrink-0">
+                  {r.oraUscita && r.oraRientro ? "🐔" : r.oraUscita ? "☀️" : "🌙"}
                 </div>
-                <div className="text-xs text-(--text-secondary)">
-                  {r.oraUscita ? `Aperto ${r.oraUscita}` : "Apertura —"}
-                  {r.oraRientro ? ` · Chiuso ${r.oraRientro}` : " · Chiusura —"}
-                </div>
-                {r.note && (
-                  <div className="text-xs text-(--text-secondary) italic mt-0.5">
-                    {r.note}
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm">
+                    {etichettaGiornoRelativo(r.data)} · {formatData(r.data)}
                   </div>
+                  <div className="text-xs text-(--text-secondary)">
+                    {r.oraUscita ? `Aperto ${r.oraUscita}` : "Apertura —"}
+                    {r.oraRientro ? ` · Chiuso ${r.oraRientro}` : " · Chiusura —"}
+                  </div>
+                  {r.note && (
+                    <div className="text-xs text-(--text-secondary) italic mt-0.5">
+                      {r.note}
+                    </div>
+                  )}
+                </div>
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => setEditing(r)}
+                    className="text-(--text-secondary) text-sm"
+                    aria-label="Modifica"
+                  >
+                    ✏️
+                  </button>
                 )}
-              </div>
-              {isAdmin && (
-                <button
-                  type="button"
-                  onClick={() => setEditing(r)}
-                  className="text-(--text-secondary) text-sm"
-                  aria-label="Modifica"
-                >
-                  ✏️
-                </button>
-              )}
-            </Card>
-          ))}
-        </div>
+              </Card>
+            ))}
+          </div>
+          {logHasMore && <LoadMoreButton onClick={logLoadMore} remaining={logRemaining} />}
+        </>
       )}
 
       {editing && (
