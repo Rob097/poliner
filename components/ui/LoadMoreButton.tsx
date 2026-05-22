@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/utils/cn";
 
 interface LoadMoreButtonProps {
   onClick: () => void;
@@ -18,7 +19,7 @@ export function LoadMoreButton({
       variant="secondary"
       fullWidth
       onClick={onClick}
-      className={`mt-3 ${className ?? ""}`}
+      className={cn("mt-3", className)}
     >
       Mostra altri ({remaining} rimanenti)
     </Button>
