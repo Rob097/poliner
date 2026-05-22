@@ -22,6 +22,8 @@ import {
   type CanaleNotifica,
   type TagNota,
 } from "./actions";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { LoadMoreButton } from "@/components/ui/LoadMoreButton";
 
 export interface NotaItem {
   id: string;
@@ -58,6 +60,8 @@ export function NoteClient({ items, apriNuova }: Props) {
   const filtered =
     filtro === "tutte" ? items : items.filter((n) => n.tag === filtro);
 
+  const { visible, hasMore, remaining, loadMore } = usePagination(filtered);
+
   return (
     <>
       <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-4 px-4">
@@ -92,11 +96,14 @@ export function NoteClient({ items, apriNuova }: Props) {
           onAction={() => setCreating(true)}
         />
       ) : (
-        <div className="flex flex-col gap-2">
-          {filtered.map((n) => (
-            <NotaCard key={n.id} nota={n} onEdit={() => setEditing(n)} />
-          ))}
-        </div>
+        <>
+          <div className="flex flex-col gap-2">
+            {visible.map((n) => (
+              <NotaCard key={n.id} nota={n} onEdit={() => setEditing(n)} />
+            ))}
+          </div>
+          {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
+        </>
       )}
 
       <Button fullWidth className="mt-4" onClick={() => setCreating(true)}>
