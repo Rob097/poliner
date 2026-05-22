@@ -218,12 +218,17 @@ function Scorte({
         <>
           <div className="flex gap-2 mt-5">
             <Link href="/uova/nuovo" className="flex-1">
-              <Button fullWidth>
-                <IconPlus size={18} /> Aggiungi uovo
+              <Button fullWidth className="px-4 text-sm whitespace-nowrap gap-1.5">
+                <IconPlus size={18} /> Aggiungi
               </Button>
             </Link>
             <Link href="/uova/regala" className="flex-1">
-              <Button variant="secondary" fullWidth disabled={disponibili.length === 0}>
+              <Button
+                variant="secondary"
+                fullWidth
+                disabled={disponibili.length === 0}
+                className="px-4 text-sm whitespace-nowrap gap-1.5"
+              >
                 🎁 Regala uova
               </Button>
             </Link>

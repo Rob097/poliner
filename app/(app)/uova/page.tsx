@@ -136,14 +136,16 @@ export default async function UovaPage({
           ruolo={ruolo}
           autoOpen={autoOpenRichiesta}
         />
-        <UovaList
-          uova={uovaDisplay}
-          conservazioneSettings={{
-            ambiente: pollaio.conservazione_ambiente_giorni,
-            frigo: pollaio.conservazione_frigo_giorni,
-          }}
-          isAdmin={ruolo === "admin"}
-        />
+        <div className="mt-5">
+          <UovaList
+            uova={uovaDisplay}
+            conservazioneSettings={{
+              ambiente: pollaio.conservazione_ambiente_giorni,
+              frigo: pollaio.conservazione_frigo_giorni,
+            }}
+            isAdmin={ruolo === "admin"}
+          />
+        </div>
     </ScreenContainer>
   );
 }
