@@ -63,7 +63,7 @@
 
 - Live Supabase table audit: all public tables currently have RLS enabled. No public table was found with RLS disabled.
 - Live Supabase follow-up: the bucket listing policy has been removed, and effective anonymous execute has been reduced so only the intentionally public `public_pollaio_stats(text)` RPC still remains anonymously callable.
-- Auth/session enforcement is present on the private app surface via `proxy.ts`, `lib/supabase/middleware.ts`, and the server helpers in `lib/supabase/queries.ts`. The intentionally open/public surfaces are login/registration/reset, auth callback, invite pages, and `/p/*`.
+- Auth/session enforcement is present on the private app surface via `middleware.ts`, `lib/supabase/middleware.ts`, and the server helpers in `lib/supabase/queries.ts`. The intentionally open/public surfaces are login/registration/reset, auth callback, invite pages, and `/p/*`.
 - No `dangerouslySetInnerHTML` or similar raw HTML sinks were found in app/components. The invite email template in `lib/actions/inviti.ts` escapes user-controlled fields before HTML composition.
 - No frontend use of `SUPABASE_SERVICE_ROLE_KEY` was found. The admin client is now additionally protected by `server-only` imports.
 - Authenticated domain pages still contain some `.select("*")` queries in places like `app/(app)/galline/page.tsx`, `app/(app)/rubrica/[id]/page.tsx`, `app/(app)/note/page.tsx`, `app/(app)/scorte/page.tsx`, `app/(app)/spese/page.tsx`, `app/(app)/lista-spesa/page.tsx`, and `app/(app)/uova/nidi/page.tsx`. These are RLS-protected and currently low-risk in this private app, but they should be narrowed over time for least privilege and payload hygiene.

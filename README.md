@@ -53,7 +53,7 @@ SUPABASE_SECRET_KEYS=<chiavi opzionali separate da virgola per scheduler o chiam
 - `components/ui/` — Componenti UI riutilizzabili
 - `components/layout/` — TabBar, FAB, AppShell, InstallPrompt
 - `components/brand/` — Logo
-- `lib/supabase/` — Client browser/server/proxy/admin + types
+- `lib/supabase/` — Client browser/server/middleware/admin + types
 - `lib/push/` — Logica client-side Web Push
 - `lib/data/` — Catalogo razze
 - `lib/constants/` — Categorie notifiche, tipi manutenzione

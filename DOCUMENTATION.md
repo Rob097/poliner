@@ -112,7 +112,7 @@
 ## 4. Tech stack
 | Layer | Technology | Purpose | Notes |
 | --- | --- | --- | --- |
-| UI framework | Next.js 16.2 App Router | Pages, layouts, server components, server actions | Main routes live under `app/`; request-time auth gating now uses `proxy.ts` |
+| UI framework | Next.js 16.2 App Router | Pages, layouts, server components, server actions | Main routes live under `app/`; request-time auth gating currently uses `middleware.ts` for Cloudflare/OpenNext compatibility |
 | UI runtime | React 19.2 | Client rendering, hooks, and shared component runtime | Paired with `react-dom` 19.2 |
 | Language | TypeScript 6.0 | Type safety across app and Supabase calls | DB types are generated into `lib/supabase/database.types.ts` |
 | Styling | Tailwind CSS 4.3 + `@tailwindcss/postcss` | Layout and visual styling | Global theme tokens live in `app/globals.css` |
@@ -145,7 +145,7 @@
 ### Authentication flow
 1. Normal sign-in and sign-up use Supabase Auth from the browser through `lib/supabase/client.ts`.
 2. Auth callbacks and password reset redirects come back through `app/auth/callback/route.ts`, which uses `getSafeInternalRedirect()` from `lib/utils/internal-redirect.ts` to avoid open redirects.
-3. `proxy.ts` calls `lib/supabase/middleware.ts::updateSession()` on every request. It refreshes session cookies via Supabase SSR, clears stale auth cookies when a refresh token is no longer valid, and redirects unauthenticated users away from private routes.
+3. `middleware.ts` calls `lib/supabase/middleware.ts::updateSession()` on every request. It refreshes session cookies via Supabase SSR, clears stale auth cookies when a refresh token is no longer valid, and redirects unauthenticated users away from private routes. This keeps the auth gate on the Edge Middleware path currently supported by OpenNext on Cloudflare.
 4. Server components that need a logged-in user call `requireUser()`. Screens that need an active coop call `requirePollaio()`.
 5. `requirePollaio()` loads memberships from `pollaio_members`, resolves `profiles.pollaio_attivo_id`, and redirects users without a coop to `/onboarding`.
 6. Invite acceptance is special: public invite metadata is read with the admin client, invited account creation can happen server-side with `auth.admin.createUser({ email_confirm: true })`, and membership is granted through the `accept_invito` RPC.
@@ -165,7 +165,7 @@ worker/     Custom service-worker code merged into the generated PWA worker
 ```
 
 - Key files and what they do:
-  - `proxy.ts`: Next.js 16 request-time auth entry point; delegates session refresh to `lib/supabase/middleware.ts`.
+  - `middleware.ts`: request-time auth entry point used for Cloudflare/OpenNext compatibility; delegates session refresh to `lib/supabase/middleware.ts`.
   - `next.config.mjs`: configures `@ducanh2912/next-pwa`, runtime caching, security headers, image domains, and optional OpenNext dev initialization.
   - `postcss.config.js`: enables Tailwind CSS 4 through `@tailwindcss/postcss`.
   - `open-next.config.ts`: OpenNext Cloudflare adapter entry point.
