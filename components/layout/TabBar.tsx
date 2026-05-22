@@ -36,7 +36,7 @@ export function TabBar({ onFab }: TabBarProps) {
 
   return (
     <nav
-      className="absolute bottom-0 left-0 right-0 z-30 flex items-center justify-around bg-white border-t border-[var(--border)] px-2"
+      className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around bg-white border-t border-[var(--border)] px-2 min-[500px]:absolute"
       style={{ paddingTop: 6, paddingBottom: "calc(env(safe-area-inset-bottom, 4px) + 6px)" }}
     >
       {TABS.slice(0, 2).map((tab) => (
