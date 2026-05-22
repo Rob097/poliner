@@ -19,6 +19,8 @@ import {
   INSERIMENTO_LABEL,
 } from "./AggiungiEventoInserimentoSheet";
 import { InserimentoEducativo } from "./InserimentoEducativo";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { LoadMoreButton } from "@/components/ui/LoadMoreButton";
 
 export interface EventoInserimento {
   id: string;
@@ -38,6 +40,7 @@ export function InserimentoTab({ animaleId, eventi, readOnly }: Props) {
   const { show } = useToast();
   const [showAdd, setShowAdd] = useState(false);
   const [pending, startTransition] = useTransition();
+  const { visible, hasMore, remaining, loadMore } = usePagination(eventi);
 
   const stato = useMemo(() => {
     if (eventi.length === 0) return { stato: "vuoto" as const };
@@ -123,16 +126,19 @@ export function InserimentoTab({ animaleId, eventi, readOnly }: Props) {
           subtitle="Documenta l'inserimento aggiungendo eventi alla timeline (quarantena, presentazione, convivenza, note)."
         />
       ) : (
-        <div className="flex flex-col gap-2">
-          {eventi.map((e) => (
-            <EventoCard
-              key={e.id}
-              evento={e}
-              onDelete={readOnly ? undefined : () => elimina(e.id)}
-              pending={pending}
-            />
-          ))}
-        </div>
+        <>
+          <div className="flex flex-col gap-2">
+            {visible.map((e) => (
+              <EventoCard
+                key={e.id}
+                evento={e}
+                onDelete={readOnly ? undefined : () => elimina(e.id)}
+                pending={pending}
+              />
+            ))}
+          </div>
+          {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
+        </>
       )}
 
       {showAdd && (
