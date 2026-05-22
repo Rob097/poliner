@@ -14,6 +14,8 @@ import { IconPlus, IconChevron } from "@/components/ui/icons";
 import { avatarBgFor } from "@/lib/utils/avatar";
 import { formatData } from "@/lib/utils/date";
 import { createContatto, deleteContatto, updateContatto } from "./actions";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { LoadMoreButton } from "@/components/ui/LoadMoreButton";
 
 export interface ContattoItem {
   id: string;
@@ -31,6 +33,8 @@ export function RubricaClient({ items }: { items: ContattoItem[] }) {
 
   const sorted = [...items].sort((a, b) => b.totale - a.totale);
 
+  const { visible, hasMore, remaining, loadMore } = usePagination(sorted);
+
   return (
     <>
       {items.length === 0 ? (
@@ -43,40 +47,43 @@ export function RubricaClient({ items }: { items: ContattoItem[] }) {
         />
       ) : (
         <>
-          <div className="flex flex-col gap-2">
-            {sorted.map((c, i) => (
-              <Link key={c.id} href={`/rubrica/${c.id}`}>
-                <Card clickable className="flex items-center gap-3">
-                  <Avatar
-                    name={c.nome}
-                    size={48}
-                    bg={avatarBgFor(c.id + String(i))}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-[15px] truncate">
-                      {c.nome}
-                    </div>
-                    <div className="text-xs text-(--text-secondary) truncate">
-                      {[
-                        c.relazione,
-                        c.totale > 0
-                          ? `${c.totale} uova in ${c.volte} regal${c.volte === 1 ? "o" : "i"}`
-                          : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </div>
-                    {c.ultimaData && (
-                      <div className="text-[11px] text-(--text-secondary) mt-0.5">
-                        Ultimo regalo: {formatData(c.ultimaData)}
+          <>
+            <div className="flex flex-col gap-2">
+              {visible.map((c, i) => (
+                <Link key={c.id} href={`/rubrica/${c.id}`}>
+                  <Card clickable className="flex items-center gap-3">
+                    <Avatar
+                      name={c.nome}
+                      size={48}
+                      bg={avatarBgFor(c.id + String(i))}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-[15px] truncate">
+                        {c.nome}
                       </div>
-                    )}
-                  </div>
-                  <IconChevron size={18} color="var(--text-secondary)" />
-                </Card>
-              </Link>
-            ))}
-          </div>
+                      <div className="text-xs text-(--text-secondary) truncate">
+                        {[
+                          c.relazione,
+                          c.totale > 0
+                            ? `${c.totale} uova in ${c.volte} regal${c.volte === 1 ? "o" : "i"}`
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </div>
+                      {c.ultimaData && (
+                        <div className="text-[11px] text-(--text-secondary) mt-0.5">
+                          Ultimo regalo: {formatData(c.ultimaData)}
+                        </div>
+                      )}
+                    </div>
+                    <IconChevron size={18} color="var(--text-secondary)" />
+                  </Card>
+                </Link>
+              ))}
+            </div>
+            {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
+          </>
 
           <Button fullWidth onClick={() => setCreating(true)} className="mt-4">
             <IconPlus size={18} /> Aggiungi contatto
