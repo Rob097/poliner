@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { IconPlus, IconEdit } from "@/components/ui/icons";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { LoadMoreButton } from "@/components/ui/LoadMoreButton";
 import {
   consumaScorta,
   createScorta,
@@ -60,6 +62,7 @@ export function ScorteClient({
   const suggerimenti = Array.from(new Set([...nomiUsati, ...SUGGERIMENTI_FALLBACK]));
 
   const basse = items.filter(isLow);
+  const { visible, hasMore, remaining, loadMore } = usePagination(items);
 
   return (
     <>
@@ -85,17 +88,20 @@ export function ScorteClient({
           onAction={() => setCreating(true)}
         />
       ) : (
-        <div className="flex flex-col gap-2">
-          {items.map((s) => (
-            <ScortaRow
-              key={s.id}
-              scorta={s}
-              onEdit={() => setEditing(s)}
-              onRefill={() => setRefillTarget(s)}
-              onConsume={() => setConsumeTarget(s)}
-            />
-          ))}
-        </div>
+        <>
+          <div className="flex flex-col gap-2">
+            {visible.map((s) => (
+              <ScortaRow
+                key={s.id}
+                scorta={s}
+                onEdit={() => setEditing(s)}
+                onRefill={() => setRefillTarget(s)}
+                onConsume={() => setConsumeTarget(s)}
+              />
+            ))}
+          </div>
+          {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
+        </>
       )}
 
       <Button fullWidth className="mt-4" onClick={() => setCreating(true)}>
