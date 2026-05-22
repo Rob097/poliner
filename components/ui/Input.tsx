@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils/cn";
 
 // text-base = 16px → previene auto-zoom su iOS Safari
 const baseInput =
-  "w-full px-4 py-3 rounded-[var(--radius-sm)] border-2 border-[var(--border)] font-sans text-base bg-white text-text outline-none transition-colors focus:border-[var(--primary-light)] placeholder:text-[var(--text-secondary)]";
+  "w-full px-4 py-3 rounded-sm border-2 border-(--border) font-sans text-base bg-white text-text outline-hidden transition-colors focus:border-(--primary-light) placeholder:text-(--text-secondary)";
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   ({ className, type = "text", ...rest }, ref) => (

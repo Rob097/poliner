@@ -76,7 +76,7 @@ export function InserimentoTab({ animaleId, eventi, readOnly }: Props) {
           <div className="font-semibold text-sm">
             ✅ Inserimento completato
           </div>
-          <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+          <div className="text-xs text-(--text-secondary) mt-0.5">
             Dal {formatDataLunga(stato.data)}
           </div>
         </Card>
@@ -89,7 +89,7 @@ export function InserimentoTab({ animaleId, eventi, readOnly }: Props) {
           <div className="font-semibold text-sm">
             🏠+→ In inserimento
           </div>
-          <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+          <div className="text-xs text-(--text-secondary) mt-0.5">
             Ultimo evento: {INSERIMENTO_LABEL[stato.ultimo.tipo].label.toLowerCase()}{" "}
             ({etichettaGiornoRelativo(stato.ultimo.data).toLowerCase()})
           </div>
@@ -106,7 +106,7 @@ export function InserimentoTab({ animaleId, eventi, readOnly }: Props) {
             <button
               type="button"
               onClick={() => setShowAdd(true)}
-              className="text-xs text-[var(--primary)] font-semibold flex items-center gap-1"
+              className="text-xs text-(--primary) font-semibold flex items-center gap-1"
             >
               <IconPlus size={14} /> Aggiungi evento
             </button>
@@ -163,7 +163,7 @@ function EventoCard({
             <span aria-hidden>{meta.icona}</span>
             <span>{meta.label}</span>
           </div>
-          <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+          <div className="text-xs text-(--text-secondary) mt-0.5">
             {etichettaGiornoRelativo(evento.data)}
           </div>
           {evento.note && (

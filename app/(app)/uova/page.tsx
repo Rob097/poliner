@@ -10,10 +10,11 @@ export const dynamic = "force-dynamic";
 export default async function UovaPage({
   searchParams,
 }: {
-  searchParams?: { richiedi?: string };
+  searchParams?: Promise<{ richiedi?: string }>;
 }) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const { supabase, user, pollaio, ruolo } = await requirePollaio();
-  const autoOpenRichiesta = searchParams?.richiedi === "1";
+  const autoOpenRichiesta = resolvedSearchParams?.richiedi === "1";
 
   // Fetch uova: tutte (per scorte + storico)
   const { data: uova } = await supabase

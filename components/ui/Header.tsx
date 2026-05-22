@@ -17,7 +17,7 @@ export function Header({ title, subtitle, onBack, right, transparent, className 
     <div
       className={cn(
         "flex items-center gap-3 px-4 py-3",
-        transparent ? "bg-transparent" : "bg-[var(--bg)] border-b border-[var(--border)]",
+        transparent ? "bg-transparent" : "bg-(--bg) border-b border-(--border)",
         className,
       )}
     >
@@ -31,7 +31,7 @@ export function Header({ title, subtitle, onBack, right, transparent, className 
           <div className="font-serif font-bold text-[20px] text-text leading-tight">{title}</div>
         )}
         {subtitle && (
-          <div className={cn(title ? "text-[13px] text-[var(--text-secondary)] mt-0.5" : "text-text")}>{subtitle}</div>
+          <div className={cn(title ? "text-[13px] text-(--text-secondary) mt-0.5" : "text-text")}>{subtitle}</div>
         )}
       </div>
       {right}

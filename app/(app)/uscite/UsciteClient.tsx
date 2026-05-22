@@ -170,7 +170,7 @@ export function UsciteClient({ log, isAdmin }: Props) {
         </Card>
       ) : (
         <Card>
-          <p className="text-sm text-[var(--text-secondary)] text-center py-2 m-0">
+          <p className="text-sm text-(--text-secondary) text-center py-2 m-0">
             Servono almeno 7 giorni di dati per il grafico
           </p>
         </Card>
@@ -191,19 +191,19 @@ export function UsciteClient({ log, isAdmin }: Props) {
         <div className="flex flex-col gap-1.5">
           {log.map((r) => (
             <Card key={r.id} className="flex items-center gap-3 py-2.5 px-3.5">
-              <div className="w-10 h-10 rounded-xl bg-[var(--primary-lighter)] flex items-center justify-center text-lg flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-(--primary-lighter) flex items-center justify-center text-lg shrink-0">
                 {r.oraUscita && r.oraRientro ? "🐔" : r.oraUscita ? "☀️" : "🌙"}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-sm">
                   {etichettaGiornoRelativo(r.data)} · {formatData(r.data)}
                 </div>
-                <div className="text-xs text-[var(--text-secondary)]">
+                <div className="text-xs text-(--text-secondary)">
                   {r.oraUscita ? `Aperto ${r.oraUscita}` : "Apertura —"}
                   {r.oraRientro ? ` · Chiuso ${r.oraRientro}` : " · Chiusura —"}
                 </div>
                 {r.note && (
-                  <div className="text-xs text-[var(--text-secondary)] italic mt-0.5">
+                  <div className="text-xs text-(--text-secondary) italic mt-0.5">
                     {r.note}
                   </div>
                 )}
@@ -212,7 +212,7 @@ export function UsciteClient({ log, isAdmin }: Props) {
                 <button
                   type="button"
                   onClick={() => setEditing(r)}
-                  className="text-[var(--text-secondary)] text-sm"
+                  className="text-(--text-secondary) text-sm"
                   aria-label="Modifica"
                 >
                   ✏️

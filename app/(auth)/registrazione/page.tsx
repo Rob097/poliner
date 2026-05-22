@@ -49,7 +49,7 @@ export default function RegistrazionePage() {
       <div className="flex-1 flex flex-col items-center justify-center text-center pb-6 gap-3">
         <div className="text-6xl">🥚</div>
         <PolinerLogo size="lg" />
-        <p className="text-[15px] text-[var(--text-secondary)] mt-1">
+        <p className="text-[15px] text-(--text-secondary) mt-1">
           Crea il tuo pollaio digitale ✨
         </p>
       </div>
@@ -81,7 +81,7 @@ export default function RegistrazionePage() {
           <p className="text-sm text-[#c0435a] mb-3 text-center">{error}</p>
         )}
         {info && (
-          <p className="text-sm text-[var(--primary)] mb-3 text-center">{info}</p>
+          <p className="text-sm text-(--primary) mb-3 text-center">{info}</p>
         )}
 
         <Button type="submit" size="lg" fullWidth disabled={loading || !email || password.length < 8}>
@@ -89,9 +89,9 @@ export default function RegistrazionePage() {
         </Button>
       </form>
 
-      <div className="text-center mt-6 mb-2 text-sm text-[var(--text-secondary)]">
+      <div className="text-center mt-6 mb-2 text-sm text-(--text-secondary)">
         Hai già un account?{" "}
-        <Link href="/login" className="text-[var(--primary)] font-semibold">
+        <Link href="/login" className="text-(--primary) font-semibold">
           Accedi
         </Link>
       </div>

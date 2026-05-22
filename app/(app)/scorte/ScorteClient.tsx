@@ -175,13 +175,13 @@ function ScortaRow({
             <button
               type="button"
               onClick={onEdit}
-              className="text-[var(--text-secondary)] -mt-0.5"
+              className="text-(--text-secondary) -mt-0.5"
               aria-label="Modifica"
             >
               <IconEdit size={16} />
             </button>
           </div>
-          <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+          <div className="text-xs text-(--text-secondary) mt-0.5">
             {scorta.quantita !== null ? (
               <>
                 {scorta.quantita} {scorta.unita ?? ""}
@@ -405,7 +405,7 @@ function RefillModal({
   return (
     <Modal title={`Rifornisci ${scorta.nome}`} onClose={onClose}>
       <form onSubmit={onSubmit}>
-        <p className="text-sm text-[var(--text-secondary)] mb-3">
+        <p className="text-sm text-(--text-secondary) mb-3">
           Attualmente: <strong>{scorta.quantita ?? "—"} {scorta.unita ?? ""}</strong>
         </p>
         <FormField label="Quanto stai aggiungendo?">
@@ -464,7 +464,7 @@ function ConsumeModal({
   return (
     <Modal title={`Consuma ${scorta.nome}`} onClose={onClose}>
       <form onSubmit={onSubmit}>
-        <p className="text-sm text-[var(--text-secondary)] mb-3">
+        <p className="text-sm text-(--text-secondary) mb-3">
           Attualmente: <strong>{scorta.quantita ?? "—"} {scorta.unita ?? ""}</strong>
         </p>
         <FormField label="Quanto stai consumando?">

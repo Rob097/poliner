@@ -513,14 +513,14 @@ Sezioni:
 
 Mobile-first.
 
-### 4. Middleware
+### 4. Proxy
 
-**File: `middleware.ts`** — aggiungere `/p/*` alle route pubbliche (no auth redirect).
+**File: `proxy.ts`** — aggiungere `/p/*` alle route pubbliche (no auth redirect).
 
 ## File coinvolti
 
 - **Creare**: `supabase/migrations/0018_pollaio_pubblico.sql`, `app/(public)/layout.tsx`, `app/(public)/p/[slug]/page.tsx`, `app/(public)/p/[slug]/PaginaPubblicaView.tsx`, `app/(public)/p/[slug]/not-found.tsx`, `lib/supabase/public.ts`
-- **Modificare**: `app/(app)/impostazioni/actions.ts`, `app/(app)/impostazioni/page.tsx` (o ImpostazioniClient.tsx), `middleware.ts`
+- **Modificare**: `app/(app)/impostazioni/actions.ts`, `app/(app)/impostazioni/page.tsx` (o ImpostazioniClient.tsx), `proxy.ts`
 
 ## Verifica end-to-end
 

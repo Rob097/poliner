@@ -74,9 +74,6 @@ export function BatchUovaForm({ galline, nidi }: Props) {
       return next;
     });
   }
-  function get(animaleId: string, nidoId: string | null) {
-    return conteggi.get(keyOf(animaleId, nidoId)) ?? 0;
-  }
   function totalePer(animaleId: string) {
     let t = 0;
     for (const [k, v] of conteggi.entries()) {
@@ -163,19 +160,19 @@ export function BatchUovaForm({ galline, nidi }: Props) {
         />
       )}
     >
-        <div className="text-[13px] text-[var(--text-secondary)] mb-3">
+        <div className="text-[13px] text-(--text-secondary) mb-3">
           Tocca <span className="font-bold">+</span> per ogni uovo trovato. In fondo,
           conferma per salvarle tutte insieme.{" "}
-          <Link href="/uova/nuovo" className="text-[var(--primary)] font-semibold">
+          <Link href="/uova/nuovo" className="text-(--primary) font-semibold">
             Aggiungi solo un uovo →
           </Link>
         </div>
 
         {galline.length === 0 ? (
           <Card>
-            <p className="text-sm text-[var(--text-secondary)] text-center py-3 m-0">
+            <p className="text-sm text-(--text-secondary) text-center py-3 m-0">
               Nessuna gallina nel pollaio.{" "}
-              <Link href="/galline/nuova" className="text-[var(--primary)] font-semibold">
+              <Link href="/galline/nuova" className="text-(--primary) font-semibold">
                 Aggiungine una
               </Link>
               .
@@ -211,7 +208,7 @@ export function BatchUovaForm({ galline, nidi }: Props) {
               <button
                 type="button"
                 onClick={reset}
-                className="block mx-auto mt-3 text-xs text-[var(--text-secondary)] underline"
+                className="block mx-auto mt-3 text-xs text-(--text-secondary) underline"
               >
                 Azzera conteggio
               </button>
@@ -319,18 +316,18 @@ function RigaGallina({
           onClick={onMinus}
           disabled={count === 0}
           aria-label={`Togli un uovo da ${nome}`}
-          className="w-9 h-9 rounded-full border border-[var(--border)] bg-white font-bold text-lg disabled:opacity-30 active:scale-95 transition"
+          className="w-9 h-9 rounded-full border border-(--border) bg-white font-bold text-lg disabled:opacity-30 active:scale-95 transition"
         >
           −
         </button>
-        <div className="min-w-[28px] text-center font-extrabold text-lg text-[var(--primary)]">
+        <div className="min-w-[28px] text-center font-extrabold text-lg text-(--primary)">
           {count}
         </div>
         <button
           type="button"
           onClick={onPlus}
           aria-label={`Aggiungi un uovo a ${nome}`}
-          className="w-9 h-9 rounded-full bg-[var(--primary)] text-white font-bold text-lg active:scale-95 transition shadow-[0_2px_6px_rgba(232,103,138,0.35)]"
+          className="w-9 h-9 rounded-full bg-(--primary) text-white font-bold text-lg active:scale-95 transition shadow-[0_2px_6px_rgba(232,103,138,0.35)]"
         >
           +
         </button>

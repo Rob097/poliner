@@ -171,13 +171,13 @@ export function ModificaGallinaForm({ initial }: Props) {
 
           {showRazzaInfo && razza && (
             <div
-              className="rounded-[var(--radius)] p-4 mb-4"
+              className="rounded-(--radius) p-4 mb-4"
               style={{ background: "var(--primary-lighter)" }}
             >
-              <div className="text-[13px] font-semibold text-[var(--primary)] mb-1.5">
+              <div className="text-[13px] font-semibold text-(--primary) mb-1.5">
                 Info sulla razza
               </div>
-              <div className="grid grid-cols-2 gap-1.5 text-xs text-[var(--text-secondary)]">
+              <div className="grid grid-cols-2 gap-1.5 text-xs text-(--text-secondary)">
                 {showEggInfo && <span>🥚 {uovaAnnoLabel(razza)} uova/anno</span>}
                 <span>📏 Taglia {razza.taglia}</span>
                 {showEggInfo && <span>🎨 Uova {razza.coloreUova}</span>}
@@ -217,7 +217,7 @@ export function ModificaGallinaForm({ initial }: Props) {
               rows={3}
               placeholder={`Es. "Una gran chiocciona, ama farsi grattare la testa…"`}
             />
-            <p className="text-[11px] text-[var(--text-secondary)] mt-1 leading-snug">
+            <p className="text-[11px] text-(--text-secondary) mt-1 leading-snug">
               Appare nella pagina pubblica del pollaio quando un visitatore tocca la sua scheda. Lasciare vuoto per non mostrarla.
             </p>
           </FormField>
@@ -238,7 +238,7 @@ export function ModificaGallinaForm({ initial }: Props) {
             <Button
               type="submit"
               disabled={!nome.trim() || pending}
-              className="flex-[2]"
+              className="flex-2"
             >
               {pending ? "Salvataggio..." : "Salva modifiche"}
             </Button>

@@ -151,10 +151,10 @@ export function RazzaSelect({ value, onChange }: RazzaSelectProps) {
         <div
           id={listboxId}
           role="listbox"
-          className="absolute left-0 right-0 z-20 mt-1 max-h-64 overflow-y-auto rounded-[var(--radius-sm)] border-2 border-[var(--border)] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)]"
+          className="absolute left-0 right-0 z-20 mt-1 max-h-64 overflow-y-auto rounded-sm border-2 border-(--border) bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)]"
         >
           {options.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-[var(--text-secondary)]">
+            <div className="px-4 py-3 text-sm text-(--text-secondary)">
               Nessuna razza trovata.
             </div>
           ) : (
@@ -170,9 +170,9 @@ export function RazzaSelect({ value, onChange }: RazzaSelectProps) {
                 }}
                 className={cn(
                   "flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm",
-                  index > 0 && "border-t border-[var(--border)]",
-                  activeIndex === index && "bg-[var(--bg-warm)]",
-                  option.selected && "font-semibold text-[var(--primary)]",
+                  index > 0 && "border-t border-(--border)",
+                  activeIndex === index && "bg-(--bg-warm)",
+                  option.selected && "font-semibold text-(--primary)",
                 )}
               >
                 <span>{option.nome}</span>

@@ -49,7 +49,7 @@ export function SegnaDefuntaSheet({ animaleId, animaleNome, onClose, onConfirmed
 
   return (
     <Modal title={`Segna ${animaleNome} come defunta`} onClose={onClose}>
-      <p className="text-sm text-[var(--text-secondary)] mb-4 leading-relaxed">
+      <p className="text-sm text-(--text-secondary) mb-4 leading-relaxed">
         Lo storico (uova, salute, foto) resterà intatto e visibile nelle statistiche.
         {animaleNome} sarà spostata nella sezione “In memoria”.
       </p>
@@ -96,7 +96,7 @@ export function SegnaDefuntaSheet({ animaleId, animaleNome, onClose, onConfirmed
             type="submit"
             size="lg"
             disabled={pending}
-            className="flex-[2]"
+            className="flex-2"
             style={{ background: "#c0435a" }}
           >
             {pending ? "Sto salvando…" : "Conferma"}

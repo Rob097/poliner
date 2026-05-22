@@ -18,14 +18,15 @@ export const dynamic = "force-dynamic";
 export default async function ContattoDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const { supabase, pollaio } = await requireAdminPollaio();
 
   const { data: contatto } = await supabase
     .from("contatti")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("pollaio_id", pollaio.id)
     .maybeSingle();
 
@@ -56,12 +57,12 @@ export default async function ContattoDetailPage({
           </div>
           <div className="font-serif text-xl font-bold">{contatto.nome}</div>
           {contatto.relazione && (
-            <div className="text-sm text-[var(--text-secondary)] mt-0.5">
+            <div className="text-sm text-(--text-secondary) mt-0.5">
               {contatto.relazione}
             </div>
           )}
 
-          <div className="flex justify-center gap-6 mt-4 pt-4 border-t border-[var(--border)]">
+          <div className="flex justify-center gap-6 mt-4 pt-4 border-t border-(--border)">
             <StatNumber value={totale} label="uova ricevute" color="var(--primary)" small />
             <StatNumber value={volte} label={volte === 1 ? "volta" : "volte"} small />
           </div>
@@ -82,7 +83,7 @@ export default async function ContattoDetailPage({
           <Card className="mt-3 flex items-center gap-3">
             <span className="text-xl">📞</span>
             <div className="flex-1 min-w-0">
-              <div className="text-[11px] text-[var(--text-secondary)]">Telefono</div>
+              <div className="text-[11px] text-(--text-secondary)">Telefono</div>
               <a
                 href={`tel:${contatto.telefono}`}
                 className="text-sm font-semibold"
@@ -95,7 +96,7 @@ export default async function ContattoDetailPage({
 
         {contatto.note && (
           <Card className="mt-2">
-            <div className="text-[11px] text-[var(--text-secondary)] mb-1">Note</div>
+            <div className="text-[11px] text-(--text-secondary) mb-1">Note</div>
             <p className="text-sm m-0 whitespace-pre-wrap">{contatto.note}</p>
           </Card>
         )}
@@ -116,7 +117,7 @@ export default async function ContattoDetailPage({
                   <div className="text-sm font-semibold">
                     {r.quantita} uova
                   </div>
-                  <div className="text-xs text-[var(--text-secondary)]">
+                  <div className="text-xs text-(--text-secondary)">
                     {formatDataLunga(r.data)}
                     {r.note ? ` · ${r.note}` : ""}
                   </div>
@@ -127,7 +128,7 @@ export default async function ContattoDetailPage({
         )}
 
         {ultimaData && (
-          <p className="text-center text-xs text-[var(--text-secondary)] mt-4">
+          <p className="text-center text-xs text-(--text-secondary) mt-4">
             Ultimo regalo: {formatData(ultimaData)}
           </p>
         )}

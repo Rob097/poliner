@@ -43,7 +43,7 @@ export function MenuClient({ items }: { items: MenuItem[] }) {
                 {item.icon}
               </div>
               <div className="font-bold text-sm text-text">{item.label}</div>
-              <div className="text-[11px] text-[var(--text-secondary)] mt-0.5">{item.desc}</div>
+              <div className="text-[11px] text-(--text-secondary) mt-0.5">{item.desc}</div>
             </Card>
           ))}
         </div>

@@ -198,7 +198,7 @@ function Scorte({
         grouped.map(([date, eggs]) => (
           <div key={date}>
             <div className="flex justify-between items-center mt-3 mb-2">
-              <div className="text-[13px] font-bold text-[var(--text-secondary)]">
+              <div className="text-[13px] font-bold text-(--text-secondary)">
                 {etichettaGiornoRelativo(date)} · {formatData(date)}
               </div>
               <Badge small bg="var(--primary-lighter)" color="var(--primary)">
@@ -236,7 +236,7 @@ function Scorte({
 
           <Link
             href="/uova/nidi"
-            className="block text-center mt-3 text-sm text-[var(--primary)] font-semibold"
+            className="block text-center mt-3 text-sm text-(--primary) font-semibold"
           >
             Gestisci nidi →
           </Link>
@@ -287,13 +287,13 @@ function SummaryCard({
 }) {
   return (
     <div
-      className="rounded-[var(--radius)] border border-[var(--border)] p-3 text-center"
+      className="rounded-(--radius) border border-(--border) p-3 text-center"
       style={{ background: bg }}
     >
       <div className="text-2xl font-extrabold" style={{ color }}>
         {value}
       </div>
-      <div className="text-[11px] text-[var(--text-secondary)]">{label}</div>
+      <div className="text-[11px] text-(--text-secondary)">{label}</div>
     </div>
   );
 }
@@ -383,7 +383,7 @@ function UovoRow({
               {u.gallinaNome ?? "Gallina sconosciuta"}
             </span>
             {variant === "storico" && (
-              <span className="text-[11px] text-[var(--text-secondary)]">
+              <span className="text-[11px] text-(--text-secondary)">
                 · {formatData(u.dataDeposizione)}
               </span>
             )}
@@ -397,7 +397,7 @@ function UovoRow({
               </Badge>
             )}
           </div>
-          <div className="text-xs text-[var(--text-secondary)] truncate">
+          <div className="text-xs text-(--text-secondary) truncate">
             {[
               u.nidoNome,
               u.conservazione === "frigo" ? "❄️ frigo" : "🌤️ ambiente",
@@ -415,7 +415,7 @@ function UovoRow({
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
-            className="text-xs text-[var(--text-secondary)] underline-offset-2"
+            className="text-xs text-(--text-secondary) underline-offset-2"
             aria-label="Apri azioni"
           >
             {open ? "✕" : "•••"}
@@ -424,7 +424,7 @@ function UovoRow({
       </div>
 
       {isAdmin && open && (
-        <div className="flex flex-wrap gap-2 pt-1 border-t border-[var(--border)] mt-1">
+        <div className="flex flex-wrap gap-2 pt-1 border-t border-(--border) mt-1">
           {u.stato === "disponibile" && (
             <>
               <Button

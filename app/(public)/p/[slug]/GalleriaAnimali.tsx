@@ -84,12 +84,12 @@ function AnimaleCard({
         </div>
         <div className="font-semibold text-sm truncate px-2">{a.nome}</div>
         {razzaNome && (
-          <div className="text-[11px] text-[var(--text-secondary)] mt-0.5 truncate px-2">
+          <div className="text-[11px] text-(--text-secondary) mt-0.5 truncate px-2">
             {razzaNome}
           </div>
         )}
         {eta && (
-          <div className="text-[11px] text-[var(--text-secondary)] mt-0.5">{eta}</div>
+          <div className="text-[11px] text-(--text-secondary) mt-0.5">{eta}</div>
         )}
       </Card>
     </button>
@@ -112,7 +112,7 @@ function SchedaAnimale({ animale }: { animale: AnimalePubblico }) {
           name={animale.nome}
           size={120}
         />
-        <div className="text-xs text-[var(--text-secondary)] mt-2 flex flex-wrap gap-1.5 justify-center">
+        <div className="text-xs text-(--text-secondary) mt-2 flex flex-wrap gap-1.5 justify-center">
           <span>
             {animale.tipo === "gallo" ? "🐓 Gallo" : "🐔 Gallina"}
           </span>
@@ -120,7 +120,7 @@ function SchedaAnimale({ animale }: { animale: AnimalePubblico }) {
           {eta && <span>· {eta}</span>}
         </div>
         {animale.colorePiumaggio && (
-          <div className="text-xs text-[var(--text-secondary)] mt-1">
+          <div className="text-xs text-(--text-secondary) mt-1">
             🎨 {animale.colorePiumaggio}
           </div>
         )}
@@ -170,10 +170,10 @@ function SchedaRazza({
 
   return (
     <div
-      className="rounded-[var(--radius)] p-4"
+      className="rounded-(--radius) p-4"
       style={{ background: "var(--primary-lighter)" }}
     >
-      <div className="text-[13px] font-semibold text-[var(--primary)] mb-2">
+      <div className="text-[13px] font-semibold text-(--primary) mb-2">
         Caratteristiche della razza
       </div>
       <div className="grid grid-cols-2 gap-y-2 gap-x-3 text-[12px] text-text">
@@ -184,7 +184,7 @@ function SchedaRazza({
       </div>
       <div className="mt-3 text-[12px] text-text">
         <span aria-hidden>💝 </span>
-        <span className="text-[var(--text-secondary)]">Temperamento: </span>
+        <span className="text-(--text-secondary)">Temperamento: </span>
         {razza.temperamento}
       </div>
     </div>
@@ -204,7 +204,7 @@ function RigaScheda({
     <div className="flex items-baseline gap-1.5 leading-snug">
       <span aria-hidden>{emoji}</span>
       <div>
-        <div className="text-[11px] text-[var(--text-secondary)] leading-tight">
+        <div className="text-[11px] text-(--text-secondary) leading-tight">
           {label}
         </div>
         <div className="font-semibold leading-tight">{value}</div>

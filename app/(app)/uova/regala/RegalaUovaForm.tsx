@@ -95,25 +95,25 @@ export function RegalaUovaForm({ contatti, disponibili }: Props) {
                 type="button"
                 onClick={() => setQty((q) => Math.max(1, q - 1))}
                 disabled={qty <= 1}
-                className="w-11 h-11 rounded-full bg-[var(--primary-lighter)] text-xl font-semibold flex items-center justify-center disabled:opacity-50"
+                className="w-11 h-11 rounded-full bg-(--primary-lighter) text-xl font-semibold flex items-center justify-center disabled:opacity-50"
                 aria-label="Riduci"
               >
                 −
               </button>
-              <div className="text-4xl font-extrabold text-[var(--primary)] min-w-[60px] text-center">
+              <div className="text-4xl font-extrabold text-(--primary) min-w-[60px] text-center">
                 {qty}
               </div>
               <button
                 type="button"
                 onClick={() => setQty((q) => Math.min(disponibili, q + 1))}
                 disabled={qty >= disponibili}
-                className="w-11 h-11 rounded-full bg-[var(--primary-lighter)] text-xl font-semibold flex items-center justify-center disabled:opacity-50"
+                className="w-11 h-11 rounded-full bg-(--primary-lighter) text-xl font-semibold flex items-center justify-center disabled:opacity-50"
                 aria-label="Aumenta"
               >
                 +
               </button>
             </div>
-            <div className="text-center text-[13px] text-[var(--text-secondary)] mt-1">
+            <div className="text-center text-[13px] text-(--text-secondary) mt-1">
               {disponibili} disponibili
             </div>
           </FormField>
@@ -121,7 +121,7 @@ export function RegalaUovaForm({ contatti, disponibili }: Props) {
           <FormField label="A chi?">
             {contatti2.length === 0 ? (
               <Card className="text-center py-5">
-                <p className="text-sm text-[var(--text-secondary)] mb-3">
+                <p className="text-sm text-(--text-secondary) mb-3">
                   Nessun contatto in rubrica.
                 </p>
                 <Button
@@ -140,9 +140,9 @@ export function RegalaUovaForm({ contatti, disponibili }: Props) {
                     type="button"
                     onClick={() => setContattoId(c.id)}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius)] border-2 cursor-pointer text-left transition-all",
+                      "flex items-center gap-3 px-3 py-2.5 rounded-(--radius) border-2 cursor-pointer text-left transition-all",
                       contattoId === c.id
-                        ? "bg-[var(--primary-lighter)] border-[var(--primary)]"
+                        ? "bg-(--primary-lighter) border-(--primary)"
                         : "bg-white border-transparent",
                     )}
                   >
@@ -153,7 +153,7 @@ export function RegalaUovaForm({ contatti, disponibili }: Props) {
                     />
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-sm">{c.nome}</div>
-                      <div className="text-xs text-[var(--text-secondary)] truncate">
+                      <div className="text-xs text-(--text-secondary) truncate">
                         {[c.relazione, c.totale > 0 ? `${c.totale} uova totali` : null]
                           .filter(Boolean)
                           .join(" · ")}
@@ -200,7 +200,7 @@ export function RegalaUovaForm({ contatti, disponibili }: Props) {
           <div className="mt-3 text-center">
             <Link
               href="/rubrica"
-              className="text-[13px] text-[var(--text-secondary)]"
+              className="text-[13px] text-(--text-secondary)"
             >
               Vai alla rubrica completa →
             </Link>

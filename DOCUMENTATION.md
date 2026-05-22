@@ -99,7 +99,7 @@
 ### PWA & offline support
 - What it does: lets the app install on a device, cache key assets, show an offline page, and handle web push notifications.
 - Who can use it: any browser that supports service workers and push; push needs permission plus a VAPID public key.
-- Key interactions / user flow: `app/manifest.ts` defines the installable metadata, `next.config.mjs` wires `next-pwa`, `app/offline/page.tsx` is the fallback document, `lib/push/client.ts` manages subscription setup and worker migration logic, and push delivery comes from `lib/push/server.ts` plus Supabase Edge Functions.
+- Key interactions / user flow: `app/manifest.ts` defines the installable metadata, `next.config.mjs` wires `@ducanh2912/next-pwa`, `app/offline/page.tsx` is the fallback document, `lib/push/client.ts` manages subscription setup and worker migration logic, and push delivery comes from `lib/push/server.ts` plus Supabase Edge Functions.
 
 ## 3. User roles & permissions
 | Role | Description | What they can do | What they cannot do |
@@ -112,17 +112,19 @@
 ## 4. Tech stack
 | Layer | Technology | Purpose | Notes |
 | --- | --- | --- | --- |
-| UI framework | Next.js 14.2 App Router | Pages, layouts, server components, server actions | Main routes live under `app/` |
-| Language | TypeScript 5.6 | Type safety across app and Supabase calls | DB types are generated into `lib/supabase/database.types.ts` |
-| Styling | Tailwind CSS 3.4 | Layout and visual styling | Global theme is defined in `app/globals.css` |
-| Charts | Recharts 3.8 | Statistics visualizations | Used in `app/(app)/statistiche/StatisticheClient.tsx` |
-| Auth/session | `@supabase/ssr` + `@supabase/supabase-js` | Cookie-backed auth and typed DB access | Clients are split across `lib/supabase/*.ts` |
+| UI framework | Next.js 16.2 App Router | Pages, layouts, server components, server actions | Main routes live under `app/`; request-time auth gating now uses `proxy.ts` |
+| UI runtime | React 19.2 | Client rendering, hooks, and shared component runtime | Paired with `react-dom` 19.2 |
+| Language | TypeScript 6.0 | Type safety across app and Supabase calls | DB types are generated into `lib/supabase/database.types.ts` |
+| Styling | Tailwind CSS 4.3 + `@tailwindcss/postcss` | Layout and visual styling | Global theme tokens live in `app/globals.css` |
+| Charts | Recharts 3.8.1 | Statistics visualizations | Used in `app/(app)/statistiche/StatisticheClient.tsx` |
+| Auth/session | `@supabase/ssr@0.10` + `@supabase/supabase-js@2.106` | Cookie-backed auth and typed DB access | Clients are split across `lib/supabase/*.ts` |
 | Database | Supabase Postgres | Primary relational data store | Multi-tenant design with RLS on all public app tables |
 | Storage | Supabase Storage | Image storage for coop, chicken, egg, note, and maintenance media | Bucket is `poliner-media` and is public |
 | Edge Functions | Supabase Edge Functions (Deno) | Push sending, email sending, scheduled notification scans | `supabase/functions/send-push`, `send-email`, `cron-notifications` |
 | Scheduler | `pg_cron` + `pg_net` | Calls `cron-notifications` every minute | See `0005_pg_cron.sql` and `scripts/setup-pg-cron.sql` |
-| PWA layer | `next-pwa` + service workers | Install prompt, caching, offline fallback, push integration | Configured in `next.config.mjs`, custom worker code in `worker/index.js` |
-| Deployment | `@opennextjs/cloudflare` + Wrangler | Packages and deploys Next.js to Cloudflare Workers | `npm run deploy` wraps the OpenNext build/deploy commands |
+| PWA layer | `@ducanh2912/next-pwa` + service workers | Install prompt, caching, offline fallback, push integration | Configured in `next.config.mjs`, custom worker code in `worker/index.js`, production builds currently run on webpack |
+| Deployment | `@opennextjs/cloudflare@1.19` + Wrangler 4.94 | Packages and deploys Next.js to Cloudflare Workers | `npm run deploy` wraps the OpenNext build/deploy commands |
+| Linting | ESLint 9 flat config | Static analysis | Root config lives in `eslint.config.mjs`; `npm run lint` runs `eslint .` |
 | Email provider | Resend | Transactional email delivery | Called from `supabase/functions/send-email/index.ts` and `cron-notifications` |
 | Weather & geocoding | Open-Meteo, Open-Meteo Geocoding, Nominatim | Forecasts, autocomplete place search, reverse geocoding | `lib/utils/meteo.ts` and `lib/utils/geocoding.ts` |
 
@@ -143,7 +145,7 @@
 ### Authentication flow
 1. Normal sign-in and sign-up use Supabase Auth from the browser through `lib/supabase/client.ts`.
 2. Auth callbacks and password reset redirects come back through `app/auth/callback/route.ts`, which uses `getSafeInternalRedirect()` from `lib/utils/internal-redirect.ts` to avoid open redirects.
-3. `middleware.ts` calls `lib/supabase/middleware.ts::updateSession()` on every request. It refreshes session cookies and redirects unauthenticated users away from private routes.
+3. `proxy.ts` calls `lib/supabase/middleware.ts::updateSession()` on every request. It refreshes session cookies via Supabase SSR, clears stale auth cookies when a refresh token is no longer valid, and redirects unauthenticated users away from private routes.
 4. Server components that need a logged-in user call `requireUser()`. Screens that need an active coop call `requirePollaio()`.
 5. `requirePollaio()` loads memberships from `pollaio_members`, resolves `profiles.pollaio_attivo_id`, and redirects users without a coop to `/onboarding`.
 6. Invite acceptance is special: public invite metadata is read with the admin client, invited account creation can happen server-side with `auth.admin.createUser({ email_confirm: true })`, and membership is granted through the `accept_invito` RPC.
@@ -163,8 +165,9 @@ worker/     Custom service-worker code merged into the generated PWA worker
 ```
 
 - Key files and what they do:
-  - `middleware.ts`: global request middleware entry point; delegates session refresh to `lib/supabase/middleware.ts`.
-  - `next.config.mjs`: configures `next-pwa`, runtime caching, security headers, image domains, and optional OpenNext dev initialization.
+  - `proxy.ts`: Next.js 16 request-time auth entry point; delegates session refresh to `lib/supabase/middleware.ts`.
+  - `next.config.mjs`: configures `@ducanh2912/next-pwa`, runtime caching, security headers, image domains, and optional OpenNext dev initialization.
+  - `postcss.config.js`: enables Tailwind CSS 4 through `@tailwindcss/postcss`.
   - `open-next.config.ts`: OpenNext Cloudflare adapter entry point.
   - `wrangler.jsonc`: Cloudflare Worker deployment configuration for the built OpenNext output.
   - `app/layout.tsx`: root HTML layout plus app-level metadata and viewport settings.
@@ -727,7 +730,7 @@ worker/     Custom service-worker code merged into the generated PWA worker
 ### `lib/supabase/middleware.ts`
 - What it manages: request-time session refresh and route redirection.
 - Exported functions with brief description and params:
-  - `updateSession(request: NextRequest)`: receives the current request, refreshes the Supabase session cookies, allows public auth paths (`/login`, `/registrazione`, `/reset-password`, `/auth/callback`), leaves open paths (`/invito`, `/p/`) untouched, redirects anonymous users to `/login`, and redirects already-signed-in users away from auth pages back to `/`.
+  - `updateSession(request: NextRequest)`: receives the current request, refreshes the Supabase session cookies using `supabase.auth.getClaims()`, clears stale Supabase auth cookies if the refresh token is missing, allows public auth paths (`/login`, `/registrazione`, `/reset-password`, `/auth/callback`), leaves open paths (`/invito`, `/p/`) untouched, redirects anonymous users to `/login`, and redirects already-signed-in users away from auth pages back to `/`.
 
 ### `lib/supabase/queries.ts`
 - What it manages: server-side access guards and active-coop resolution.
@@ -767,16 +770,16 @@ worker/     Custom service-worker code merged into the generated PWA worker
   - Edge Function secrets are configured separately from the Next.js app env vars.
 
 ## 10. Local development setup
-1. Install Node.js `>= 18.17`. The repository `README.md` uses `nvm use 22`, and the security report confirms older Node versions can break builds.
+1. Install Node.js `>= 22.0.0`. The repository `package.json` enforces this through `engines.node`, and the checked-in workflow uses `nvm use 22`.
 2. Install dependencies with `npm install`.
 3. Create `.env.local` with at least `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and any server-side values you want to test locally such as `SUPABASE_SERVICE_ROLE_KEY` and push/email settings.
 4. If you want browser push locally, run `node scripts/gen-vapid-keys.mjs`. It prints VAPID keys and updates `.env.local` if that file already exists.
 5. If you want Edge Function push/email flows to work, copy the relevant values into Supabase Edge Function secrets as described in `README.md`.
 6. Start the app with `npm run dev`.
 7. Open `http://localhost:3000`.
-8. Use `npm run typecheck` to run `tsc --noEmit` and `npm run lint` to run Next.js linting.
+8. Use `npm run typecheck` to run `tsc --noEmit` and `npm run lint` to run `eslint .` with the flat ESLint config.
 9. If you need updated DB types, run `npm run supabase:types`.
-10. For PWA, offline, and push behavior, use `npm run build && npm run start` instead of `npm run dev`, because `next-pwa` is disabled in development.
+10. For PWA, offline, and push behavior, use `npm run build && npm run start` instead of `npm run dev`, because `@ducanh2912/next-pwa` is disabled in development.
 
 - Local Supabase note: the checked-in workflow looks tied to a linked remote Supabase project rather than a fully documented local Supabase stack. A full local Supabase workflow is `⚠️ needs verification` because the repo does not include a local `supabase/config.toml` setup guide.
 
@@ -795,11 +798,11 @@ worker/     Custom service-worker code merged into the generated PWA worker
 
 ## 12. Known limitations & future improvements
 - Large client components are still monolithic: `app/(app)/galline/[id]/ChickenDetail.tsx`, `app/(app)/impostazioni/ImpostazioniClient.tsx`, `app/onboarding/OnboardingFlow.tsx`, and `app/(app)/manutenzione/ManutenzioneClient.tsx` were explicitly deferred in `REFACTORING_SUMMARY.md`.
-- The PWA push layer is still split across `next-pwa`, `worker/index.js`, `public/push-sw.js`, and worker migration logic in `lib/push/client.ts`. The final single-worker target is `⚠️ needs verification`.
+- The PWA push layer is still split across `@ducanh2912/next-pwa`, `worker/index.js`, `public/push-sw.js`, and worker migration logic in `lib/push/client.ts`. The final single-worker target is `⚠️ needs verification`.
 - Guest permissions are not fully centralized. The UI labels guests as read-only, but several route action files such as `app/(app)/galline/actions.ts`, `app/(app)/uova/actions.ts`, `app/(app)/note/actions.ts`, and `app/(app)/scorte/actions.ts` only call `requirePollaio()` and do not perform an explicit admin check. In addition, `20260521103000_fix_public_page_member_policy_roles.sql` relaxes `animali` writes back to member scope. If guests must be strictly read-only, this needs review.
 - Some private pages still use broad `.select("*")` queries, which the security report already calls out as low-risk but worth narrowing over time.
 - Remaining security work from `SECURITY_REPORT.md` is still open: private SECURITY DEFINER RPC advisor warnings, the `pg_net` extension still living in `public`, leaked-password protection disabled in Supabase Auth, the legacy service-role fallback in the email flow, a coordinated dependency upgrade branch, and `.dev.vars` still tracked in git.
 - Environment variable naming has drift and should be simplified: `NEXT_PUBLIC_APP_URL` vs `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY` vs `VAPID_PUBLIC_KEY`, and the `SEND_EMAIL_FUNCTION_TOKEN ?? SUPABASE_SECRET_KEY ?? SUPABASE_SERVICE_ROLE_KEY` fallback chain.
-- `next-pwa` is still in use even though it is listed as a high-risk dependency to revisit.
+- PWA integration still relies on webpack for `npm run dev` and `npm run build`; Turbopack compatibility is `⚠️ needs verification` for the current PWA setup.
 - The repo still lacks a checked-in `.env.local.example`, a documented local Supabase workflow, and a committed CI pipeline.
 - The production URL, live user count, and exact function-deployment command are all `⚠️ needs verification` because they are not encoded in the repository.

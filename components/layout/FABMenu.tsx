@@ -64,7 +64,7 @@ export function FABMenu({ ruolo, open, onClose }: FABMenuProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] bg-[rgba(46,41,36,0.4)] flex flex-col justify-end items-center animate-fade-in"
+      className="fixed inset-0 z-100 bg-[rgba(46,41,36,0.4)] flex flex-col justify-end items-center animate-fade-in"
       style={{ paddingBottom: "calc(80px + env(safe-area-inset-bottom, 0px))" }}
       onClick={onClose}
     >

@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -101,30 +100,30 @@ export function SpeseClient({ spese, uovaDate, suggerimenti }: Props) {
 
       <div className="grid grid-cols-2 gap-2.5 mt-3">
         <div
-          className="rounded-[var(--radius)] border border-[var(--border)] p-3 text-center"
+          className="rounded-(--radius) border border-(--border) p-3 text-center"
           style={{ background: "#FFE07A22" }}
         >
           <div className="text-2xl font-extrabold text-text">
             €{totaleSpese.toFixed(0)}
           </div>
-          <div className="text-[11px] text-[var(--text-secondary)]">
+          <div className="text-[11px] text-(--text-secondary)">
             Totale spese
           </div>
         </div>
         <div
-          className="rounded-[var(--radius)] border border-[var(--border)] p-3 text-center"
+          className="rounded-(--radius) border border-(--border) p-3 text-center"
           style={{ background: "var(--primary-lighter)" }}
         >
-          <div className="text-2xl font-extrabold text-[var(--primary)]">
+          <div className="text-2xl font-extrabold text-(--primary)">
             {costoPerUovo ? `€${costoPerUovo}` : "—"}
           </div>
-          <div className="text-[11px] text-[var(--text-secondary)]">
+          <div className="text-[11px] text-(--text-secondary)">
             Costo per uovo
           </div>
         </div>
       </div>
       {costoPerUovo && totaleUova > 0 && (
-        <div className="text-center text-xs text-[var(--text-secondary)] italic mt-1.5">
+        <div className="text-center text-xs text-(--text-secondary) italic mt-1.5">
           Ogni uovo ti è costato circa €{costoPerUovo} 🥚
         </div>
       )}
@@ -140,11 +139,11 @@ export function SpeseClient({ spese, uovaDate, suggerimenti }: Props) {
                   <div key={cat}>
                     <div className="flex justify-between text-[13px]">
                       <span className="font-semibold">{cat}</span>
-                      <span className="text-[var(--text-secondary)]">
+                      <span className="text-(--text-secondary)">
                         €{tot.toFixed(0)} ({perc}%)
                       </span>
                     </div>
-                    <div className="h-1.5 bg-[var(--border)] rounded mt-1 overflow-hidden">
+                    <div className="h-1.5 bg-(--border) rounded mt-1 overflow-hidden">
                       <div
                         className="h-full rounded"
                         style={{
@@ -166,7 +165,7 @@ export function SpeseClient({ spese, uovaDate, suggerimenti }: Props) {
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="text-xs text-[var(--primary)] font-semibold flex items-center gap-1"
+            className="text-xs text-(--primary) font-semibold flex items-center gap-1"
           >
             <IconPlus size={14} /> Aggiungi
           </button>
@@ -218,14 +217,14 @@ function SpesaRow({ spesa, onEdit }: { spesa: SpesaItem; onEdit: () => void }) {
   return (
     <Card className="flex items-center gap-3 py-2.5 px-3.5">
       <div
-        className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+        className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
         style={{ background: "#FFE07A33" }}
       >
         💶
       </div>
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-sm truncate">{spesa.descrizione}</div>
-        <div className="text-xs text-[var(--text-secondary)] truncate">
+        <div className="text-xs text-(--text-secondary) truncate">
           {formatData(spesa.data)}
           {spesa.categoria ? ` · ${spesa.categoria}` : ""}
           {spesa.note ? ` · ${spesa.note}` : ""}
@@ -235,7 +234,7 @@ function SpesaRow({ spesa, onEdit }: { spesa: SpesaItem; onEdit: () => void }) {
       <button
         type="button"
         onClick={onEdit}
-        className="text-[var(--text-secondary)] ml-1"
+        className="text-(--text-secondary) ml-1"
         aria-label="Modifica"
       >
         <IconEdit size={16} />

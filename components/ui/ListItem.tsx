@@ -21,7 +21,7 @@ export function ListItem({ left, title, subtitle, badge, right, onClick }: ListI
           {badge}
         </div>
         {subtitle && (
-          <div className="text-[13px] text-[var(--text-secondary)] mt-0.5">{subtitle}</div>
+          <div className="text-[13px] text-(--text-secondary) mt-0.5">{subtitle}</div>
         )}
       </div>
       {right ?? <IconChevron size={18} color="var(--text-secondary)" />}

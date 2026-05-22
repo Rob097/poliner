@@ -73,7 +73,7 @@ export function PollaioSwitcher({ pollai, attivoId, prominent = false }: Pollaio
         className={`inline-flex items-center transition-transform hover:text-text active:scale-95 ${
           prominent
             ? "gap-1.5 text-[19px] font-bold text-text leading-tight"
-            : "gap-1 text-[13px] text-[var(--text-secondary)] mt-0.5"
+            : "gap-1 text-[13px] text-(--text-secondary) mt-0.5"
         }`}
         aria-label="Cambia pollaio"
       >
@@ -84,8 +84,8 @@ export function PollaioSwitcher({ pollai, attivoId, prominent = false }: Pollaio
         {attivo.ruolo === "guest" && (
           <span
             className={prominent
-              ? "ml-2 text-[11px] uppercase tracking-wide px-2 py-1 rounded-md bg-[var(--border)] text-[var(--text-secondary)]"
-              : "ml-1.5 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-[var(--border)] text-[var(--text-secondary)]"}
+              ? "ml-2 text-[11px] uppercase tracking-wide px-2 py-1 rounded-md bg-(--border) text-(--text-secondary)"
+              : "ml-1.5 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-(--border) text-(--text-secondary)"}
           >
             guest
           </span>
@@ -103,23 +103,23 @@ export function PollaioSwitcher({ pollai, attivoId, prominent = false }: Pollaio
                   type="button"
                   onClick={() => handleSwitch(pollaio.id)}
                   disabled={isPending}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-[var(--radius-sm)] border-2 text-left transition-colors ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-sm border-2 text-left transition-colors ${
                     isAttivo
-                      ? "border-[var(--primary)] bg-[var(--primary-lighter)]"
-                      : "border-[var(--border)] bg-white hover:bg-[var(--bg-warm)]"
+                      ? "border-(--primary) bg-(--primary-lighter)"
+                      : "border-(--border) bg-white hover:bg-(--bg-warm)"
                   }`}
                 >
-                  <div className="w-10 h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-lg">
+                  <div className="w-10 h-10 rounded-full bg-(--primary-light) flex items-center justify-center text-lg">
                     🏡
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-[15px] truncate">{pollaio.nome}</div>
-                    <div className="text-xs text-[var(--text-secondary)]">
+                    <div className="text-xs text-(--text-secondary)">
                       {ruolo === "admin" ? "Admin" : "Guest"}
                     </div>
                   </div>
                   {isAttivo && (
-                    <span className="text-[var(--primary)] text-lg" aria-hidden>
+                    <span className="text-(--primary) text-lg" aria-hidden>
                       ●
                     </span>
                   )}
@@ -136,10 +136,10 @@ export function PollaioSwitcher({ pollai, attivoId, prominent = false }: Pollaio
                 value={nuovoNome}
                 onChange={(e) => setNuovoNome(e.target.value)}
                 placeholder="Es. Pollaio della nonna"
-                className="px-4 py-3 rounded-[var(--radius-sm)] border-2 border-[var(--border)] text-[15px] bg-white"
+                className="px-4 py-3 rounded-sm border-2 border-(--border) text-[15px] bg-white"
                 autoFocus
               />
-              {errore && <p className="text-[var(--primary)] text-sm">{errore}</p>}
+              {errore && <p className="text-(--primary) text-sm">{errore}</p>}
               <div className="flex gap-2 mt-1">
                 <Button
                   variant="secondary"
@@ -174,7 +174,7 @@ export function PollaioSwitcher({ pollai, attivoId, prominent = false }: Pollaio
           )}
 
           {errore && !creating && (
-            <p className="text-[var(--primary)] text-sm mt-2">{errore}</p>
+            <p className="text-(--primary) text-sm mt-2">{errore}</p>
           )}
         </Modal>
       )}

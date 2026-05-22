@@ -25,7 +25,7 @@ export function ContattoActions({ contatto }: { contatto: Contatto }) {
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="block w-full text-sm text-[var(--text-secondary)] py-3 mt-4"
+        className="block w-full text-sm text-(--text-secondary) py-3 mt-4"
       >
         Modifica contatto
       </button>

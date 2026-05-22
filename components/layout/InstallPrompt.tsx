@@ -59,14 +59,14 @@ export function InstallPrompt() {
       }}
     >
       <div
-        className="bg-white rounded-2xl shadow-toast border border-[var(--border)] p-4 flex items-start gap-3"
+        className="bg-white rounded-2xl shadow-toast border border-(--border) p-4 flex items-start gap-3"
       >
         <div className="text-3xl">🐔</div>
         <div className="flex-1 min-w-0">
           <div className="font-bold text-sm">
             {isIosManual ? "Installa Poliner su iPhone o iPad" : "Installa Poliner"}
           </div>
-          <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">
+          <p className="text-xs text-(--text-secondary) mt-0.5 leading-relaxed">
             {isIosManual
               ? isSafari
                 ? "Su iPhone e iPad l'installazione passa da Safari: tocca Condividi e poi Aggiungi a Home."
@@ -97,7 +97,7 @@ export function InstallPrompt() {
         <button
           type="button"
           onClick={onDismiss}
-          className="text-[var(--text-secondary)] -mt-1"
+          className="text-(--text-secondary) -mt-1"
           aria-label="Chiudi"
         >
           <IconClose size={16} />

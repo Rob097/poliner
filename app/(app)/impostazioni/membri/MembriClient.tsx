@@ -124,23 +124,23 @@ export function MembriClient({
           const nome = m.displayName ?? m.email?.split("@")[0] ?? "Membro";
           return (
             <Card key={m.userId} className="flex items-center gap-3 py-3 px-3.5">
-              <div className="w-10 h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-lg flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-(--primary-light) flex items-center justify-center text-lg shrink-0">
                 {m.ruolo === "admin" ? "👑" : "👤"}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-[15px] truncate">
                   {nome}
                   {m.isYou && (
-                    <span className="ml-2 text-xs text-[var(--text-secondary)] font-normal">
+                    <span className="ml-2 text-xs text-(--text-secondary) font-normal">
                       (tu)
                     </span>
                   )}
                 </div>
-                <div className="text-[12px] text-[var(--text-secondary)] truncate">
+                <div className="text-[12px] text-(--text-secondary) truncate">
                   {m.ruolo === "admin" ? "Admin · gestisce tutto" : "Guest · solo visualizzazione"}
                 </div>
                 {m.contattoLinkatoNome && (
-                  <div className="text-[11px] text-[var(--text-secondary)] truncate mt-0.5">
+                  <div className="text-[11px] text-(--text-secondary) truncate mt-0.5">
                     🔗 Collegato a {m.contattoLinkatoNome}
                   </div>
                 )}
@@ -177,12 +177,12 @@ export function MembriClient({
               <div className="flex flex-col gap-2">
                 {inviti.map((inv) => (
                   <Card key={inv.id} className="flex items-center gap-3 py-3 px-3.5">
-                    <div className="w-10 h-10 rounded-full bg-[var(--primary-lighter)] border border-[var(--primary-light)] flex items-center justify-center text-lg flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-(--primary-lighter) border border-(--primary-light) flex items-center justify-center text-lg shrink-0">
                       ✉️
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-[14px] truncate">{inv.email}</div>
-                      <div className="text-[12px] text-[var(--text-secondary)]">
+                      <div className="text-[12px] text-(--text-secondary)">
                         {inv.ruolo === "admin" ? "Collaboratore" : "Visualizzatore"} · scade {formatScadenza(inv.scadenza)}
                       </div>
                     </div>
@@ -206,7 +206,7 @@ export function MembriClient({
         <SectionTitle>Esci dal pollaio</SectionTitle>
       </div>
       <Card>
-        <p className="m-0 text-sm text-[var(--text-secondary)]">
+        <p className="m-0 text-sm text-(--text-secondary)">
           Se lasci questo pollaio non potrai più vedere i suoi dati. Potrai sempre essere
           re-invitata/o in futuro.
         </p>
@@ -225,7 +225,7 @@ export function MembriClient({
           <p className="text-sm m-0">
             {"Verrai rimossa/o dal pollaio. Non perderai l'account, solo l'accesso a questo pollaio."}
           </p>
-          {errore && <p className="text-[var(--primary)] text-sm mt-2">{errore}</p>}
+          {errore && <p className="text-(--primary) text-sm mt-2">{errore}</p>}
           <div className="flex gap-2 mt-4">
             <Button
               variant="secondary"
@@ -320,11 +320,11 @@ function MembroMenu({
       {open && (
         <>
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 bg-white rounded-[var(--radius-sm)] border border-[var(--border)] shadow-lg z-40 min-w-[200px] overflow-hidden">
+          <div className="absolute right-0 top-full mt-1 bg-white rounded-sm border border-(--border) shadow-lg z-40 min-w-[200px] overflow-hidden">
             {canLink && (
               <button
                 type="button"
-                className="w-full px-4 py-3 text-left text-sm hover:bg-[var(--bg-warm)] disabled:opacity-50 border-b border-[var(--border)]"
+                className="w-full px-4 py-3 text-left text-sm hover:bg-(--bg-warm) disabled:opacity-50 border-b border-(--border)"
                 onClick={() => {
                   setOpen(false);
                   onLinkContatto();
@@ -337,7 +337,7 @@ function MembroMenu({
             {ruolo === "guest" ? (
               <button
                 type="button"
-                className="w-full px-4 py-3 text-left text-sm hover:bg-[var(--bg-warm)] disabled:opacity-50"
+                className="w-full px-4 py-3 text-left text-sm hover:bg-(--bg-warm) disabled:opacity-50"
                 onClick={() => {
                   setOpen(false);
                   onPromote();
@@ -349,7 +349,7 @@ function MembroMenu({
             ) : (
               <button
                 type="button"
-                className="w-full px-4 py-3 text-left text-sm hover:bg-[var(--bg-warm)] disabled:opacity-50"
+                className="w-full px-4 py-3 text-left text-sm hover:bg-(--bg-warm) disabled:opacity-50"
                 onClick={() => {
                   setOpen(false);
                   onDemote();
@@ -361,7 +361,7 @@ function MembroMenu({
             )}
             <button
               type="button"
-              className="w-full px-4 py-3 text-left text-sm text-[#c0435a] hover:bg-[var(--bg-warm)] disabled:opacity-50 border-t border-[var(--border)]"
+              className="w-full px-4 py-3 text-left text-sm text-[#c0435a] hover:bg-(--bg-warm) disabled:opacity-50 border-t border-(--border)"
               onClick={() => {
                 setOpen(false);
                 onRemove();
@@ -442,7 +442,7 @@ function InvitaModal({
             onChange={(e) => setEmails(e.target.value)}
             placeholder="mamma@email.it, papa@email.it&#10;...uno per riga o separati da virgola"
             rows={3}
-            className="w-full px-4 py-3 rounded-[var(--radius-sm)] border-2 border-[var(--border)] text-[15px] bg-white resize-none"
+            className="w-full px-4 py-3 rounded-sm border-2 border-(--border) text-[15px] bg-white resize-none"
           />
         </div>
 
@@ -452,28 +452,28 @@ function InvitaModal({
             <button
               type="button"
               onClick={() => setRuolo("guest")}
-              className={`flex-1 px-4 py-3 rounded-[var(--radius-sm)] border-2 text-sm text-left transition-colors ${
+              className={`flex-1 px-4 py-3 rounded-sm border-2 text-sm text-left transition-colors ${
                 ruolo === "guest"
-                  ? "border-[var(--primary)] bg-[var(--primary-lighter)]"
-                  : "border-[var(--border)] bg-white"
+                  ? "border-(--primary) bg-(--primary-lighter)"
+                  : "border-(--border) bg-white"
               }`}
             >
               <div className="font-semibold">👀 Visualizzatore</div>
-              <div className="text-[12px] text-[var(--text-secondary)] mt-0.5">
+              <div className="text-[12px] text-(--text-secondary) mt-0.5">
                 {"Solo lettura · può chiedere uova"}
               </div>
             </button>
             <button
               type="button"
               onClick={() => setRuolo("admin")}
-              className={`flex-1 px-4 py-3 rounded-[var(--radius-sm)] border-2 text-sm text-left transition-colors ${
+              className={`flex-1 px-4 py-3 rounded-sm border-2 text-sm text-left transition-colors ${
                 ruolo === "admin"
-                  ? "border-[var(--primary)] bg-[var(--primary-lighter)]"
-                  : "border-[var(--border)] bg-white"
+                  ? "border-(--primary) bg-(--primary-lighter)"
+                  : "border-(--border) bg-white"
               }`}
             >
               <div className="font-semibold">👑 Collaboratore</div>
-              <div className="text-[12px] text-[var(--text-secondary)] mt-0.5">
+              <div className="text-[12px] text-(--text-secondary) mt-0.5">
                 Pieni poteri sul pollaio
               </div>
             </button>
@@ -490,16 +490,16 @@ function InvitaModal({
             placeholder="Es. Ciao mamma, ti ho aggiunta al pollaio così vedi quando ho le uova!"
             rows={2}
             maxLength={250}
-            className="w-full px-4 py-3 rounded-[var(--radius-sm)] border-2 border-[var(--border)] text-[15px] bg-white resize-none"
+            className="w-full px-4 py-3 rounded-sm border-2 border-(--border) text-[15px] bg-white resize-none"
           />
         </div>
 
-        {errore && <p className="text-[var(--primary)] text-sm m-0">{errore}</p>}
+        {errore && <p className="text-(--primary) text-sm m-0">{errore}</p>}
 
         {falliti.length > 0 && (
-          <div className="bg-[var(--primary-lighter)] border border-[var(--primary-light)] rounded-[var(--radius-sm)] p-3">
+          <div className="bg-(--primary-lighter) border border-(--primary-light) rounded-sm p-3">
             <p className="font-semibold text-sm m-0 mb-1">Alcuni inviti non sono partiti:</p>
-            <ul className="m-0 pl-4 text-xs text-[var(--text-secondary)]">
+            <ul className="m-0 pl-4 text-xs text-(--text-secondary)">
               {falliti.map((f) => (
                 <li key={f.email}>
                   <b>{f.email}</b> — {f.motivo}
@@ -565,7 +565,7 @@ function LinkContattoModal({
 
   return (
     <Modal title={`Collega ${nomeMembro} a un contatto`} onClose={onClose}>
-      <p className="text-sm text-[var(--text-secondary)] m-0 mb-3">
+      <p className="text-sm text-(--text-secondary) m-0 mb-3">
         Seleziona il contatto della rubrica che corrisponde a {nomeMembro}. Lo
         storico dei regali resta collegato.
       </p>
@@ -576,25 +576,25 @@ function LinkContattoModal({
             key={c.id}
             type="button"
             onClick={() => setSelectedId(c.id)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-sm)] border-2 text-left transition-colors ${
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-sm border-2 text-left transition-colors ${
               selectedId === c.id
-                ? "border-[var(--primary)] bg-[var(--primary-lighter)]"
-                : "border-[var(--border)] bg-white hover:bg-[var(--bg-warm)]"
+                ? "border-(--primary) bg-(--primary-lighter)"
+                : "border-(--border) bg-white hover:bg-(--bg-warm)"
             }`}
           >
-            <div className="w-8 h-8 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-base flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-(--primary-light) flex items-center justify-center text-base shrink-0">
               👤
             </div>
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-sm truncate">{c.nome}</div>
               {c.relazione && (
-                <div className="text-[12px] text-[var(--text-secondary)] truncate">
+                <div className="text-[12px] text-(--text-secondary) truncate">
                   {c.relazione}
                 </div>
               )}
             </div>
             {selectedId === c.id && (
-              <span className="text-[var(--primary)] text-lg" aria-hidden>
+              <span className="text-(--primary) text-lg" aria-hidden>
                 ●
               </span>
             )}
@@ -612,7 +612,7 @@ function LinkContattoModal({
         Rinomina il contatto in &ldquo;{nomeMembro}&rdquo;
       </label>
 
-      {errore && <p className="text-[var(--primary)] text-sm m-0 mb-2">{errore}</p>}
+      {errore && <p className="text-(--primary) text-sm m-0 mb-2">{errore}</p>}
 
       <div className="flex gap-2 mt-2">
         <Button variant="secondary" fullWidth onClick={onClose} disabled={isPending}>

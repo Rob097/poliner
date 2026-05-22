@@ -4,13 +4,18 @@ import { ChickenDetail, type ChickenData } from "./ChickenDetail";
 
 export const dynamic = "force-dynamic";
 
-export default async function GallinaPage({ params }: { params: { id: string } }) {
+export default async function GallinaPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   const { supabase, pollaio, ruolo } = await requirePollaio();
 
   const { data: animale } = await supabase
     .from("animali")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("pollaio_id", pollaio.id)
     .maybeSingle();
 

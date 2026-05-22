@@ -54,14 +54,14 @@ export function InserimentoEducativo() {
         <div className="font-semibold text-sm">
           💡 Come inserire una nuova gallina
         </div>
-        <span className="text-[var(--text-secondary)] text-xs" aria-hidden>
+        <span className="text-(--text-secondary) text-xs" aria-hidden>
           {open ? "−" : "+"}
         </span>
       </button>
 
       {open && (
         <>
-          <p className="text-xs text-[var(--text-secondary)] leading-relaxed mt-2 mb-3 m-0">
+          <p className="text-xs text-(--text-secondary) leading-relaxed mt-2 mb-3 m-0">
             Inserire una nuova gallina in un gruppo già formato è un processo
             graduale: dura circa 5-6 settimane. Questi sono i passi consigliati,
             ma puoi documentare il tuo inserimento come preferisci.
@@ -69,7 +69,7 @@ export function InserimentoEducativo() {
 
           <div className="flex flex-col gap-1.5">
             {STEP.map((s, i) => (
-              <div key={i} className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-white">
+              <div key={i} className="rounded-sm border border-(--border) bg-white">
                 <button
                   type="button"
                   onClick={() => setOpenStep(openStep === i ? null : i)}
@@ -79,12 +79,12 @@ export function InserimentoEducativo() {
                     <span aria-hidden>{s.icona}</span>
                     <span className="text-sm font-semibold">{s.titolo}</span>
                   </div>
-                  <span className="text-xs text-[var(--text-secondary)]" aria-hidden>
+                  <span className="text-xs text-(--text-secondary)" aria-hidden>
                     {openStep === i ? "−" : "+"}
                   </span>
                 </button>
                 {openStep === i && (
-                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed m-0 px-3 pb-3">
+                  <p className="text-xs text-(--text-secondary) leading-relaxed m-0 px-3 pb-3">
                     {s.testo}
                   </p>
                 )}
@@ -93,7 +93,7 @@ export function InserimentoEducativo() {
           </div>
 
           <div
-            className="mt-3 px-3 py-2 rounded-[var(--radius-sm)] text-xs"
+            className="mt-3 px-3 py-2 rounded-sm text-xs"
             style={{ background: "#FFE07A33" }}
           >
             💡 <span className="font-semibold">Suggerimento:</span> non
@@ -106,7 +106,7 @@ export function InserimentoEducativo() {
               localStorage.setItem(STORAGE_KEY, "1");
               setHidden(true);
             }}
-            className="text-xs text-[var(--text-secondary)] mt-3 underline"
+            className="text-xs text-(--text-secondary) mt-3 underline"
           >
             Ho capito, nascondi
           </button>

@@ -79,11 +79,11 @@ export function PaginaPubblicaView({
           <img
             src={pollaio.fotoUrl}
             alt={pollaio.nome}
-            className="w-full aspect-[16/10] object-cover"
+            className="w-full aspect-16/10 object-cover"
           />
         ) : (
           <div
-            className="w-full aspect-[16/10] flex items-center justify-center text-7xl"
+            className="w-full aspect-16/10 flex items-center justify-center text-7xl"
             style={{ background: "var(--primary-lighter)" }}
             aria-hidden
           >
@@ -93,11 +93,11 @@ export function PaginaPubblicaView({
         <div className="px-5 pt-4">
           <h1 className="font-serif text-2xl font-bold m-0">{pollaio.nome}</h1>
           {pollaio.posizioneNome && (
-            <div className="text-sm text-[var(--text-secondary)] mt-1">
+            <div className="text-sm text-(--text-secondary) mt-1">
               📍 {pollaio.posizioneNome}
             </div>
           )}
-          <div className="inline-block mt-2 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--primary-lighter)] text-[var(--primary)]">
+          <div className="inline-block mt-2 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-(--primary-lighter) text-(--primary)">
             Su Poliner
           </div>
         </div>
@@ -146,7 +146,7 @@ export function PaginaPubblicaView({
             <div className="flex flex-col gap-1 text-sm text-text">
               {anagrafica.etaMediaMesi !== null && (
                 <div>
-                  <span className="text-[var(--text-secondary)]">Età media: </span>
+                  <span className="text-(--text-secondary)">Età media: </span>
                   <span className="font-semibold">
                     {mesiInTesto(anagrafica.etaMediaMesi)}
                   </span>
@@ -154,13 +154,13 @@ export function PaginaPubblicaView({
               )}
               {anagrafica.capostipiteNome && anagrafica.capostipiteEtaMesi !== null && (
                 <div>
-                  <span className="text-[var(--text-secondary)]">
+                  <span className="text-(--text-secondary)">
                     La più anziana:{" "}
                   </span>
                   <span className="font-semibold">
                     {anagrafica.capostipiteNome}
                   </span>
-                  <span className="text-[var(--text-secondary)]">
+                  <span className="text-(--text-secondary)">
                     {" "}
                     ({mesiInTesto(anagrafica.capostipiteEtaMesi)})
                   </span>
@@ -187,7 +187,7 @@ export function PaginaPubblicaView({
                 >
                   <span className="font-semibold">{r.nome}</span>
                   {r.count > 1 && (
-                    <span className="text-[var(--text-secondary)]">×{r.count}</span>
+                    <span className="text-(--text-secondary)">×{r.count}</span>
                   )}
                 </span>
               ))}
@@ -217,13 +217,13 @@ export function PaginaPubblicaView({
                 📍
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[11px] text-[var(--text-secondary)] leading-tight">
+                <div className="text-[11px] text-(--text-secondary) leading-tight">
                   Posizione
                 </div>
                 <div className="font-semibold text-sm truncate">
                   {pollaio.posizioneNome}
                 </div>
-                <div className="text-[11px] text-[var(--primary)] mt-0.5">
+                <div className="text-[11px] text-(--primary) mt-0.5">
                   Apri su Google Maps →
                 </div>
               </div>
@@ -234,12 +234,12 @@ export function PaginaPubblicaView({
 
       {/* Footer */}
       <footer className="px-5 mt-10 text-center">
-        <p className="text-xs text-[var(--text-secondary)] m-0 leading-relaxed">
+        <p className="text-xs text-(--text-secondary) m-0 leading-relaxed">
           Vuoi gestire anche tu il tuo pollaio?
         </p>
         <Link
           href="/"
-          className="inline-block mt-2 text-sm font-semibold text-[var(--primary)]"
+          className="inline-block mt-2 text-sm font-semibold text-(--primary)"
         >
           Scopri Poliner →
         </Link>
@@ -260,10 +260,10 @@ function StatCard({
   return (
     <Card className="text-center py-3 px-2">
       <div className="text-2xl" aria-hidden>{emoji}</div>
-      <div className="text-xl font-extrabold text-[var(--primary)] mt-0.5">
+      <div className="text-xl font-extrabold text-(--primary) mt-0.5">
         {value}
       </div>
-      <div className="text-[11px] text-[var(--text-secondary)] mt-0.5">{label}</div>
+      <div className="text-[11px] text-(--text-secondary) mt-0.5">{label}</div>
     </Card>
   );
 }

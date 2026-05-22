@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
  * Da chiamare dai client component (es. pulsante "Esci dall'account").
  */
 export async function signOutAction(): Promise<never> {
-  const supabase = createClient();
+  const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");
 }

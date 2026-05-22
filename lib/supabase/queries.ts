@@ -14,7 +14,7 @@ export interface PollaioConRuolo {
  * Da usare solo in server component / route handler.
  */
 export async function requireUser() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   return { supabase, user };

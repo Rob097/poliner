@@ -11,13 +11,14 @@ interface SearchParams {
 export default async function BenvenutoPage({
   searchParams,
 }: {
-  searchParams: SearchParams;
+  searchParams: Promise<SearchParams>;
 }) {
+  const resolvedSearchParams = await searchParams;
   const { pollaio, ruolo, pollaiConRuolo } = await requirePollaio();
 
   // Se il pollaio attivo non corrisponde a quello in querystring (es. arrivo
   // da un invito appena accettato), prova a usare quello in URL se è tra i miei.
-  const targetId = searchParams.pollaio ?? pollaio.id;
+  const targetId = resolvedSearchParams.pollaio ?? pollaio.id;
   const target = pollaiConRuolo.find((p) => p.pollaio.id === targetId);
 
   if (!target) {

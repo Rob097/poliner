@@ -56,12 +56,12 @@ export function InvitoClient({ token, invito, userEmail, isLoggedIn }: Props) {
         <h1 className="font-serif text-2xl font-bold m-0 mt-2">
           Account sbagliato
         </h1>
-        <p className="text-sm text-[var(--text-secondary)] m-0 max-w-xs">
+        <p className="text-sm text-(--text-secondary) m-0 max-w-xs">
           {"Questo invito è stato spedito a "}
           <b>{invito.email}</b>
           {`, ma sei collegata/o come ${userEmail}.`}
         </p>
-        <p className="text-sm text-[var(--text-secondary)] m-0 max-w-xs">
+        <p className="text-sm text-(--text-secondary) m-0 max-w-xs">
           {"Esci e accedi (o registrati) con l'email giusta per accettare."}
         </p>
         <SignOutAndRetry token={token} />
@@ -77,15 +77,15 @@ export function InvitoClient({ token, invito, userEmail, isLoggedIn }: Props) {
         <h1 className="font-serif text-2xl font-bold m-0 mt-2">
           {invito.invitanteNome} ti invita {ruoloVerbo}
         </h1>
-        <p className="text-[22px] font-bold text-[var(--primary)] m-0 font-serif">
+        <p className="text-[22px] font-bold text-(--primary) m-0 font-serif">
           {invito.pollaioNome}
         </p>
-        <div className="text-xs uppercase tracking-wide px-3 py-1 rounded-full bg-[var(--primary-lighter)] text-[var(--primary)] font-bold">
+        <div className="text-xs uppercase tracking-wide px-3 py-1 rounded-full bg-(--primary-lighter) text-(--primary) font-bold">
           {ruoloLabel}
         </div>
 
         {invito.messaggio && (
-          <blockquote className="italic text-sm text-[var(--text-secondary)] border-l-2 border-[var(--primary)] pl-3 py-1 my-2 text-left max-w-xs">
+          <blockquote className="italic text-sm text-(--text-secondary) border-l-2 border-(--primary) pl-3 py-1 my-2 text-left max-w-xs">
             {invito.messaggio}
           </blockquote>
         )}
@@ -101,7 +101,7 @@ export function InvitoClient({ token, invito, userEmail, isLoggedIn }: Props) {
         >
           {isPending ? "Accetto…" : "Accetta invito"}
         </Button>
-        <Link href="/" className="text-sm text-[var(--text-secondary)] mt-1">
+        <Link href="/" className="text-sm text-(--text-secondary) mt-1">
           Non ora
         </Link>
       </div>
@@ -231,20 +231,20 @@ function SignupForm({ token, invito }: { token: string; invito: InvitoData }) {
         <p className="text-[15px] m-0">
           <b>{invito.invitanteNome}</b> ti invita nel pollaio
         </p>
-        <p className="text-[22px] font-bold text-[var(--primary)] m-0 mt-1 font-serif">
+        <p className="text-[22px] font-bold text-(--primary) m-0 mt-1 font-serif">
           {invito.pollaioNome}
         </p>
-        <div className="inline-block text-xs uppercase tracking-wide px-3 py-1 rounded-full bg-[var(--primary-lighter)] text-[var(--primary)] font-bold mt-2">
+        <div className="inline-block text-xs uppercase tracking-wide px-3 py-1 rounded-full bg-(--primary-lighter) text-(--primary) font-bold mt-2">
           {ruoloLabel}
         </div>
         {invito.messaggio && (
-          <blockquote className="italic text-sm text-[var(--text-secondary)] border-l-2 border-[var(--primary)] pl-3 py-1 mt-3 text-left">
+          <blockquote className="italic text-sm text-(--text-secondary) border-l-2 border-(--primary) pl-3 py-1 mt-3 text-left">
             {invito.messaggio}
           </blockquote>
         )}
       </div>
 
-      <p className="text-sm text-center text-[var(--text-secondary)] m-0 mb-4">
+      <p className="text-sm text-center text-(--text-secondary) m-0 mb-4">
         {hasAccount
           ? "Accedi col tuo account per accettare l'invito."
           : "Crea il tuo account per entrare nel pollaio."}
@@ -277,7 +277,7 @@ function SignupForm({ token, invito }: { token: string; invito: InvitoData }) {
           <p className="text-sm text-[#c0435a] mb-3 text-center">{errore}</p>
         )}
         {info && (
-          <p className="text-sm text-[var(--primary)] mb-3 text-center">{info}</p>
+          <p className="text-sm text-(--primary) mb-3 text-center">{info}</p>
         )}
 
         <Button
@@ -296,7 +296,7 @@ function SignupForm({ token, invito }: { token: string; invito: InvitoData }) {
         </Button>
       </form>
 
-      <div className="text-center mt-6 text-sm text-[var(--text-secondary)]">
+      <div className="text-center mt-6 text-sm text-(--text-secondary)">
         {hasAccount ? "Non hai ancora un account?" : "Hai già un account?"}{" "}
         <button
           type="button"
@@ -305,7 +305,7 @@ function SignupForm({ token, invito }: { token: string; invito: InvitoData }) {
             setErrore(null);
             setInfo(null);
           }}
-          className="text-[var(--primary)] font-semibold underline-offset-2 underline"
+          className="text-(--primary) font-semibold underline-offset-2 underline"
         >
           {hasAccount ? "Registrati" : "Accedi"}
         </button>

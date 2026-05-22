@@ -56,7 +56,7 @@ export function RubricaClient({ items }: { items: ContattoItem[] }) {
                     <div className="font-semibold text-[15px] truncate">
                       {c.nome}
                     </div>
-                    <div className="text-xs text-[var(--text-secondary)] truncate">
+                    <div className="text-xs text-(--text-secondary) truncate">
                       {[
                         c.relazione,
                         c.totale > 0
@@ -67,7 +67,7 @@ export function RubricaClient({ items }: { items: ContattoItem[] }) {
                         .join(" · ")}
                     </div>
                     {c.ultimaData && (
-                      <div className="text-[11px] text-[var(--text-secondary)] mt-0.5">
+                      <div className="text-[11px] text-(--text-secondary) mt-0.5">
                         Ultimo regalo: {formatData(c.ultimaData)}
                       </div>
                     )}

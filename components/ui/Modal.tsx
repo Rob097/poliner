@@ -27,7 +27,7 @@ export function Modal({ title, onClose, children }: ModalProps) {
 
   const sheet = (
     <div
-      className="fixed inset-0 bg-[rgba(46,41,36,0.4)] z-[200] flex items-end justify-center animate-fade-in"
+      className="fixed inset-0 bg-[rgba(46,41,36,0.4)] z-200 flex items-end justify-center animate-fade-in"
       onClick={onClose}
     >
       <div

@@ -44,7 +44,7 @@ export function PwaInstallSection() {
           <div className="font-semibold text-[15px]">
             Aggiungi Poliner alla schermata principale
           </div>
-          <p className="text-[13px] text-[var(--text-secondary)] mt-1 mb-0 leading-relaxed">
+          <p className="text-[13px] text-(--text-secondary) mt-1 mb-0 leading-relaxed">
             {isIosManual
               ? isSafari
                 ? "Su iPhone e iPad l'installazione è manuale, ma richiede solo pochi tocchi."
@@ -54,7 +54,7 @@ export function PwaInstallSection() {
         </div>
 
         {isIosManual ? (
-          <ol className="m-0 pl-5 text-[13px] text-[var(--text-secondary)] leading-6">
+          <ol className="m-0 pl-5 text-[13px] text-(--text-secondary) leading-6">
             {manualSteps.map((step) => (
               <li key={step}>{step}</li>
             ))}

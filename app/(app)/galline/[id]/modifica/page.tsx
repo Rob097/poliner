@@ -7,14 +7,15 @@ export const dynamic = "force-dynamic";
 export default async function ModificaGallinaPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const { supabase, pollaio } = await requireAdminPollaio();
 
   const { data: animale } = await supabase
     .from("animali")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("pollaio_id", pollaio.id)
     .maybeSingle();
 

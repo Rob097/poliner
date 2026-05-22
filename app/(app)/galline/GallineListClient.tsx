@@ -144,7 +144,7 @@ export function GallineListClient({ galline, defunteCount }: Props) {
       {defunteCount > 0 && (
         <Link
           href="/galline/in-memoria"
-          className="block mt-3 text-center text-sm text-[var(--text-secondary)] py-2"
+          className="block mt-3 text-center text-sm text-(--text-secondary) py-2"
         >
           💔 {defunteCount} {defunteCount === 1 ? "gallina ricordata" : "galline ricordate"} →
         </Link>
@@ -167,10 +167,10 @@ function FiltroChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold border transition-colors whitespace-nowrap",
+        "shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold border transition-colors whitespace-nowrap",
         active
-          ? "bg-[var(--primary)] text-white border-[var(--primary)]"
-          : "bg-white text-text border-[var(--border)] active:bg-[var(--border)]",
+          ? "bg-(--primary) text-white border-(--primary)"
+          : "bg-white text-text border-(--border) active:bg-(--border)",
       )}
     >
       {children}
@@ -220,16 +220,16 @@ function GallinaRow({ g }: { g: GallinaDisplay }) {
               </Badge>
             )}
           </div>
-          <div className="text-[13px] text-[var(--text-secondary)] mt-0.5 truncate">
+          <div className="text-[13px] text-(--text-secondary) mt-0.5 truncate">
             {subtitle}
           </div>
         </div>
         {g.tipo === "gallina" ? (
           <div className="text-center">
-            <div className="text-lg font-extrabold text-[var(--primary)] leading-none">
+            <div className="text-lg font-extrabold text-(--primary) leading-none">
               {g.uovaUltimaSettimana}
             </div>
-            <div className="text-[10px] text-[var(--text-secondary)] mt-0.5">
+            <div className="text-[10px] text-(--text-secondary) mt-0.5">
               uova/sett
             </div>
           </div>

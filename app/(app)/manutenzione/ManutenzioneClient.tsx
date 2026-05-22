@@ -108,7 +108,7 @@ export function ManutenzioneClient({ ruolo, stati, consigli, ultimi }: Props) {
       {isAdmin && consigli.length > 0 && (
         <>
           <SectionTitle>Consigli</SectionTitle>
-          <p className="text-xs text-[var(--text-secondary)] -mt-1 mb-2">
+          <p className="text-xs text-(--text-secondary) -mt-1 mb-2">
             Tocca un consiglio per aggiungerlo. Puoi personalizzarlo prima di salvare.
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -151,7 +151,7 @@ export function ManutenzioneClient({ ruolo, stati, consigli, ultimi }: Props) {
       <SectionTitle>Ultimi interventi</SectionTitle>
       {ultimi.length === 0 ? (
         <Card>
-          <p className="text-sm text-[var(--text-secondary)] text-center py-2 m-0">
+          <p className="text-sm text-(--text-secondary) text-center py-2 m-0">
             Nessun intervento registrato ancora
           </p>
         </Card>
@@ -206,7 +206,7 @@ function StatoRow({
           <span className="text-xl">{stato.voce.icona}</span>
           <div className="min-w-0">
             <div className="font-semibold text-sm">{stato.voce.nome}</div>
-            <div className="text-xs text-[var(--text-secondary)]">
+            <div className="text-xs text-(--text-secondary)">
               {stato.voce.dove ? `${stato.voce.dove} · ` : ""}Ogni {stato.voce.frequenza_giorni} giorni
             </div>
           </div>
@@ -215,7 +215,7 @@ function StatoRow({
           <button
             type="button"
             onClick={onEdit}
-            className="flex-shrink-0 text-[var(--text-secondary)]"
+            className="shrink-0 text-(--text-secondary)"
             aria-label="Modifica voce"
           >
             <IconEdit size={16} />
@@ -223,7 +223,7 @@ function StatoRow({
         )}
       </div>
       <div className="mt-2 flex justify-between items-center gap-2">
-        <span className="text-xs text-[var(--text-secondary)]">{giorniLabel}</span>
+        <span className="text-xs text-(--text-secondary)">{giorniLabel}</span>
         <Badge
           small
           bg={
@@ -244,7 +244,7 @@ function StatoRow({
           {labelStato(stato)}
         </Badge>
       </div>
-      <div className="mt-2 h-1 bg-[var(--border)] rounded overflow-hidden">
+      <div className="mt-2 h-1 bg-(--border) rounded overflow-hidden">
         <div
           className="h-full rounded transition-all duration-500"
           style={{
@@ -278,11 +278,11 @@ function ConsiglioBadge({
     <button
       type="button"
       onClick={onClick}
-      className="text-left bg-white border border-[var(--border)] rounded-[var(--radius-sm)] px-3 py-2.5 hover:bg-[var(--bg-warm)] active:scale-[0.98] transition-transform"
+      className="text-left bg-white border border-(--border) rounded-sm px-3 py-2.5 hover:bg-(--bg-warm) active:scale-[0.98] transition-transform"
     >
       <div className="flex items-center gap-2 mb-1">
         <span className="text-xl">{consiglio.icona}</span>
-        <span className="text-xs text-[var(--text-secondary)]">
+        <span className="text-xs text-(--text-secondary)">
           ogni {consiglio.frequenzaDefault} gg
         </span>
       </div>
@@ -311,7 +311,7 @@ function LogRow({ log, isAdmin }: { log: LogEntry; isAdmin: boolean }) {
       <span className="text-lg">{log.icona}</span>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-semibold truncate">{log.voceNome}</div>
-        <div className="text-xs text-[var(--text-secondary)] truncate">
+        <div className="text-xs text-(--text-secondary) truncate">
           {formatData(log.data)}
           {log.note ? ` · ${log.note}` : ""}
         </div>
@@ -321,7 +321,7 @@ function LogRow({ log, isAdmin }: { log: LogEntry; isAdmin: boolean }) {
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
-            className="text-xs text-[var(--text-secondary)]"
+            className="text-xs text-(--text-secondary)"
           >
             {open ? "✕" : "•••"}
           </button>

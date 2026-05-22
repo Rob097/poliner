@@ -67,20 +67,20 @@ export default async function GallineInMemoriaPage() {
                         <span aria-hidden>💔</span>
                         <span className="truncate">{a.nome}</span>
                       </div>
-                      <div className="text-xs text-[var(--text-secondary)] truncate">
+                      <div className="text-xs text-(--text-secondary) truncate">
                         {razzaNome}
                       </div>
-                      <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+                      <div className="text-xs text-(--text-secondary) mt-0.5">
                         {a.defunta_il ? `Defunta ${formatDataLunga(a.defunta_il)}` : ""}
                         {vissuta ? ` · Vissuta ${vissuta}` : ""}
                       </div>
                       {a.causa_decesso && (
-                        <div className="text-xs text-[var(--text-secondary)] mt-0.5 italic truncate">
+                        <div className="text-xs text-(--text-secondary) mt-0.5 italic truncate">
                           {a.causa_decesso}
                         </div>
                       )}
                     </div>
-                    <span className="text-[var(--text-secondary)]" aria-hidden>›</span>
+                    <span className="text-(--text-secondary)" aria-hidden>›</span>
                   </Card>
                 </Link>
               );

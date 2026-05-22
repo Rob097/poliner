@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { Database } from "@/lib/supabase/database.types";
 import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { dateIsoInTimeZone, timeIsoInTimeZone } from "@/lib/utils/date";
 import type { ActionResult } from "@/lib/types";
@@ -107,7 +108,7 @@ export async function aggiornaOrario(
 ): Promise<ActionResult> {
   const { supabase } = await requireAdminPollaio();
 
-  const update: Record<string, unknown> = {};
+  const update: Database["public"]["Tables"]["log_uscite"]["Update"] = {};
   if (patch.oraUscita !== undefined) {
     update.ora_uscita = patch.oraUscita ? `${patch.oraUscita}:00`.slice(0, 8) : null;
   }

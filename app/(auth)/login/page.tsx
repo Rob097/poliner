@@ -49,7 +49,7 @@ function LoginForm() {
       <div className="flex-1 flex flex-col items-center justify-center text-center pb-6 gap-3">
         <div className="text-6xl">🐔</div>
         <PolinerLogo size="lg" />
-        <p className="text-[15px] text-[var(--text-secondary)] mt-1">
+        <p className="text-[15px] text-(--text-secondary) mt-1">
           Bentornata nel tuo pollaio digitale
         </p>
       </div>
@@ -76,7 +76,7 @@ function LoginForm() {
             minLength={6}
           />
           <div className="text-right -mt-1">
-            <Link href="/reset-password" className="text-[13px] text-[var(--text-secondary)]">
+            <Link href="/reset-password" className="text-[13px] text-(--text-secondary)">
               Password dimenticata?
             </Link>
           </div>
@@ -91,9 +91,9 @@ function LoginForm() {
         </Button>
       </form>
 
-      <div className="text-center mt-6 mb-2 text-sm text-[var(--text-secondary)]">
+      <div className="text-center mt-6 mb-2 text-sm text-(--text-secondary)">
         Non hai ancora un account?{" "}
-        <Link href="/registrazione" className="text-[var(--primary)] font-semibold">
+        <Link href="/registrazione" className="text-(--primary) font-semibold">
           Registrati
         </Link>
       </div>

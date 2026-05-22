@@ -10,7 +10,7 @@ export default function NotFound() {
       <h1 className="font-serif text-2xl font-bold text-text mt-6 mb-2">
         Pagina non trovata
       </h1>
-      <p className="text-[15px] text-[var(--text-secondary)] max-w-sm">
+      <p className="text-[15px] text-(--text-secondary) max-w-sm">
         Ops, questa pagina è volata via dal pollaio. Torniamo alla home?
       </p>
       <div className="mt-6">

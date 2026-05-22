@@ -221,7 +221,7 @@ export function ChickenDetail({ data, ruolo }: { data: ChickenData; ruolo: Ruolo
           <div className="font-serif text-2xl font-bold text-text">
             {animale.nome}
           </div>
-          <div className="text-sm text-[var(--text-secondary)] mt-1">
+          <div className="text-sm text-(--text-secondary) mt-1">
             {razzaNome} · {tipo === "gallo" ? "Gallo" : "Gallina"}
             {eta ? ` · ${eta}` : ""}
           </div>
@@ -255,7 +255,7 @@ export function ChickenDetail({ data, ruolo }: { data: ChickenData; ruolo: Ruolo
           </div>
 
           {tipo === "gallina" && (
-            <div className="flex justify-center gap-6 mt-4 pt-4 border-t border-[var(--border)]">
+            <div className="flex justify-center gap-6 mt-4 pt-4 border-t border-(--border)">
               <StatNumber
                 value={statsUova.ultimaSettimana}
                 label="questa settimana"
@@ -428,7 +428,7 @@ function InfoTab({
             <div className="font-semibold text-sm mb-1">
               ❤️‍🩹 {problema.descrizione ?? problema.tipo}
             </div>
-            <div className="text-xs text-[var(--text-secondary)]">
+            <div className="text-xs text-(--text-secondary)">
               Registrato il {formatData(problema.data)} · Stato: in corso
             </div>
           </Card>
@@ -443,7 +443,7 @@ function InfoTab({
               💔 Defunta il {formatDataLunga(animale.defunta_il)}
             </div>
             {animale.causa_decesso && (
-              <div className="text-xs text-[var(--text-secondary)] mt-1">
+              <div className="text-xs text-(--text-secondary) mt-1">
                 Causa: {animale.causa_decesso}
               </div>
             )}
@@ -459,11 +459,11 @@ function InfoTab({
       {isAdmin && !isDefunta && (
         <details className="mt-5 group">
           <summary
-            className="list-none cursor-pointer flex items-center justify-between px-1 py-2 text-[12px] uppercase tracking-wider font-bold text-[var(--text-secondary)]"
+            className="list-none cursor-pointer flex items-center justify-between px-1 py-2 text-[12px] uppercase tracking-wider font-bold text-(--text-secondary)"
           >
             <span>Zona delicata</span>
             <span
-              className="text-[var(--text-secondary)] transition-transform group-open:rotate-90"
+              className="text-(--text-secondary) transition-transform group-open:rotate-90"
               aria-hidden
             >
               ›
@@ -479,11 +479,11 @@ function InfoTab({
                 <div className="font-semibold text-sm text-[#c0435a]">
                   💔 Segna come defunta
                 </div>
-                <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+                <div className="text-xs text-(--text-secondary) mt-0.5">
                   Lo storico resta intatto, la trovi in “In memoria”.
                 </div>
               </div>
-              <span className="text-[var(--text-secondary)]" aria-hidden>›</span>
+              <span className="text-(--text-secondary)" aria-hidden>›</span>
             </button>
           </Card>
         </details>
@@ -495,7 +495,7 @@ function InfoTab({
 function KV({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[11px] text-[var(--text-secondary)]">{label}</div>
+      <div className="text-[11px] text-(--text-secondary)">{label}</div>
       <div className="font-semibold text-sm">{value}</div>
     </div>
   );
@@ -504,7 +504,7 @@ function KV({ label, value }: { label: string; value: string }) {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between">
-      <span className="text-sm text-[var(--text-secondary)]">{label}</span>
+      <span className="text-sm text-(--text-secondary)">{label}</span>
       <span className="text-sm font-semibold text-right">{value}</span>
     </div>
   );
@@ -546,7 +546,7 @@ function UovaTab({
                   {formatData(u.data_deposizione)}
                 </div>
                 {u.note && (
-                  <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+                  <div className="text-xs text-(--text-secondary) mt-0.5">
                     {u.note}
                   </div>
                 )}
@@ -641,7 +641,7 @@ function SaluteTab({
             <div className="font-semibold text-sm">
               {mutaInCorso ? "🪶 Attualmente in muta" : "Non in muta"}
             </div>
-            <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+            <div className="text-xs text-(--text-secondary) mt-0.5">
               {mutaInCorso
                 ? "Segna la fine della muta quando le penne sono ricresciute"
                 : "Segna l'inizio della muta quando inizia a perdere le penne"}
@@ -662,12 +662,12 @@ function SaluteTab({
 
         {periodiMuta.length > 0 && (
           <details className="mt-3">
-            <summary className="text-xs text-[var(--primary)] cursor-pointer font-semibold">
+            <summary className="text-xs text-(--primary) cursor-pointer font-semibold">
               Storico mute ({periodiMuta.length})
             </summary>
             <div className="mt-2 space-y-1.5">
               {periodiMuta.map((p) => (
-                <div key={p.id} className="text-xs text-[var(--text-secondary)]">
+                <div key={p.id} className="text-xs text-(--text-secondary)">
                   {formatData(p.data_inizio)} →{" "}
                   {p.data_fine ? formatData(p.data_fine) : "in corso"}
                 </div>
@@ -684,7 +684,7 @@ function SaluteTab({
             <button
               type="button"
               onClick={onAddProblema}
-              className="text-xs text-[var(--primary)] font-semibold flex items-center gap-1"
+              className="text-xs text-(--primary) font-semibold flex items-center gap-1"
             >
               <IconPlus size={14} /> Registra problema
             </button>
@@ -695,7 +695,7 @@ function SaluteTab({
       </SectionTitle>
       {eventiSalute.length === 0 ? (
         <Card>
-          <p className="text-sm text-[var(--text-secondary)] text-center py-2">
+          <p className="text-sm text-(--text-secondary) text-center py-2">
             Nessun problema di salute registrato ✓
           </p>
         </Card>
@@ -725,11 +725,11 @@ function SaluteTab({
                     </Badge>
                   </div>
                 </div>
-                <div className="text-xs text-[var(--text-secondary)]">
+                <div className="text-xs text-(--text-secondary)">
                   {formatData(e.data)} · Tipo: {tipoEventoLabel(e.tipo)}
                 </div>
                 {e.home_hospital && (e.hh_da || e.hh_a) && (
-                  <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+                  <div className="text-xs text-(--text-secondary) mt-0.5">
                     🏠 {e.hh_da ? `Dal ${formatData(e.hh_da)}` : ""}
                     {e.hh_a ? ` al ${formatData(e.hh_a)}` : e.hh_da ? " — ancora a casa" : ""}
                   </div>
@@ -740,7 +740,7 @@ function SaluteTab({
                       type="button"
                       onClick={() => risolvi(e.id)}
                       disabled={pending}
-                      className="text-xs text-[var(--primary)] font-semibold"
+                      className="text-xs text-(--primary) font-semibold"
                     >
                       Segna come risolto
                     </button>
@@ -768,7 +768,7 @@ function SaluteTab({
             <button
               type="button"
               onClick={onAddTrattamento}
-              className="text-xs text-[var(--primary)] font-semibold flex items-center gap-1"
+              className="text-xs text-(--primary) font-semibold flex items-center gap-1"
             >
               <IconPlus size={14} /> Aggiungi
             </button>
@@ -779,7 +779,7 @@ function SaluteTab({
       </SectionTitle>
       {trattamenti.length === 0 ? (
         <Card>
-          <p className="text-sm text-[var(--text-secondary)] text-center py-2">
+          <p className="text-sm text-(--text-secondary) text-center py-2">
             Nessun trattamento registrato
           </p>
         </Card>
@@ -789,11 +789,11 @@ function SaluteTab({
             <Card key={t.id}>
               <div className="flex justify-between items-start mb-1">
                 <div className="font-semibold text-sm">💊 {t.tipo}</div>
-                <div className="text-xs text-[var(--text-secondary)]">
+                <div className="text-xs text-(--text-secondary)">
                   {formatData(t.data)}
                 </div>
               </div>
-              <div className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
+              <div className="text-[13px] text-(--text-secondary) leading-relaxed">
                 {t.applica_a_tutti && (
                   <div>
                     <Badge small bg="#A8D1FF44" color="#3a5a7a">
@@ -1023,7 +1023,7 @@ function RegistraProblemaSheet({
           />
         </FormField>
 
-        <div className="mb-4 rounded-[var(--radius)] border border-[var(--border)] p-3">
+        <div className="mb-4 rounded-(--radius) border border-(--border) p-3">
           <label className="flex items-start gap-2 cursor-pointer">
             <input
               type="checkbox"
@@ -1035,7 +1035,7 @@ function RegistraProblemaSheet({
               <div className="text-sm font-semibold">
                 🏠 Portata a casa (Home Hospital)
               </div>
-              <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+              <div className="text-xs text-(--text-secondary) mt-0.5">
                 Tracciamo separatamente il periodo di cura a casa.
               </div>
             </div>
@@ -1137,12 +1137,12 @@ function AggiornaHomeHospitalSheet({
 
   return (
     <Modal title="🏠 Home Hospital" onClose={onClose}>
-      <p className="text-sm text-[var(--text-secondary)] mb-4 leading-relaxed">
+      <p className="text-sm text-(--text-secondary) mb-4 leading-relaxed">
         Tieni traccia del periodo in cui la gallina è in casa per cure.
       </p>
 
       <form onSubmit={onSubmit}>
-        <div className="mb-3 rounded-[var(--radius)] border border-[var(--border)] p-3">
+        <div className="mb-3 rounded-(--radius) border border-(--border) p-3">
           <label className="flex items-start gap-2 cursor-pointer">
             <input
               type="checkbox"
@@ -1154,7 +1154,7 @@ function AggiornaHomeHospitalSheet({
               <div className="text-sm font-semibold">
                 {homeHospital ? "🏠 Attualmente in Home Hospital" : "Non in Home Hospital"}
               </div>
-              <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+              <div className="text-xs text-(--text-secondary) mt-0.5">
                 Togli la spunta per disattivare il tracciamento Home Hospital.
               </div>
             </div>

@@ -33,7 +33,7 @@ export function MessaggioEmpaticoModal({ nome, onClose }: Props) {
 
   const node = (
     <div
-      className="fixed inset-0 bg-[rgba(46,41,36,0.55)] backdrop-blur-sm z-[210] flex items-center justify-center px-6 animate-fade-in"
+      className="fixed inset-0 bg-[rgba(46,41,36,0.55)] backdrop-blur-xs z-210 flex items-center justify-center px-6 animate-fade-in"
       onClick={onClose}
     >
       <div

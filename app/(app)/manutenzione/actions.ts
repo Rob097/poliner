@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { Database } from "@/lib/supabase/database.types";
 import { requireAdminPollaio } from "@/lib/supabase/queries";
 import type { ActionResult } from "@/lib/types";
 
@@ -85,7 +86,7 @@ export interface AggiornaVoceInput {
 }
 
 export async function aggiornaVoce(id: string, patch: AggiornaVoceInput): Promise<ActionResult> {
-  const update: Record<string, unknown> = {};
+  const update: Database["public"]["Tables"]["manutenzioni_voci"]["Update"] = {};
   if (patch.nome !== undefined) {
     const nome = patch.nome.trim();
     if (!nome) return { ok: false, error: "Il nome non può essere vuoto." };

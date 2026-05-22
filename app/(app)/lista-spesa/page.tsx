@@ -1,6 +1,4 @@
 import { requireAdminPollaio } from "@/lib/supabase/queries";
-import { Header } from "@/components/ui/Header";
-import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { ListaSpesaClient, type VoceLista } from "./ListaSpesaClient";
 
 export const dynamic = "force-dynamic";

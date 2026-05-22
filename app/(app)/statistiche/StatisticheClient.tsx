@@ -244,11 +244,11 @@ export function StatisticheClient({ data }: { data: StatsData }) {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-sm text-[var(--text-secondary)] text-center py-4">
+                <p className="text-sm text-(--text-secondary) text-center py-4">
                   Nessuna uovo nel periodo
                 </p>
               )}
-              <p className="text-xs text-[var(--text-secondary)] text-center mt-2">
+              <p className="text-xs text-(--text-secondary) text-center mt-2">
                 Media: {produzionePerBucket.length > 0
                   ? Math.round(
                       produzionePerBucket.reduce((s, x) => s + x.prodotte, 0) /
@@ -293,7 +293,7 @@ export function StatisticheClient({ data }: { data: StatsData }) {
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-[var(--text-secondary)] text-center py-4">
+                <p className="text-sm text-(--text-secondary) text-center py-4">
                   Nessun dato
                 </p>
               )}
@@ -322,7 +322,7 @@ export function StatisticheClient({ data }: { data: StatsData }) {
                           {g.defunta && <span className="mr-0.5" aria-hidden>💔</span>}
                           {g.nome}
                         </div>
-                        <div className="flex-1 h-3 rounded-full bg-[var(--border)] overflow-hidden">
+                        <div className="flex-1 h-3 rounded-full bg-(--border) overflow-hidden">
                           <div
                             className="h-full transition-all"
                             style={{
@@ -380,7 +380,7 @@ export function StatisticheClient({ data }: { data: StatsData }) {
                       />
                     </ComposedChart>
                   </ResponsiveContainer>
-                  <p className="text-[11px] text-[var(--text-secondary)] text-center mt-2 italic">
+                  <p className="text-[11px] text-(--text-secondary) text-center mt-2 italic">
                     Sovrapposizione produzione (barre) e temperatura massima (linea)
                   </p>
                 </Card>
@@ -408,7 +408,7 @@ export function StatisticheClient({ data }: { data: StatsData }) {
                       />
                     </BarChart>
                   </ResponsiveContainer>
-                  <p className="text-xs text-[var(--text-secondary)] text-center mt-2">
+                  <p className="text-xs text-(--text-secondary) text-center mt-2">
                     Totale periodo: €{totSpese.toFixed(2)}
                   </p>
                 </Card>
@@ -445,7 +445,7 @@ export function StatisticheClient({ data }: { data: StatsData }) {
                             style={{ background: d.color }}
                           />
                           <span>{d.name}</span>
-                          <span className="text-[var(--text-secondary)]">
+                          <span className="text-(--text-secondary)">
                             €{d.value.toFixed(0)}
                           </span>
                         </div>
@@ -476,7 +476,7 @@ function RiepilogoCard({
       <div className="text-xl font-extrabold leading-none" style={{ color }}>
         {value}
       </div>
-      <div className="text-[10px] text-[var(--text-secondary)] mt-1">{label}</div>
+      <div className="text-[10px] text-(--text-secondary) mt-1">{label}</div>
     </Card>
   );
 }

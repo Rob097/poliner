@@ -357,8 +357,8 @@ function OverlayPortal({
   overlayRef,
   fraseRef,
 }: {
-  overlayRef: React.RefObject<HTMLDivElement>;
-  fraseRef: React.RefObject<HTMLDivElement>;
+  overlayRef: React.RefObject<HTMLDivElement | null>;
+  fraseRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const fraseIniziale = useMemo(
     () => FRASI[Math.floor(Math.random() * FRASI.length)],
@@ -390,7 +390,7 @@ function OverlayPortal({
         <ChickenSvg />
         <div
           ref={fraseRef}
-          className="font-serif text-base font-bold text-[var(--text)]"
+          className="font-serif text-base font-bold text-(--text)"
           style={{
             opacity: 0,
             transition: "opacity 350ms ease",

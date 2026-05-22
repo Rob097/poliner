@@ -193,7 +193,7 @@ function StepWelcome({ onNext }: { onNext: () => void }) {
       <div className="flex-1 flex flex-col items-center justify-center text-center py-6 gap-4">
         <div className="text-7xl">🐔</div>
         <PolinerLogo size="lg" />
-        <p className="text-[15px] text-[var(--text-secondary)] leading-relaxed max-w-xs">
+        <p className="text-[15px] text-(--text-secondary) leading-relaxed max-w-xs">
           La memoria digitale del tuo pollaio.
           <br />
           Tutto in un posto solo, sempre a portata di mano.
@@ -203,7 +203,7 @@ function StepWelcome({ onNext }: { onNext: () => void }) {
         <Button size="lg" fullWidth onClick={onNext}>
           Iniziamo!
         </Button>
-        <p className="text-center text-[13px] text-[var(--text-secondary)]">
+        <p className="text-center text-[13px] text-(--text-secondary)">
           Ci vorranno solo 2 minuti ✨
         </p>
       </div>
@@ -228,7 +228,7 @@ function StepNome({
         <h2 className="font-serif text-[26px] font-bold leading-snug text-text">
           Come si chiama il tuo pollaio?
         </h2>
-        <p className="text-[15px] text-[var(--text-secondary)] max-w-xs">
+        <p className="text-[15px] text-(--text-secondary) max-w-xs">
           Dagli un nome carino — sarà la tua casetta digitale
         </p>
         <Input
@@ -284,7 +284,7 @@ function StepPosizione({
         <h2 className="font-serif text-[26px] font-bold leading-snug text-text">
           Dove si trova?
         </h2>
-        <p className="text-[15px] text-[var(--text-secondary)] max-w-xs">
+        <p className="text-[15px] text-(--text-secondary) max-w-xs">
           Ci serve per mostrarti il meteo e l&apos;orario del tramonto
         </p>
         <div className="w-full max-w-sm flex flex-col gap-3">
@@ -343,7 +343,7 @@ function StepFoto({
     <div className="flex-1 flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center text-center py-6 gap-5">
         <label
-          className="w-40 h-40 rounded-3xl bg-[var(--primary-lighter)] flex items-center justify-center cursor-pointer overflow-hidden relative"
+          className="w-40 h-40 rounded-3xl bg-(--primary-lighter) flex items-center justify-center cursor-pointer overflow-hidden relative"
           style={{ border: preview ? "none" : "3px dashed var(--primary-light)" }}
         >
           {preview ? (
@@ -365,7 +365,7 @@ function StepFoto({
           ) : (
             <div className="text-center flex flex-col items-center">
               <IconCamera size={40} color="var(--primary)" />
-              <div className="text-[13px] text-[var(--primary)] mt-2 font-semibold">
+              <div className="text-[13px] text-(--primary) mt-2 font-semibold">
                 Aggiungi foto
               </div>
             </div>
@@ -383,7 +383,7 @@ function StepFoto({
         <h2 className="font-serif text-[26px] font-bold leading-snug text-text">
           Una foto del pollaio?
         </h2>
-        <p className="text-[15px] text-[var(--text-secondary)] max-w-xs">
+        <p className="text-[15px] text-(--text-secondary) max-w-xs">
           Opzionale — puoi aggiungerla anche dopo
         </p>
       </div>
@@ -435,7 +435,7 @@ function StepGallina({
           <h2 className="font-serif text-[22px] font-bold leading-snug text-text">
             Aggiungi la tua prima gallina!
           </h2>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">
+          <p className="text-sm text-(--text-secondary) mt-1">
             Potrai aggiungerne altre dopo
           </p>
         </div>
@@ -476,13 +476,13 @@ function StepGallina({
 
         {showRazzaInfo && razza && (
           <div
-            className="rounded-[var(--radius)] p-4 border-none mt-2"
+            className="rounded-(--radius) p-4 border-none mt-2"
             style={{ background: "var(--primary-lighter)" }}
           >
-            <div className="text-[13px] font-semibold text-[var(--primary)] mb-1.5">
+            <div className="text-[13px] font-semibold text-(--primary) mb-1.5">
               Info sulla razza {razza.nome.split(" (")[0]}
             </div>
-            <div className="grid grid-cols-2 gap-1.5 text-xs text-[var(--text-secondary)]">
+            <div className="grid grid-cols-2 gap-1.5 text-xs text-(--text-secondary)">
               {showEggInfo && <span>🥚 {uovaAnnoLabel(razza)} uova/anno</span>}
               <span>📏 Taglia {razza.taglia}</span>
               {showEggInfo && <span>🎨 Uova {razza.coloreUova}</span>}
@@ -534,24 +534,24 @@ function StepSuccess({
         <h2 className="font-serif text-[28px] font-bold leading-snug text-text">
           Perfetto!
         </h2>
-        <h3 className="font-serif text-xl font-semibold text-[var(--primary)]">
+        <h3 className="font-serif text-xl font-semibold text-(--primary)">
           {pollaioName || "Il tuo pollaio"} è pronto
         </h3>
-        <p className="text-[15px] text-[var(--text-secondary)] max-w-xs">
+        <p className="text-[15px] text-(--text-secondary) max-w-xs">
           {chickenName || "La tua gallina"} ti aspetta! Ora puoi iniziare a
           registrare uova, pulizie e molto altro.
         </p>
         <div
-          className="w-full mt-3 p-4 rounded-[var(--radius)] border border-[var(--border)] bg-white text-left"
+          className="w-full mt-3 p-4 rounded-(--radius) border border-(--border) bg-white text-left"
         >
-          <div className="text-[13px] font-semibold text-[var(--text-secondary)] mb-2.5">
+          <div className="text-[13px] font-semibold text-(--text-secondary) mb-2.5">
             Il tuo pollaio
           </div>
           <div className="flex items-center gap-3 mb-2">
             <span className="text-2xl">🏡</span>
             <div>
               <div className="font-bold text-[15px]">{pollaioName || "Il mio pollaio"}</div>
-              <div className="text-xs text-[var(--text-secondary)]">
+              <div className="text-xs text-(--text-secondary)">
                 {locationName || "Posizione non impostata"}
               </div>
             </div>
@@ -560,7 +560,7 @@ function StepSuccess({
             <span className="text-2xl">{chickenTipo === "gallo" ? "🐓" : "🐔"}</span>
             <div>
               <div className="font-bold text-[15px]">{chickenName || "Gallina"}</div>
-              <div className="text-xs text-[var(--text-secondary)]">
+              <div className="text-xs text-(--text-secondary)">
                 {razza?.nome ?? "Razza non specificata"}
               </div>
             </div>

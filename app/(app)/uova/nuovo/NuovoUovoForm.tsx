@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/Input";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { ImageUploadField } from "@/components/ui/ImageUploadField";
 import { useToast } from "@/components/ui/Toast";
-import { avatarBgFor, defaultEmojiFor } from "@/lib/utils/avatar";
+import { defaultEmojiFor } from "@/lib/utils/avatar";
 import { compressAndUpload } from "@/lib/utils/images";
 import { cn } from "@/lib/utils/cn";
 import {
@@ -99,24 +99,24 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
     <ScreenContainer header={<Header title="Aggiungi uovo" onBack={() => router.back()} />}>
         <Link
           href="/uova/batch"
-          className="flex items-center justify-between gap-2 mb-3 px-3 py-2.5 rounded-[var(--radius)] border border-[var(--border)] bg-white"
+          className="flex items-center justify-between gap-2 mb-3 px-3 py-2.5 rounded-(--radius) border border-(--border) bg-white"
         >
           <div className="flex items-center gap-2.5">
             <span className="text-xl" aria-hidden>🧺</span>
             <div>
               <div className="font-semibold text-sm">Raccolta veloce</div>
-              <div className="text-xs text-[var(--text-secondary)]">
+              <div className="text-xs text-(--text-secondary)">
                 Aggiungi più uova insieme con un counter per gallina
               </div>
             </div>
           </div>
-          <span className="text-[var(--text-secondary)]" aria-hidden>›</span>
+          <span className="text-(--text-secondary)" aria-hidden>›</span>
         </Link>
 
         <form onSubmit={onSubmit}>
           <div className="text-center my-3">
             <div className="text-6xl">🥚</div>
-            <div className="text-sm text-[var(--text-secondary)] mt-1">
+            <div className="text-sm text-(--text-secondary) mt-1">
               Chi ha fatto l&apos;uovo?
             </div>
           </div>
@@ -124,11 +124,11 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
           <FormField label="Gallina">
             {galline.length === 0 ? (
               <Card>
-                <p className="text-sm text-[var(--text-secondary)] text-center py-2">
+                <p className="text-sm text-(--text-secondary) text-center py-2">
                   Nessuna gallina nel pollaio.{" "}
                   <Link
                     href="/galline/nuova"
-                    className="text-[var(--primary)] font-semibold"
+                    className="text-(--primary) font-semibold"
                   >
                     Aggiungine una
                   </Link>
@@ -165,11 +165,11 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
           <FormField label="In quale nido?">
             {nidi.length === 0 ? (
               <Card>
-                <p className="text-sm text-[var(--text-secondary)] text-center py-2">
+                <p className="text-sm text-(--text-secondary) text-center py-2">
                   Nessun nido configurato.{" "}
                   <Link
                     href="/uova/nidi"
-                    className="text-[var(--primary)] font-semibold"
+                    className="text-(--primary) font-semibold"
                   >
                     Aggiungine uno
                   </Link>
@@ -183,7 +183,7 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
                     key={n.id}
                     selected={nidoId === n.id}
                     onClick={() => setNidoId(n.id)}
-                    className="flex-shrink-0 min-w-[80px]"
+                    className="shrink-0 min-w-[80px]"
                   >
                     <div className="text-lg">🪺</div>
                     <div className="text-[11px] font-semibold mt-0.5 text-center px-1">
@@ -194,7 +194,7 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
                 <SelectableChip
                   selected={nidoId === null}
                   onClick={() => setNidoId(null)}
-                  className="flex-shrink-0 min-w-[80px]"
+                  className="shrink-0 min-w-[80px]"
                 >
                   <div className="text-lg">❓</div>
                   <div className="text-[11px] font-semibold mt-0.5">Non so</div>
@@ -280,9 +280,9 @@ function SelectableChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "card text-center cursor-pointer transition-all rounded-[var(--radius)] px-2 py-3",
+        "card text-center cursor-pointer transition-all rounded-(--radius) px-2 py-3",
         selected
-          ? "bg-[var(--primary-lighter)] border-2 border-[var(--primary)]"
+          ? "bg-(--primary-lighter) border-2 border-(--primary)"
           : "bg-white border-2 border-transparent",
         "flex flex-col items-center justify-center",
         className,

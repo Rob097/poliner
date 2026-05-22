@@ -27,7 +27,7 @@ export type OnboardingResult = ActionResult;
  * e primo animale. Sull'ok ritorna senza ridirezione — il client redirige.
  */
 export async function completeOnboarding(input: OnboardingInput): Promise<OnboardingResult> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Sessione scaduta. Accedi di nuovo." };
 

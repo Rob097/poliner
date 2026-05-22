@@ -151,13 +151,13 @@ function NotaCard({ nota, onEdit }: { nota: NotaItem; onEdit: () => void }) {
           <span />
         )}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-[var(--text-secondary)]">
+          <span className="text-xs text-(--text-secondary)">
             {formatData(nota.data)}
           </span>
           <button
             type="button"
             onClick={onEdit}
-            className="text-[var(--text-secondary)]"
+            className="text-(--text-secondary)"
             aria-label="Modifica"
           >
             <IconEdit size={14} />
@@ -340,7 +340,7 @@ function NotaFormModal({
               type="checkbox"
               checked={usePromemoria}
               onChange={(e) => setUsePromemoria(e.target.checked)}
-              className="w-5 h-5 accent-[var(--primary)]"
+              className="w-5 h-5 accent-(--primary)"
             />
             <span className="text-sm font-semibold">
               🔔 Trasforma in promemoria
@@ -349,7 +349,7 @@ function NotaFormModal({
         </div>
 
         {usePromemoria && (
-          <div className="mt-3 p-3 rounded-[var(--radius)] bg-[var(--primary-lighter)]">
+          <div className="mt-3 p-3 rounded-(--radius) bg-(--primary-lighter)">
             <FormField label="Quando ricordarti?">
               <Input
                 type="datetime-local"
@@ -368,7 +368,7 @@ function NotaFormModal({
                 <option value="entrambi">📱 + 📧 Entrambi</option>
               </Select>
             </FormField>
-            <p className="text-[11px] text-[var(--text-secondary)] italic m-0">
+            <p className="text-[11px] text-(--text-secondary) italic m-0">
               {"Il promemoria verrà inviato all'orario scelto se i canali sono attivi nelle impostazioni."}
             </p>
           </div>
@@ -394,7 +394,7 @@ function NotaFormModal({
               type="button"
               onClick={onArchive}
               disabled={pending}
-              className="text-xs text-[var(--text-secondary)] py-2"
+              className="text-xs text-(--text-secondary) py-2"
             >
               Archivia
             </button>

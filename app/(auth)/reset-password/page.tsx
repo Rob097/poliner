@@ -34,7 +34,7 @@ export default function ResetPasswordPage() {
     <div className="flex-1 flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center text-center pb-8">
         <PolinerLogo size="lg" />
-        <p className="text-[15px] text-[var(--text-secondary)] mt-4">
+        <p className="text-[15px] text-(--text-secondary) mt-4">
           Recupera la password
         </p>
       </div>
@@ -43,7 +43,7 @@ export default function ResetPasswordPage() {
         <div className="text-center">
           <div className="text-5xl mb-4">📧</div>
           <p className="text-text mb-2 font-semibold">Email inviata!</p>
-          <p className="text-[var(--text-secondary)] text-sm">
+          <p className="text-(--text-secondary) text-sm">
             Controlla la casella e clicca sul link per impostare una nuova password.
           </p>
         </div>
@@ -71,7 +71,7 @@ export default function ResetPasswordPage() {
       )}
 
       <div className="text-center mt-6 text-sm">
-        <Link href="/login" className="text-[var(--text-secondary)]">
+        <Link href="/login" className="text-(--text-secondary)">
           ← Torna al login
         </Link>
       </div>

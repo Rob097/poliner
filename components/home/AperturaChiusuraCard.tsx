@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -65,13 +65,13 @@ export function AperturaChiusuraCard({
   // Caso 1: niente registrato oggi
   if (!aperto && !chiuso) {
     return (
-      <Card className="bg-[var(--primary-lighter)] border border-[var(--primary-light)]">
+      <Card className="bg-(--primary-lighter) border border-(--primary-light)">
         <div className="flex items-center gap-3">
           <span className="text-3xl">🌅</span>
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-[15px]">Pollaio chiuso</div>
             {alba && (
-              <div className="text-[12px] text-[var(--text-secondary)]">
+              <div className="text-[12px] text-(--text-secondary)">
                 Alba alle {alba}
               </div>
             )}
@@ -81,7 +81,7 @@ export function AperturaChiusuraCard({
               {isPending ? "..." : "Apri ora"}
             </Button>
           ) : (
-            <span className="text-xs text-[var(--text-secondary)] italic">in attesa</span>
+            <span className="text-xs text-(--text-secondary) italic">in attesa</span>
           )}
         </div>
       </Card>
@@ -97,7 +97,7 @@ export function AperturaChiusuraCard({
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-[15px]">Aperto alle {uscitaLabel}</div>
             {tramonto && (
-              <div className="text-[12px] text-[var(--text-secondary)]">
+              <div className="text-[12px] text-(--text-secondary)">
                 Tramonto alle {tramonto}
               </div>
             )}
@@ -111,7 +111,7 @@ export function AperturaChiusuraCard({
               {isPending ? "..." : "🌙 Chiudo"}
             </Button>
           ) : (
-            <span className="text-xs text-[var(--text-secondary)] italic">{tramonto ?? "—"}</span>
+            <span className="text-xs text-(--text-secondary) italic">{tramonto ?? "—"}</span>
           )}
         </div>
       </Card>
@@ -121,16 +121,16 @@ export function AperturaChiusuraCard({
   // Caso 3: chiuso senza apertura registrata (raro ma possibile)
   if (!aperto && chiuso) {
     return (
-      <Card className="bg-[var(--bg-warm)] border border-[var(--border)]">
+      <Card className="bg-(--bg-warm) border border-(--border)">
         <div className="flex items-center gap-3">
           <span className="text-3xl">🌙</span>
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-[15px]">Chiuso alle {rientroLabel}</div>
-            <div className="text-[12px] text-[var(--text-secondary)]">
+            <div className="text-[12px] text-(--text-secondary)">
               Apertura di oggi non registrata
             </div>
           </div>
-          <Link href="/uscite" className="text-sm text-[var(--primary)] font-semibold">
+          <Link href="/uscite" className="text-sm text-(--primary) font-semibold">
             Modifica
           </Link>
         </div>
@@ -140,18 +140,18 @@ export function AperturaChiusuraCard({
 
   // Caso 4: entrambi
   return (
-    <Card className="bg-[var(--bg-warm)] border border-[var(--border)]">
+    <Card className="bg-(--bg-warm) border border-(--border)">
       <div className="flex items-center gap-3">
         <span className="text-3xl">🐔</span>
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-[15px]">
             Aperto {uscitaLabel} · Chiuso {rientroLabel}
           </div>
-          <div className="text-[12px] text-[var(--text-secondary)]">
+          <div className="text-[12px] text-(--text-secondary)">
             Giornata completata
           </div>
         </div>
-        <Link href="/uscite" className="text-sm text-[var(--primary)] font-semibold">
+        <Link href="/uscite" className="text-sm text-(--primary) font-semibold">
           Storico
         </Link>
       </div>

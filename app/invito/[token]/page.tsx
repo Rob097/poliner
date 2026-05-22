@@ -11,8 +11,9 @@ interface Params {
   token: string;
 }
 
-export default async function InvitoTokenPage({ params }: { params: Params }) {
-  const invito = await getInvitoPublic(params.token);
+export default async function InvitoTokenPage({ params }: { params: Promise<Params> }) {
+  const { token } = await params;
+  const invito = await getInvitoPublic(token);
 
   if (!invito.ok) {
     return (
@@ -26,7 +27,7 @@ export default async function InvitoTokenPage({ params }: { params: Params }) {
               ? "Invito già accettato"
               : "Invito non valido"}
         </h1>
-        <p className="text-sm text-[var(--text-secondary)] m-0 max-w-xs">
+        <p className="text-sm text-(--text-secondary) m-0 max-w-xs">
           {invito.error} Chiedi a chi ti ha invitata/o di mandartene uno nuovo.
         </p>
         <Link href="/" className="mt-4">
@@ -37,14 +38,14 @@ export default async function InvitoTokenPage({ params }: { params: Params }) {
   }
 
   // Stato login attuale
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   return (
     <InvitoClient
-      token={params.token}
+      token={token}
       invito={{
         email: invito.email,
         ruolo: invito.ruolo,

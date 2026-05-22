@@ -10,7 +10,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     <div
       ref={ref}
       className={cn(
-        "bg-white rounded-[var(--radius)] px-4 py-[14px] border border-[var(--border)] transition-transform",
+        "bg-white rounded-(--radius) px-4 py-[14px] border border-(--border) transition-transform",
         clickable && "cursor-pointer active:scale-[0.985]",
         className,
       )}

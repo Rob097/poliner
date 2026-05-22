@@ -15,16 +15,19 @@ import {
 
 export const revalidate = 300; // ISR 5 minuti
 
+type PublicPageParams = Promise<{ slug: string }>;
+
 export async function generateMetadata(
-  { params }: { params: { slug: string } },
+  { params }: { params: PublicPageParams },
 ): Promise<Metadata> {
-  if (!SLUG_REGEX.test(params.slug)) return { title: "Pagina non trovata" };
+  const { slug } = await params;
+  if (!SLUG_REGEX.test(slug)) return { title: "Pagina non trovata" };
 
   const supabase = createPublicClient();
   const { data: pollaio } = await supabase
     .from("pollai")
     .select("nome, descrizione_pubblica, foto_url")
-    .eq("pubblico_slug", params.slug)
+    .eq("pubblico_slug", slug)
     .eq("pubblico_attivo", true)
     .maybeSingle();
 
@@ -45,16 +48,17 @@ export async function generateMetadata(
 }
 
 export default async function PaginaPubblicaPage(
-  { params }: { params: { slug: string } },
+  { params }: { params: PublicPageParams },
 ) {
-  if (!SLUG_REGEX.test(params.slug)) notFound();
+  const { slug } = await params;
+  if (!SLUG_REGEX.test(slug)) notFound();
 
   const supabase = createPublicClient();
 
   const { data: pollaioRaw } = await supabase
     .from("pollai")
     .select("id, nome, foto_url, posizione_nome, descrizione_pubblica")
-    .eq("pubblico_slug", params.slug)
+    .eq("pubblico_slug", slug)
     .eq("pubblico_attivo", true)
     .maybeSingle();
 
@@ -70,7 +74,7 @@ export default async function PaginaPubblicaPage(
       .eq("attivo", true)
       .is("defunta_il", null)
       .order("nome"),
-    supabase.rpc("public_pollaio_stats", { p_slug: params.slug }),
+    supabase.rpc("public_pollaio_stats", { p_slug: slug }),
   ]);
 
   const pollaio: PollaioPubblico = {
@@ -161,7 +165,7 @@ export default async function PaginaPubblicaPage(
 
   // Curiosità "sapevi che…"
   const curiosita = curiositaPerPagina({
-    slug: params.slug,
+    slug,
     razzeIds: animali.map((a) => a.razzaId),
   });
 

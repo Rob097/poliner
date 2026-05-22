@@ -16,7 +16,7 @@ export function Avatar({ emoji, name, bg, size = 48, src, alt }: AvatarProps) {
         alt={alt ?? name ?? "avatar"}
         width={size}
         height={size}
-        className="rounded-full object-cover flex-shrink-0"
+        className="rounded-full object-cover shrink-0"
         style={{ width: size, height: size }}
       />
     );
@@ -24,7 +24,7 @@ export function Avatar({ emoji, name, bg, size = 48, src, alt }: AvatarProps) {
   if (emoji) {
     return (
       <div
-        className="rounded-full flex items-center justify-center flex-shrink-0"
+        className="rounded-full flex items-center justify-center shrink-0"
         style={{
           width: size,
           height: size,
@@ -39,7 +39,7 @@ export function Avatar({ emoji, name, bg, size = 48, src, alt }: AvatarProps) {
   const initial = (name ?? "?")[0]?.toUpperCase() ?? "?";
   return (
     <div
-      className="rounded-full flex items-center justify-center flex-shrink-0 font-bold text-[var(--primary)]"
+      className="rounded-full flex items-center justify-center shrink-0 font-bold text-(--primary)"
       style={{
         width: size,
         height: size,

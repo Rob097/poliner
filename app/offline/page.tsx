@@ -12,12 +12,12 @@ export default function OfflinePage() {
       <h1 className="font-serif text-2xl font-bold text-text mt-6 mb-2">
         Sei offline
       </h1>
-      <p className="text-[15px] text-[var(--text-secondary)] max-w-sm leading-relaxed">
+      <p className="text-[15px] text-(--text-secondary) max-w-sm leading-relaxed">
         Non riesco a connettermi al pollaio digitale.
         <br />
         Controlla la connessione e riprova.
       </p>
-      <p className="text-xs text-[var(--text-secondary)] mt-6 italic">
+      <p className="text-xs text-(--text-secondary) mt-6 italic">
         Le pagine che hai già visitato continueranno a funzionare offline.
       </p>
     </div>

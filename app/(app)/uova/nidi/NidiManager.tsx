@@ -41,11 +41,11 @@ export function NidiManager({ items }: { items: NidoItem[] }) {
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-[15px]">{n.nome}</div>
                   {n.note && (
-                    <div className="text-xs text-[var(--text-secondary)] truncate">
+                    <div className="text-xs text-(--text-secondary) truncate">
                       {n.note}
                     </div>
                   )}
-                  <div className="text-[11px] text-[var(--text-secondary)] mt-0.5">
+                  <div className="text-[11px] text-(--text-secondary) mt-0.5">
                     {n.uovaSettimana} uova ultimi 7 giorni
                   </div>
                 </div>

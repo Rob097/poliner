@@ -46,7 +46,7 @@ export function RichiesteSection({ richieste, uovaDisponibili, ruolo, autoOpen =
 
       {richieste.length === 0 ? (
         <Card>
-          <p className="text-sm text-[var(--text-secondary)] text-center py-1 m-0">
+          <p className="text-sm text-(--text-secondary) text-center py-1 m-0">
             {isAdmin
               ? "Nessuna richiesta al momento."
               : "Nessuna richiesta in attesa."}
@@ -143,26 +143,26 @@ function RichiestaCard({
   return (
     <Card className="flex flex-col gap-2 py-2.5 px-3.5">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-lg flex-shrink-0">
+        <div className="w-10 h-10 rounded-full bg-(--primary-light) flex items-center justify-center text-lg shrink-0">
           🙏
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-sm">
             <span className="font-semibold">{richiesta.richiedenteNome}</span>
             {richiesta.isMia && (
-              <span className="ml-1 text-xs text-[var(--text-secondary)] font-normal">
+              <span className="ml-1 text-xs text-(--text-secondary) font-normal">
                 (tu)
               </span>
             )}
-            <span className="text-[var(--text-secondary)]">
+            <span className="text-(--text-secondary)">
               {" "}chiede {richiesta.quantita} uov{richiesta.quantita === 1 ? "o" : "a"}
             </span>
           </div>
-          <div className="text-xs text-[var(--text-secondary)]">
+          <div className="text-xs text-(--text-secondary)">
             {etichettaGiornoRelativo(richiesta.createdAt)}
           </div>
           {richiesta.nota && (
-            <div className="text-xs text-[var(--text-secondary)] italic mt-1">
+            <div className="text-xs text-(--text-secondary) italic mt-1">
               &ldquo;{richiesta.nota}&rdquo;
             </div>
           )}
@@ -194,7 +194,7 @@ function RichiestaCard({
           type="button"
           onClick={handleAnnulla}
           disabled={isPending}
-          className="text-xs text-[var(--text-secondary)] self-start"
+          className="text-xs text-(--text-secondary) self-start"
         >
           Annulla la mia richiesta
         </button>
@@ -242,7 +242,7 @@ function RichiediModal({
   return (
     <Modal title="🙏 Vorrei delle uova" onClose={onClose}>
       <form onSubmit={handleSubmit}>
-        <p className="text-xs text-[var(--text-secondary)] m-0 mb-3">
+        <p className="text-xs text-(--text-secondary) m-0 mb-3">
           Disponibili nel pollaio:{" "}
           <b>{uovaDisponibili} uov{uovaDisponibili === 1 ? "o" : "a"}</b>
           {uovaDisponibili === 0 && " — chiedi pure, le riceverai appena ce ne saranno!"}
@@ -270,7 +270,7 @@ function RichiediModal({
           />
         </FormField>
 
-        {errore && <p className="text-[var(--primary)] text-sm m-0 mb-2">{errore}</p>}
+        {errore && <p className="text-(--primary) text-sm m-0 mb-2">{errore}</p>}
 
         <Button type="submit" fullWidth size="lg" disabled={isPending}>
           {isPending ? "Invio..." : "Invia richiesta"}

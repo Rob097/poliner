@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { Badge } from "@/components/ui/Badge";
@@ -169,7 +169,7 @@ export function ListaSpesaClient({ items, pollaioNome }: Props) {
           <Button
             type="submit"
             disabled={!nuovoTesto.trim() || pending}
-            className="px-4 py-2 flex-shrink-0"
+            className="px-4 py-2 shrink-0"
             aria-label="Aggiungi"
           >
             <IconPlus size={18} />
@@ -185,7 +185,7 @@ export function ListaSpesaClient({ items, pollaioNome }: Props) {
                   type="button"
                   onClick={onSvuota}
                   disabled={pending}
-                  className="text-xs text-[var(--text-secondary)]"
+                  className="text-xs text-(--text-secondary)"
                 >
                   Svuota
                 </button>
@@ -203,7 +203,7 @@ export function ListaSpesaClient({ items, pollaioNome }: Props) {
 
         {/* Hint */}
         {pending2.length > 0 && (
-          <p className="text-center text-xs text-[var(--text-secondary)] mt-6">
+          <p className="text-center text-xs text-(--text-secondary) mt-6">
             Tocca un&apos;icona per segnare come comprato.
             <br />
             Usa &quot;Condividi&quot; per inviare la lista a chi fa la spesa.
@@ -242,7 +242,7 @@ function VoceRow({ voce, disabled }: { voce: VoceLista; disabled: boolean }) {
       onClick={toggle}
     >
       <div
-        className="w-6 h-6 rounded-lg flex-shrink-0 flex items-center justify-center transition-colors"
+        className="w-6 h-6 rounded-lg shrink-0 flex items-center justify-center transition-colors"
         style={{
           background: voce.comprato ? "var(--primary)" : "transparent",
           border: voce.comprato ? "none" : "2px solid var(--primary)",
@@ -259,7 +259,7 @@ function VoceRow({ voce, disabled }: { voce: VoceLista; disabled: boolean }) {
         >
           {voce.testo}
           {voce.quantita && (
-            <span className="text-[var(--text-secondary)] ml-1 font-normal">
+            <span className="text-(--text-secondary) ml-1 font-normal">
               ({voce.quantita})
             </span>
           )}
@@ -277,7 +277,7 @@ function VoceRow({ voce, disabled }: { voce: VoceLista; disabled: boolean }) {
           del();
         }}
         disabled={isDisabled}
-        className="text-[var(--text-secondary)] p-1"
+        className="text-(--text-secondary) p-1"
         aria-label="Elimina"
       >
         <IconTrash size={14} />

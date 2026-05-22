@@ -102,7 +102,7 @@ export function ImpostazioniClient({
         <Avatar emoji="👩‍🌾" bg="#FFD6E0" size={56} />
         <div className="flex-1 min-w-0">
           <div className="font-bold text-[17px] truncate">{displayName}</div>
-          <div className="text-[13px] text-[var(--text-secondary)] truncate">
+          <div className="text-[13px] text-(--text-secondary) truncate">
             {profilo.email}
           </div>
         </div>
@@ -139,11 +139,11 @@ export function ImpostazioniClient({
         >
           <div>
             <div className="font-semibold text-[15px]">Chi può vedere questo pollaio</div>
-            <div className="text-[13px] text-[var(--text-secondary)] mt-0.5">
+            <div className="text-[13px] text-(--text-secondary) mt-0.5">
               {ruolo === "admin" ? "Gestisci membri e inviti" : "Vedi chi fa parte del pollaio"}
             </div>
           </div>
-          <span className="text-[var(--text-secondary)] text-lg">›</span>
+          <span className="text-(--text-secondary) text-lg">›</span>
         </Link>
       </Card>
 
@@ -181,7 +181,7 @@ export function ImpostazioniClient({
       {/* Altro */}
       <SectionTitle>Altro</SectionTitle>
       <Card className="flex flex-col gap-3.5">
-        <p className="text-xs text-[var(--text-secondary)] m-0">
+        <p className="text-xs text-(--text-secondary) m-0">
           Esporta dati, assistenza e altre opzioni avanzate arriveranno con i prossimi aggiornamenti.
         </p>
       </Card>
@@ -197,7 +197,7 @@ export function ImpostazioniClient({
         {"Esci dall'account"}
       </Button>
 
-      <div className="text-center mt-4 text-xs text-[var(--text-secondary)]">
+      <div className="text-center mt-4 text-xs text-(--text-secondary)">
         Poliner v1.1 · Made with 🐔 by Roberto
       </div>
 
@@ -246,7 +246,7 @@ function KeyValueRow({
 }) {
   return (
     <div className="flex justify-between items-center py-2 first:pt-0 last:pb-0">
-      <span className="text-sm text-[var(--text-secondary)]">{label}</span>
+      <span className="text-sm text-(--text-secondary)">{label}</span>
       <div className="flex items-center gap-2">
         <span className="text-sm font-semibold">{value}</span>
         {onEdit && (
@@ -254,7 +254,7 @@ function KeyValueRow({
             type="button"
             onClick={onEdit}
             aria-label="Modifica"
-            className="text-[var(--text-secondary)]"
+            className="text-(--text-secondary)"
           >
             <IconEdit size={14} />
           </button>
@@ -354,7 +354,7 @@ function PaginaPubblicaSection({ pollaio }: { pollaio: Pollaio }) {
           <div className="font-semibold text-[15px]">
             {pollaio.pubblicoAttivo ? "🌐 Pagina pubblica attiva" : "🌐 Pagina pubblica"}
           </div>
-          <div className="text-[13px] text-[var(--text-secondary)] mt-0.5">
+          <div className="text-[13px] text-(--text-secondary) mt-0.5">
             {pollaio.pubblicoAttivo
               ? "Chiunque ha il link può vedere nome, descrizione e galline del pollaio."
               : "Genera un link condivisibile per mostrare il tuo pollaio."}
@@ -410,9 +410,9 @@ function PaginaPubblicaSection({ pollaio }: { pollaio: Pollaio }) {
           rows={4}
           maxLength={500}
           placeholder="Racconta il tuo pollaio: storia, razze, perché lo hai aperto…"
-          className="w-full rounded-[var(--radius-sm)] border border-[var(--border)] bg-white px-3 py-2 text-sm font-sans focus:outline-none focus:border-[var(--primary)]"
+          className="w-full rounded-sm border border-(--border) bg-white px-3 py-2 text-sm font-sans focus:outline-hidden focus:border-(--primary)"
         />
-        <div className="text-xs text-[var(--text-secondary)] mt-1 text-right">
+        <div className="text-xs text-(--text-secondary) mt-1 text-right">
           {descrizione.length}/500
         </div>
       </FormField>
@@ -434,7 +434,7 @@ function PaginaPubblicaSection({ pollaio }: { pollaio: Pollaio }) {
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="block text-center text-sm text-[var(--primary)] font-semibold mt-2"
+          className="block text-center text-sm text-(--primary) font-semibold mt-2"
         >
           Apri pagina pubblica ↗
         </a>
@@ -464,7 +464,7 @@ function Switch({
       style={{ background: checked ? "var(--primary)" : "var(--border)" }}
     >
       <span
-        className="inline-block w-5 h-5 bg-white rounded-full shadow transition-transform"
+        className="inline-block w-5 h-5 bg-white rounded-full shadow-sm transition-transform"
         style={{ transform: checked ? "translateX(22px)" : "translateX(2px)" }}
       />
     </button>
@@ -622,7 +622,7 @@ function NotificheSection({
       <div className="flex justify-between items-center gap-3">
         <div>
           <div className="font-semibold text-sm">🔔 Notifiche</div>
-          <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+          <div className="text-xs text-(--text-secondary) mt-0.5">
             {!supported
               ? "Il tuo browser non supporta le push"
               : browserPushPending
@@ -653,12 +653,12 @@ function NotificheSection({
         </Button>
       )}
 
-      <hr className="border-[var(--border)] m-0" />
+      <hr className="border-(--border) m-0" />
 
       <div className="flex justify-between items-center">
         <div>
           <div className="font-semibold text-sm">📧 Email</div>
-          <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+          <div className="text-xs text-(--text-secondary) mt-0.5">
             Promemoria importanti via email
           </div>
         </div>
@@ -672,19 +672,19 @@ function NotificheSection({
         />
       </div>
 
-      <hr className="border-[var(--border)] m-0" />
+      <hr className="border-(--border) m-0" />
 
-      <div className="text-[13px] font-semibold text-[var(--text-secondary)]">
+      <div className="text-[13px] font-semibold text-(--text-secondary)">
         Categorie
       </div>
 
       {CATEGORIE_NOTIFICHE.map((cat) => (
         <div key={cat.id} className="flex justify-between items-center gap-3">
           <div className="flex items-start gap-2 min-w-0">
-            <span className="text-lg flex-shrink-0">{cat.icona}</span>
+            <span className="text-lg shrink-0">{cat.icona}</span>
             <div className="min-w-0">
               <div className="font-semibold text-sm">{cat.label}</div>
-              <div className="text-xs text-[var(--text-secondary)] truncate">
+              <div className="text-xs text-(--text-secondary) truncate">
                 {cat.desc}
               </div>
             </div>
@@ -716,7 +716,7 @@ function SwitchToggle({
       disabled={disabled}
       role="switch"
       aria-checked={on}
-      className="flex-shrink-0 transition-all disabled:opacity-40"
+      className="shrink-0 transition-all disabled:opacity-40"
       style={{
         width: 44,
         height: 26,
@@ -993,7 +993,7 @@ function ModalPollaio({
             <p className="mt-2 text-xs text-[#c0435a]">{searchError}</p>
           )}
           {searchingPlaces && posizione.trim().length >= 2 && (
-            <p className="mt-2 text-xs text-[var(--text-secondary)]">
+            <p className="mt-2 text-xs text-(--text-secondary)">
               Cerco località disponibili...
             </p>
           )}
@@ -1002,17 +1002,17 @@ function ModalPollaio({
             suggestions.length === 0 &&
             posizione.trim().length >= 2 &&
             (!selectedLocation || posizione.trim() !== selectedLocation.nome) && (
-              <p className="mt-2 text-xs text-[var(--text-secondary)]">
+              <p className="mt-2 text-xs text-(--text-secondary)">
                 Nessuna località trovata per questa ricerca.
               </p>
             )}
           {suggestions.length > 0 && (
-            <div className="mt-2 overflow-hidden rounded-[var(--radius-sm)] border-2 border-[var(--border)] bg-white">
+            <div className="mt-2 overflow-hidden rounded-sm border-2 border-(--border) bg-white">
               {suggestions.map((suggestion) => (
                 <button
                   key={`${suggestion.id}-${suggestion.lat}-${suggestion.lng}`}
                   type="button"
-                  className="w-full border-b border-[var(--border)] px-4 py-3 text-left text-[15px] font-semibold text-text transition-colors last:border-b-0 hover:bg-[var(--border)]"
+                  className="w-full border-b border-(--border) px-4 py-3 text-left text-[15px] font-semibold text-text transition-colors last:border-b-0 hover:bg-(--border)"
                   onClick={() => onSelectSuggestion(suggestion)}
                 >
                   {suggestion.display}
@@ -1021,7 +1021,7 @@ function ModalPollaio({
             </div>
           )}
         </FormField>
-        <p className="text-xs text-[var(--text-secondary)] italic mb-3">
+        <p className="text-xs text-(--text-secondary) italic mb-3">
           Scegli una località dai suggerimenti o usa il GPS per aggiornare meteo e tramonto.
         </p>
         <Button type="submit" fullWidth size="lg" disabled={!nome.trim() || pending}>
@@ -1070,7 +1070,7 @@ function ModalConservazione({
   return (
     <Modal title="Conservazione uova" onClose={onClose}>
       <form onSubmit={onSubmit}>
-        <p className="text-xs text-[var(--text-secondary)] mb-3">
+        <p className="text-xs text-(--text-secondary) mb-3">
           Dopo quanti giorni considerare un uovo &quot;scaduto&quot; in base a dove è conservato.
         </p>
         <FormField label="A temperatura ambiente (giorni)">

@@ -34,10 +34,10 @@ export function BenvenutoClient({ pollaioNome, ruolo }: Props) {
       <h1 className="font-serif text-2xl font-bold mt-6 mb-2 animate-slide-up">
         Benvenuta/o nel pollaio
       </h1>
-      <p className="text-[20px] font-bold text-[var(--primary)] m-0 animate-slide-up">
+      <p className="text-[20px] font-bold text-(--primary) m-0 animate-slide-up">
         {pollaioNome}
       </p>
-      <p className="text-sm text-[var(--text-secondary)] mt-4 animate-fade-in max-w-xs">
+      <p className="text-sm text-(--text-secondary) mt-4 animate-fade-in max-w-xs">
         {ruolo === "admin"
           ? "Sei admin: puoi fare tutto qui dentro!"
           : "Sei guest: puoi guardare e fare richieste di uova."}

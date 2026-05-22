@@ -4,10 +4,10 @@ PWA per la gestione di un pollaio domestico. In italiano, mobile-first, design p
 
 ## Stack
 
-- **Next.js 14.2.x** (App Router) + **TypeScript**
-- **Tailwind CSS v3**
+- **Next.js 16.2.x** (App Router) + **React 19** + **TypeScript 6**
+- **Tailwind CSS v4**
 - **Supabase** (PostgreSQL, Auth, Storage, Edge Functions, pg_cron)
-- **next-pwa** (manifest + service worker + custom push handler)
+- **@ducanh2912/next-pwa** (manifest + service worker + custom push handler)
 - **Recharts** per i grafici di /statistiche
 - **Resend** per email transazionali
 - **Open-Meteo** per meteo (no API key)
@@ -16,7 +16,7 @@ PWA per la gestione di un pollaio domestico. In italiano, mobile-first, design p
 ## Setup locale
 
 ```bash
-nvm use 22                       # Richiede Node >= 18.17
+nvm use 22                       # Richiede Node >= 22
 npm install
 node scripts/gen-vapid-keys.mjs  # Solo prima volta — genera VAPID + scrive .env.local
 npm run dev
@@ -27,11 +27,11 @@ App disponibile su <http://localhost:3000>.
 ## Comandi utili
 
 ```bash
-npm run dev          # dev server (PWA disabilitata in dev)
-npm run build        # build produzione (PWA attiva)
+npm run dev          # dev server webpack (PWA disabilitata in dev)
+npm run build        # build produzione webpack (PWA attiva)
 npm run start        # avvia build production
 npm run typecheck    # tsc senza emit
-npm run lint         # next lint
+npm run lint         # eslint .
 ```
 
 ## Secrets da configurare su Supabase Edge Functions
@@ -53,7 +53,7 @@ SUPABASE_SECRET_KEYS=<chiavi opzionali separate da virgola per scheduler o chiam
 - `components/ui/` — Componenti UI riutilizzabili
 - `components/layout/` — TabBar, FAB, AppShell, InstallPrompt
 - `components/brand/` — Logo
-- `lib/supabase/` — Client browser/server/middleware/admin + types
+- `lib/supabase/` — Client browser/server/proxy/admin + types
 - `lib/push/` — Logica client-side Web Push
 - `lib/data/` — Catalogo razze
 - `lib/constants/` — Categorie notifiche, tipi manutenzione
@@ -92,4 +92,4 @@ Progetto Supabase: `sispxufbdmetaszlhurk` (eu-west-1).
 npm run build && npm run start
 ```
 
-next-pwa è disabilitata in dev (`disable: !isProd`), quindi il service worker e le push richiedono build production per essere testati.
+`@ducanh2912/next-pwa` è disabilitata in dev (`disable: !isProd`), quindi il service worker e le push richiedono build production per essere testati.

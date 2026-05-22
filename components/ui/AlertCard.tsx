@@ -21,7 +21,7 @@ export function AlertCard({ icon, title, subtitle, color, onClick }: AlertCardPr
       <span className="text-2xl">{icon}</span>
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-sm text-text">{title}</div>
-        {subtitle && <div className="text-xs text-[var(--text-secondary)] mt-0.5">{subtitle}</div>}
+        {subtitle && <div className="text-xs text-(--text-secondary) mt-0.5">{subtitle}</div>}
       </div>
       <IconChevron size={18} color="var(--text-secondary)" />
     </Card>

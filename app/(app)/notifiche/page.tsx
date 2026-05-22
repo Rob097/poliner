@@ -135,7 +135,7 @@ export default async function NotifichePage() {
             )}
             {Array.from(grouped.entries()).map(([date, group]) => (
               <div key={date}>
-                <div className="text-[13px] font-bold text-[var(--text-secondary)] mt-4 mb-2">
+                <div className="text-[13px] font-bold text-(--text-secondary) mt-4 mb-2">
                   {etichettaGiornoRelativo(date)} · {formatData(date)}
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -158,7 +158,7 @@ export default async function NotifichePage() {
                         }}
                       >
                         <span
-                          className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+                          className="w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0"
                           style={{ background: `${meta.color}44` }}
                         >
                           {meta.icona}
@@ -169,10 +169,10 @@ export default async function NotifichePage() {
                               <div className="font-semibold text-sm flex items-center gap-2">
                                 <span>{meta.label}</span>
                                 {isUnread && (
-                                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[var(--primary)]" />
+                                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-(--primary)" />
                                 )}
                               </div>
-                              <div className="text-xs text-[var(--text-secondary)]">
+                              <div className="text-xs text-(--text-secondary)">
                                 {new Date(n.inviata_il).toLocaleTimeString(
                                   "it-IT",
                                   { hour: "2-digit", minute: "2-digit" },
@@ -184,10 +184,10 @@ export default async function NotifichePage() {
                               <div className="font-semibold text-sm flex items-center gap-2">
                                 <span>{meta.label}</span>
                                 {isUnread && (
-                                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[var(--primary)]" />
+                                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-(--primary)" />
                                 )}
                               </div>
-                              <div className="text-xs text-[var(--text-secondary)]">
+                              <div className="text-xs text-(--text-secondary)">
                                 {new Date(n.inviata_il).toLocaleTimeString(
                                   "it-IT",
                                   { hour: "2-digit", minute: "2-digit" },
@@ -197,19 +197,19 @@ export default async function NotifichePage() {
                           )}
                         </div>
                         {isUnread ? (
-                          <form action={segnaNotificaComeLetta} className="flex-shrink-0">
+                          <form action={segnaNotificaComeLetta} className="shrink-0">
                             <input type="hidden" name="id" value={n.id} />
                             <Button
                               type="submit"
                               variant="icon"
                               aria-label="Segna come letta"
-                              className="text-[var(--primary)] text-lg"
+                              className="text-(--primary) text-lg"
                             >
                               ✓
                             </Button>
                           </form>
                         ) : (
-                          <span className="text-xs font-semibold text-[var(--text-secondary)] flex-shrink-0">
+                          <span className="text-xs font-semibold text-(--text-secondary) shrink-0">
                             Letta
                           </span>
                         )}
@@ -219,7 +219,7 @@ export default async function NotifichePage() {
                 </div>
               </div>
             ))}
-            <p className="text-center text-xs text-[var(--text-secondary)] mt-6 italic">
+            <p className="text-center text-xs text-(--text-secondary) mt-6 italic">
               Mostriamo solo gli ultimi 80 avvisi degli ultimi 30 giorni.
             </p>
           </>

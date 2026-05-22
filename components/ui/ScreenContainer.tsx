@@ -12,7 +12,7 @@ interface ScreenContainerProps {
 export function ScreenContainer({ children, header, pad = true, className }: ScreenContainerProps) {
   return (
     <div className={cn("screen-scroll pad-tab", className)}>
-      {header ? <div className="sticky top-0 z-20 bg-[var(--bg)]">{header}</div> : null}
+      {header ? <div className="sticky top-0 z-20 bg-(--bg)">{header}</div> : null}
       <div
         className={cn(
           // `pt-2` evita che il primo elemento tocchi il bordo dell'Header.

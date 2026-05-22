@@ -12,8 +12,9 @@ interface SearchParams {
 export default async function NotePage({
   searchParams,
 }: {
-  searchParams: SearchParams;
+  searchParams: Promise<SearchParams>;
 }) {
+  const resolvedSearchParams = await searchParams;
   const { supabase, pollaio } = await requireAdminPollaio();
 
   const { data: note } = await supabase
@@ -34,7 +35,7 @@ export default async function NotePage({
     promemoriaInviato: n.promemoria_inviato,
   }));
 
-  const apriNuova = searchParams.nuova === "1";
+  const apriNuova = resolvedSearchParams.nuova === "1";
 
   return (
     <ScreenContainer

@@ -73,10 +73,10 @@ export default async function MeteoPage() {
           <div className="text-5xl font-extrabold text-text">
             {meteo.attuale.temp}°C
           </div>
-          <div className="text-[15px] text-[var(--text-secondary)]">
+          <div className="text-[15px] text-(--text-secondary)">
             {meteo.attuale.condizione}
           </div>
-          <div className="flex justify-center gap-5 mt-3 text-[13px] text-[var(--text-secondary)]">
+          <div className="flex justify-center gap-5 mt-3 text-[13px] text-(--text-secondary)">
             <span>💧 {meteo.attuale.umidita}%</span>
             <span>💨 {meteo.attuale.vento} km/h</span>
             <span>🌡️ Percepita {meteo.attuale.percepita}°</span>
@@ -122,7 +122,7 @@ export default async function MeteoPage() {
             href={forecastUrl}
             target="_blank"
             rel="noreferrer noopener"
-            className="inline-flex items-center text-sm font-semibold text-[var(--primary)] underline-offset-2 hover:underline"
+            className="inline-flex items-center text-sm font-semibold text-(--primary) underline-offset-2 hover:underline"
           >
             Vedi previsioni complete su 3B Meteo
           </Link>
@@ -134,9 +134,9 @@ export default async function MeteoPage() {
               key={g.date}
               className="flex items-center justify-between gap-2"
             >
-              <div className="w-20 flex-shrink-0">
+              <div className="w-20 shrink-0">
                 <div className="font-semibold text-sm">{g.giornoLabel}</div>
-                <div className="text-[11px] text-[var(--text-secondary)]">
+                <div className="text-[11px] text-(--text-secondary)">
                   {g.tempMin}° / {g.tempMax}°
                 </div>
               </div>
@@ -147,7 +147,7 @@ export default async function MeteoPage() {
                   { label: "Sera", data: g.sera },
                 ].map((slot) => (
                   <div key={slot.label} className="text-center">
-                    <div className="text-[10px] text-[var(--text-secondary)]">
+                    <div className="text-[10px] text-(--text-secondary)">
                       {slot.label}
                     </div>
                     <div className="text-lg">{slot.data.icona}</div>

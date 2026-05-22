@@ -12,7 +12,7 @@ export function FormField({ label, children, className, error }: FormFieldProps)
   return (
     <div className={cn("mb-4", className)}>
       {label && (
-        <label className="block text-[13px] font-semibold text-[var(--text-secondary)] mb-1.5">
+        <label className="block text-[13px] font-semibold text-(--text-secondary) mb-1.5">
           {label}
         </label>
       )}

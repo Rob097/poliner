@@ -6,7 +6,7 @@ import { sendPushToUser } from "@/lib/push/server";
  * Endpoint di test: invia una notifica push a tutti gli endpoint dell'utente.
  */
 export async function POST() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ ok: false, error: "Non autenticato" }, { status: 401 });

@@ -42,17 +42,15 @@
   2. Verify invite email delivery end-to-end.
   3. Remove the legacy service-role fallback from `lib/actions/inviti.ts` and `supabase/functions/send-email/index.ts`.
 
-- Dependency vulnerabilities from `npm audit` require a coordinated upgrade branch.
-  High/Critical findings reported:
+- Dependency vulnerabilities from `npm audit` still need periodic review after the upgrade branch.
+  Current state after the dependency modernization:
 
-  - `fast-xml-parser` critical via `@aws-sdk/client-cloudfront` and `@aws-sdk/client-sts`; audit points to `@opennextjs/cloudflare@1.19.11`.
-  - `@opennextjs/cloudflare` high; audit fix target `1.19.11`.
-  - `wrangler` and `undici` high; audit fix target `wrangler@4.93.1`.
-  - `next` high; audit fix target `next@16.2.6`.
-  - `eslint-config-next` high; audit fix target `16.2.6`.
-  - `next-pwa`, `workbox-*`, and `serialize-javascript` high; audit fix target `next-pwa@2.0.2`.
+  - the app is now on `next@16.2.6`, `react@19.2.6`, `eslint-config-next@16.2.6`, `@opennextjs/cloudflare@1.19.11`, and `wrangler@4.94.0`;
+  - the abandoned `next-pwa` chain was removed in favor of `@ducanh2912/next-pwa`, and `workbox-build` / `workbox-webpack-plugin` are pinned to `7.4.1` via `overrides`;
+  - the previous high-severity `serialize-javascript` / legacy Workbox chain is no longer present;
+  - remaining `npm audit` findings are currently moderate-only and come from upstream nested dependencies in the Next/OpenNext/PWA toolchain.
 
-  This repo is currently pinned around Next 14 and `@opennextjs/cloudflare@1.13.1`, so these are not safe one-command upgrades. Plan them as a compatibility upgrade with adapter validation.
+  Treat future audit work as compatibility updates with validation, not as `npm audit fix --force` candidates.
 
 - `.dev.vars` is tracked in git.
   It currently contains only `NEXTJS_ENV=development`, but do not store secrets in it unless you first stop tracking it:
@@ -65,7 +63,7 @@
 
 - Live Supabase table audit: all public tables currently have RLS enabled. No public table was found with RLS disabled.
 - Live Supabase follow-up: the bucket listing policy has been removed, and effective anonymous execute has been reduced so only the intentionally public `public_pollaio_stats(text)` RPC still remains anonymously callable.
-- Auth/session enforcement is present on the private app surface via `middleware.ts`, `lib/supabase/middleware.ts`, and the server helpers in `lib/supabase/queries.ts`. The intentionally open/public surfaces are login/registration/reset, auth callback, invite pages, and `/p/*`.
+- Auth/session enforcement is present on the private app surface via `proxy.ts`, `lib/supabase/middleware.ts`, and the server helpers in `lib/supabase/queries.ts`. The intentionally open/public surfaces are login/registration/reset, auth callback, invite pages, and `/p/*`.
 - No `dangerouslySetInnerHTML` or similar raw HTML sinks were found in app/components. The invite email template in `lib/actions/inviti.ts` escapes user-controlled fields before HTML composition.
 - No frontend use of `SUPABASE_SERVICE_ROLE_KEY` was found. The admin client is now additionally protected by `server-only` imports.
 - Authenticated domain pages still contain some `.select("*")` queries in places like `app/(app)/galline/page.tsx`, `app/(app)/rubrica/[id]/page.tsx`, `app/(app)/note/page.tsx`, `app/(app)/scorte/page.tsx`, `app/(app)/spese/page.tsx`, `app/(app)/lista-spesa/page.tsx`, and `app/(app)/uova/nidi/page.tsx`. These are RLS-protected and currently low-risk in this private app, but they should be narrowed over time for least privilege and payload hygiene.
@@ -73,5 +71,6 @@
 - Validation run:
 
   - `npm run typecheck` passed after the fixes.
-  - `npm run build` could not be completed in this environment because the local Node.js version is `18.10.0`, below the repo requirement of `>=18.17.0`.
+  - `npm run lint` passed after the dependency and auth/PWA follow-up changes.
+  - `npm run build` passed with Node.js `22.16.0` after the Next 16 / PWA migration updates.
   - Supabase migrations applied successfully: `20260521144434_security_followups_permissions_and_storage`, `20260521144527_security_followups_public_execute_cleanup`.

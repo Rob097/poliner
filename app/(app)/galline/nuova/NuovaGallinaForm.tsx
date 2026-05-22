@@ -134,13 +134,13 @@ export function NuovaGallinaForm() {
 
           {showRazzaInfo && razza && (
             <div
-              className="rounded-[var(--radius)] p-4 mb-4"
+              className="rounded-(--radius) p-4 mb-4"
               style={{ background: "var(--primary-lighter)" }}
             >
-              <div className="text-[13px] font-semibold text-[var(--primary)] mb-1.5">
+              <div className="text-[13px] font-semibold text-(--primary) mb-1.5">
                 Info sulla razza
               </div>
-              <div className="grid grid-cols-2 gap-1.5 text-xs text-[var(--text-secondary)]">
+              <div className="grid grid-cols-2 gap-1.5 text-xs text-(--text-secondary)">
                 {showEggInfo && <span>🥚 {uovaAnnoLabel(razza)} uova/anno</span>}
                 <span>📏 Taglia {razza.taglia}</span>
                 {showEggInfo && <span>🎨 Uova {razza.coloreUova}</span>}
@@ -177,17 +177,17 @@ export function NuovaGallinaForm() {
 
           <details className="mb-4 mt-2 group">
             <summary
-              className="list-none cursor-pointer flex items-center justify-between px-1 py-2 text-[12px] uppercase tracking-wider font-bold text-[var(--text-secondary)]"
+              className="list-none cursor-pointer flex items-center justify-between px-1 py-2 text-[12px] uppercase tracking-wider font-bold text-(--text-secondary)"
             >
               <span>Impostazioni delicate</span>
               <span
-                className="text-[var(--text-secondary)] transition-transform group-open:rotate-90"
+                className="text-(--text-secondary) transition-transform group-open:rotate-90"
                 aria-hidden
               >
                 ›
               </span>
             </summary>
-            <div className="rounded-[var(--radius)] border border-[var(--border)] p-3 mt-1">
+            <div className="rounded-(--radius) border border-(--border) p-3 mt-1">
               <label className="flex items-start gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -199,7 +199,7 @@ export function NuovaGallinaForm() {
                   <div className="text-sm font-semibold">
                     💔 Questa {tipo === "gallo" ? "gallo" : "gallina"} è già defunta
                   </div>
-                  <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+                  <div className="text-xs text-(--text-secondary) mt-0.5">
                     La aggiungerò nella sezione “In memoria”, con il suo storico.
                   </div>
                 </div>
@@ -251,7 +251,7 @@ export function NuovaGallinaForm() {
             <Button
               type="submit"
               disabled={!nome.trim() || submitting}
-              className="flex-[2]"
+              className="flex-2"
             >
               {submitting
                 ? "Sto preparando..."

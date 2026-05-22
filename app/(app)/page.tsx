@@ -156,11 +156,11 @@ export default async function HomePage() {
         />
       )}
     >
-        <div className="text-[13px] text-[var(--text-secondary)] mt-1 mb-2">
+        <div className="text-[13px] text-(--text-secondary) mt-1 mb-2">
           {dateStr}
         </div>
         {/* Widget meteo */}
-        {meteo ? <MeteoWidget meteo={meteo} /> : <MeteoMissing pollaioId={pollaio.id} />}
+        {meteo ? <MeteoWidget meteo={meteo} /> : <MeteoMissing />}
 
         {/* Apertura/chiusura pollaio */}
         <div className="mt-3">
@@ -185,13 +185,13 @@ export default async function HomePage() {
               }}
             >
               <div className="text-4xl">🥚</div>
-              <div className="text-4xl font-extrabold text-[var(--primary)]">
+              <div className="text-4xl font-extrabold text-(--primary)">
                 {counters.uovaDisponibili}
               </div>
-              <div className="text-[13px] text-[var(--primary)] font-semibold">
+              <div className="text-[13px] text-(--primary) font-semibold">
                 uova disponibili
               </div>
-              <div className="text-[11px] text-[var(--text-secondary)] mt-1">
+              <div className="text-[11px] text-(--text-secondary) mt-1">
                 +{counters.uovaOggi} oggi
               </div>
             </Card>
@@ -212,7 +212,7 @@ export default async function HomePage() {
               <div className="text-[13px] font-semibold" style={{ color: "#5a8a5a" }}>
                 galline
               </div>
-              <div className="text-[11px] text-[var(--text-secondary)] mt-1">
+              <div className="text-[11px] text-(--text-secondary) mt-1">
                 {counters.galli > 0 ? `+${counters.galli} gallo` : "no gallo"}
               </div>
             </Card>
@@ -240,7 +240,7 @@ export default async function HomePage() {
                   <div key={g.animaleId} className="flex items-center gap-2.5 text-xs">
                     <span className="text-base" aria-hidden>🐔</span>
                     <span className="font-semibold text-text flex-1 truncate">{g.nome}</span>
-                    <span className="text-[var(--text-secondary)]">
+                    <span className="text-(--text-secondary)">
                       {g.giorni === 0
                         ? "da oggi"
                         : `da ${g.giorni} ${g.giorni === 1 ? "giorno" : "giorni"}`}
@@ -248,7 +248,7 @@ export default async function HomePage() {
                   </div>
                 ))}
                 {hhList.length > 3 && (
-                  <div className="text-[11px] text-[var(--text-secondary)] text-right mt-0.5">
+                  <div className="text-[11px] text-(--text-secondary) text-right mt-0.5">
                     +{hhList.length - 3} altre →
                   </div>
                 )}
@@ -322,7 +322,7 @@ export default async function HomePage() {
             <div className="font-bold text-sm text-text mb-1">
               {consiglio.titolo}
             </div>
-            <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed m-0">
+            <p className="text-[13px] text-(--text-secondary) leading-relaxed m-0">
               {consiglio.messaggio}
             </p>
           </div>
@@ -350,12 +350,12 @@ function MeteoWidget({ meteo }: { meteo: MeteoData }) {
               <div className="text-2xl font-extrabold text-text">
                 {meteo.attuale.temp}°C
               </div>
-              <div className="text-[13px] text-[var(--text-secondary)]">
+              <div className="text-[13px] text-(--text-secondary)">
                 {meteo.attuale.condizione}
               </div>
             </div>
           </div>
-          <div className="flex gap-3 text-xs text-[var(--text-secondary)]">
+          <div className="flex gap-3 text-xs text-(--text-secondary)">
             {prossimi.map((p) => (
               <div key={p.date} className="text-center">
                 <div className="text-lg mb-0.5">{p.pomeriggio.icona}</div>
@@ -378,7 +378,7 @@ function MeteoWidget({ meteo }: { meteo: MeteoData }) {
   );
 }
 
-function MeteoMissing({ pollaioId: _pollaioId }: { pollaioId: string }) {
+function MeteoMissing() {
   return (
     <Card
       className="mt-3 flex gap-3 items-start"
@@ -387,9 +387,9 @@ function MeteoMissing({ pollaioId: _pollaioId }: { pollaioId: string }) {
       <span className="text-2xl">📍</span>
       <div className="flex-1">
         <div className="font-semibold text-sm">Posizione non impostata</div>
-        <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+        <div className="text-xs text-(--text-secondary) mt-0.5">
           Aggiungi la posizione del pollaio dalle{" "}
-          <Link href="/impostazioni" className="text-[var(--primary)] font-semibold">
+          <Link href="/impostazioni" className="text-(--primary) font-semibold">
             impostazioni
           </Link>{" "}
           per vedere il meteo.

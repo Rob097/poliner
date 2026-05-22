@@ -4,7 +4,7 @@ import { useState, type InputHTMLAttributes } from "react";
 import { cn } from "@/lib/utils/cn";
 import { Input } from "@/components/ui/Input";
 
-interface PasswordInputProps extends InputHTMLAttributes<HTMLInputElement> {}
+type PasswordInputProps = InputHTMLAttributes<HTMLInputElement>;
 
 export function PasswordInput({ className, ...rest }: PasswordInputProps) {
   const [isVisible, setIsVisible] = useState(false);
@@ -19,7 +19,7 @@ export function PasswordInput({ className, ...rest }: PasswordInputProps) {
       <button
         type="button"
         onClick={() => setIsVisible((current) => !current)}
-        className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-[var(--text-secondary)] transition-colors hover:text-[var(--text)]"
+        className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-(--text-secondary) transition-colors hover:text-(--text)"
         aria-label={isVisible ? "Nascondi password" : "Mostra password"}
         aria-pressed={isVisible}
       >

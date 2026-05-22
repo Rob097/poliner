@@ -38,11 +38,11 @@ export function getNotificationStatus(): PushStatus {
 /**
  * Converte la VAPID public key (base64url) in Uint8Array.
  */
-function urlBase64ToUint8Array(base64: string): Uint8Array {
+function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
   const b64 = (base64 + padding).replace(/-/g, "+").replace(/_/g, "/");
   const raw = atob(b64);
-  const arr = new Uint8Array(raw.length);
+  const arr = new Uint8Array(new ArrayBuffer(raw.length));
   for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
   return arr;
 }

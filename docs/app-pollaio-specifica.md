@@ -525,8 +525,8 @@ Nella sezione Impostazioni > Notifiche:
 
 | Layer | Tecnologia | Motivazione |
 |---|---|---|
-| Frontend / PWA | Next.js (React) | SSR/SSG, routing, ottimo supporto PWA con next-pwa, deploy semplice |
-| PWA features | next-pwa / Workbox | Service worker, offline cache, installabilità dalla home screen |
+| Frontend / PWA | Next.js (React) | SSR/SSG, routing, ottimo supporto PWA con `@ducanh2912/next-pwa`, deploy semplice |
+| PWA features | `@ducanh2912/next-pwa` / Workbox | Service worker, offline cache, installabilità dalla home screen |
 | Styling | Tailwind CSS | Utility-first, ottimo per UI responsive mobile-first |
 | Backend + DB | Supabase | Auth, PostgreSQL, Storage immagini, Edge Functions, tutto incluso |
 | Meteo | Open-Meteo API | Gratuita, no API key, dati orari e giornalieri, copertura IT ottima |
@@ -534,7 +534,7 @@ Nella sezione Impostazioni > Notifiche:
 | Email | Resend o Supabase Edge Functions + SendGrid | Invio email promemoria e avvisi |
 | Grafici | Recharts | Libreria React matura, leggera, buone animazioni |
 | Geolocalizzazione | Browser Geolocation API | Nativa, nessuna dipendenza esterna |
-| Deploy | Vercel | Deploy automatico da Git, CDN globale, gratuito per progetti piccoli |
+| Deploy | Cloudflare Workers + OpenNext | Deploy del runtime Next.js su Workers, edge CDN, coerenza con l'architettura reale del progetto |
 
 **Note sulla scelta PWA vs app nativa:**
 - Nessun bisogno di App Store / Play Store
@@ -717,7 +717,7 @@ Quando si passa questo documento a Claude Design per la prototipazione visiva, l
 Quando si passa questo documento a Claude Code per l'implementazione:
 
 - [ ] Setup progetto Next.js + Tailwind CSS
-- [ ] Configurazione PWA (next-pwa, manifest.json, service worker)
+- [ ] Configurazione PWA (`@ducanh2912/next-pwa`, manifest.json, service worker)
 - [ ] Setup Supabase (auth, schema DB, storage, Edge Functions)
 - [ ] Implementa schema DB completo (vedi sezione 15.2)
 - [ ] Auth: registrazione, login, profilo, reset password

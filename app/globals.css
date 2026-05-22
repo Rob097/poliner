@@ -1,14 +1,187 @@
-@import "@fontsource/quicksand/400.css";
-@import "@fontsource/quicksand/500.css";
-@import "@fontsource/quicksand/600.css";
-@import "@fontsource/quicksand/700.css";
-@import "@fontsource/comfortaa/500.css";
-@import "@fontsource/comfortaa/600.css";
-@import "@fontsource/comfortaa/700.css";
+@import '@fontsource/quicksand/400.css' layer(base);
+@import '@fontsource/quicksand/500.css' layer(base);
+@import '@fontsource/quicksand/600.css' layer(base);
+@import '@fontsource/quicksand/700.css' layer(base);
+@import '@fontsource/comfortaa/500.css' layer(base);
+@import '@fontsource/comfortaa/600.css' layer(base);
+@import '@fontsource/comfortaa/700.css' layer(base);
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  --color-primary: var(--primary);
+  --color-primary-light: var(--primary-light);
+  --color-primary-lighter: var(--primary-lighter);
+
+  --color-accent-peach: #ffe4d0;
+  --color-accent-butter: #ffe07a;
+  --color-accent-sage: #b5d4b5;
+  --color-accent-sky: #a8d1ff;
+  --color-accent-lavender: #e8daff;
+
+  --color-bg: var(--bg);
+  --color-bg-warm: var(--bg-warm);
+
+  --color-border: var(--border);
+
+  --color-text: var(--text);
+  --color-text-secondary: var(--text-secondary);
+
+  --font-serif: Comfortaa, Trebuchet MS, sans-serif;
+  --font-sans: Quicksand, Trebuchet MS, system-ui, sans-serif;
+
+  --radius: var(--app-radius);
+  --radius-sm: var(--app-radius-sm);
+
+  --container-app: 430px;
+
+  --shadow-card: 0 0 60px rgba(0, 0, 0, 0.08);
+  --shadow-fab: 0 4px 16px rgba(232, 103, 138, 0.35);
+  --shadow-toast: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+  --animate-fade-in: fadeIn 0.2s ease;
+  --animate-slide-up: slideUp 0.3s ease;
+  --animate-slide-in-right: slideInRight 0.3s ease;
+  --animate-bounce: bounce 0.6s ease;
+  --animate-peck: peck 1.8s ease-in-out infinite;
+  --animate-wobble: wobble 2.2s ease-in-out infinite;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  @keyframes bounce {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.15);
+    }
+  }
+  @keyframes peck {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    40% {
+      transform: rotate(28deg);
+    }
+    55% {
+      transform: rotate(28deg);
+    }
+    75% {
+      transform: rotate(-4deg);
+    }
+  }
+  @keyframes wobble {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-2px);
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility select-arrow {
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%239E968C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px 8px;
+  padding-right: 36px;
+}
+
+@utility app-frame {
+  /* App frame: max 430px on desktop, full width on mobile.
+     padding-top con safe-area-inset-top per evitare la notch iOS. */
+  width: 100%;
+  max-width: 430px;
+  height: 100dvh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.08);
+  padding-top: env(safe-area-inset-top, 0px);
+
+  @media (min-width: 500px) {
+    height: 90dvh;
+    max-height: 844px;
+    border-radius: 32px;
+    border: 1px solid #ddd;
+    /* In desktop view non c'è notch */
+    padding-top: 0;
+  }
+}
+
+@utility app-frame-desktop {
+  @media (min-width: 500px) {
+    background: #e8e4df;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@utility screen-scroll {
+  /* La spaziatura inferiore è gestita da .screen-scroll-pad (sotto)
+     perché Tailwind utilities vincono sui componenti. */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@utility pad-tab {
+  padding-bottom: calc(var(--tab-bar-height) + var(--tab-bar-gap));
+}
 
 @layer base {
   :root {
@@ -25,8 +198,10 @@
     --text-secondary: #9E968C;
 
     /* Sizing */
-    --radius: 16px;
-    --radius-sm: 12px;
+    --app-radius: 16px;
+    --app-radius-sm: 12px;
+    --radius: var(--app-radius);
+    --radius-sm: var(--app-radius-sm);
     --tab-bar-gap: 24px;
     --tab-bar-height: calc(96px + env(safe-area-inset-bottom, 0px));
   }
@@ -62,66 +237,5 @@
   select {
     -webkit-appearance: none;
     appearance: none;
-  }
-}
-
-@layer utilities {
-  .select-arrow {
-    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%239E968C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    background-size: 12px 8px;
-    padding-right: 36px;
-  }
-}
-
-@layer components {
-  /* App frame: max 430px on desktop, full width on mobile.
-     padding-top con safe-area-inset-top per evitare la notch iOS. */
-  .app-frame {
-    width: 100%;
-    max-width: 430px;
-    height: 100dvh;
-    background: var(--bg);
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 0 60px rgba(0, 0, 0, 0.08);
-    padding-top: env(safe-area-inset-top, 0px);
-  }
-
-  @media (min-width: 500px) {
-    .app-frame-desktop {
-      background: #e8e4df;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .app-frame {
-      height: 90dvh;
-      max-height: 844px;
-      border-radius: 32px;
-      border: 1px solid #ddd;
-      /* In desktop view non c'è notch */
-      padding-top: 0;
-    }
-  }
-
-  /* La spaziatura inferiore è gestita da .screen-scroll-pad (sotto)
-     perché Tailwind utilities vincono sui componenti. */
-  .screen-scroll {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-  }
-}
-
-@layer utilities {
-  .pad-tab {
-    padding-bottom: calc(var(--tab-bar-height) + var(--tab-bar-gap));
   }
 }

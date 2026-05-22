@@ -169,7 +169,6 @@ export async function fetchMeteo(
     };
   }
 
-  const today = new Date();
   const giorni: GiornoPrevisione[] = daily.time.map((d, i) => {
     const date = new Date(d + "T12:00");
     return {

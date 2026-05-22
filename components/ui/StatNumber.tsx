@@ -18,7 +18,7 @@ export function StatNumber({ value, label, color, small }: StatNumberProps) {
         {value}
       </div>
       <div
-        className="text-[var(--text-secondary)] mt-1"
+        className="text-(--text-secondary) mt-1"
         style={{ fontSize: small ? 11 : 12 }}
       >
         {label}

@@ -51,7 +51,7 @@ export function ImageUploadField({
 
   return (
     <label
-      className="rounded-3xl bg-[var(--primary-lighter)] flex items-center justify-center cursor-pointer overflow-hidden relative mx-auto"
+      className="rounded-3xl bg-(--primary-lighter) flex items-center justify-center cursor-pointer overflow-hidden relative mx-auto"
       style={{
         width: size,
         height: size,
@@ -74,7 +74,7 @@ export function ImageUploadField({
       ) : (
         <div className="text-center flex flex-col items-center">
           <IconCamera size={40} color="var(--primary)" />
-          <div className="text-[13px] text-[var(--primary)] mt-2 font-semibold">{label}</div>
+          <div className="text-[13px] text-(--primary) mt-2 font-semibold">{label}</div>
         </div>
       )}
       <input type="file" accept="image/*" className="hidden" onChange={handleFile} />

@@ -165,7 +165,7 @@ a follow-up session: one component per session, each with a manual
 verification pass.
 
 ### Service-worker push handler dedup
-`worker/index.js` (next-pwa custom worker) and `public/push-sw.js`
+`worker/index.js` (`@ducanh2912/next-pwa` custom worker) and `public/push-sw.js`
 have near-identical push/notificationclick handlers. They were left
 alone because the codebase is mid-migration: `components/layout/
 AppShell.tsx` now calls `migratePushSubscriptionToAppWorker()` to
@@ -194,10 +194,14 @@ next entity loader can follow it.
 Consolidating would clarify intent but doesn't change behavior; left
 for a copy/UX-driven pass.
 
-### Migration off `next-pwa` (unmaintained)
-The audit flagged this as the highest-risk dependency. It's a multi-day
-project on its own (likely move to `@serwist/next` + Next 15) and
-out of scope here.
+### PWA stack follow-up after the `next-pwa` migration
+The highest-risk part of the audit was addressed by moving from the
+abandoned `next-pwa` package to `@ducanh2912/next-pwa` and by pinning
+modern Workbox packages. What remains out of scope here is the broader
+PWA simplification work: converging on a single worker path, reducing
+migration code, and validating whether a future move to a different
+PWA integration would let the project drop the current webpack-only
+build requirement.
 
 ### VAPID + send-email env var chains
 - `VAPID_PUBLIC_KEY ?? NEXT_PUBLIC_VAPID_PUBLIC_KEY` in `lib/push/
