@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 
 export interface ActionResult {
   ok: boolean;
@@ -18,7 +18,7 @@ export interface NuovaSpesaInput {
 }
 
 export async function createSpesa(input: NuovaSpesaInput): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
   const { data, error } = await supabase
     .from("spese")
     .insert({
@@ -41,7 +41,7 @@ export async function updateSpesa(
   id: string,
   input: NuovaSpesaInput,
 ): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase
     .from("spese")
     .update({
@@ -59,7 +59,7 @@ export async function updateSpesa(
 }
 
 export async function deleteSpesa(id: string): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase.from("spese").delete().eq("id", id);
   if (error) return { ok: false, error: "Non sono riuscita a eliminare la spesa." };
   revalidatePath("/spese");

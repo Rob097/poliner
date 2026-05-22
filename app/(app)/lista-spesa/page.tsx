@@ -1,4 +1,4 @@
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { ListaSpesaClient, type VoceLista } from "./ListaSpesaClient";
@@ -6,7 +6,7 @@ import { ListaSpesaClient, type VoceLista } from "./ListaSpesaClient";
 export const dynamic = "force-dynamic";
 
 export default async function ListaSpesaPage() {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const { data: voci } = await supabase
     .from("lista_spesa")

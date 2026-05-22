@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 
 export interface ContattoInput {
   nome: string;
@@ -17,7 +17,7 @@ export interface ActionResult {
 }
 
 export async function createContatto(input: ContattoInput): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
   const { data, error } = await supabase
     .from("contatti")
     .insert({
@@ -40,7 +40,7 @@ export async function updateContatto(
   id: string,
   input: ContattoInput,
 ): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase
     .from("contatti")
     .update({
@@ -57,7 +57,7 @@ export async function updateContatto(
 }
 
 export async function deleteContatto(id: string): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase.from("contatti").delete().eq("id", id);
   if (error) return { ok: false, error: "Non riesco a eliminare il contatto." };
   revalidatePath("/rubrica");
@@ -77,7 +77,7 @@ export async function linkContattoUtente(input: {
   utenteId: string;
   rinomina?: string;
 }): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
 
   const { data, error } = await supabase.rpc("merge_contatto_con_utente", {
     p_contatto: input.contattoId,

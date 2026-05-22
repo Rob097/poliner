@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import type { Conservazione } from "@/lib/utils/uova";
 
 export interface ActionResult {
@@ -16,7 +16,7 @@ export async function createNido(input: {
   nome: string;
   note: string | null;
 }): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
   const { data, error } = await supabase
     .from("nidi")
     .insert({
@@ -36,7 +36,7 @@ export async function updateNido(
   id: string,
   input: { nome: string; note: string | null },
 ): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase
     .from("nidi")
     .update({
@@ -51,7 +51,7 @@ export async function updateNido(
 }
 
 export async function deleteNido(id: string): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase.from("nidi").delete().eq("id", id);
   if (error) return { ok: false, error: "Non sono riuscita a eliminare il nido." };
   revalidatePath("/uova");
@@ -72,7 +72,7 @@ export interface NuovoUovoInput {
 }
 
 export async function createUovo(input: NuovoUovoInput): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
   const { error } = await supabase.from("uova").insert({
     id: input.id,
     pollaio_id: pollaio.id,
@@ -110,7 +110,7 @@ export interface CreaUovaBulkInput {
 export async function createUovaBulk(
   input: CreaUovaBulkInput,
 ): Promise<ActionResult & { creati?: number }> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const note = input.noteGlobali?.trim() || null;
   type Row = {
@@ -150,7 +150,7 @@ export async function createUovaBulk(
 }
 
 export async function deleteUovo(id: string): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase.from("uova").delete().eq("id", id);
   if (error) return { ok: false, error: "Non sono riuscita a eliminare l'uovo." };
   revalidatePath("/uova");
@@ -159,7 +159,7 @@ export async function deleteUovo(id: string): Promise<ActionResult> {
 }
 
 export async function consumaUovo(id: string): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase
     .from("uova")
     .update({
@@ -174,7 +174,7 @@ export async function consumaUovo(id: string): Promise<ActionResult> {
 }
 
 export async function ripristinaUovo(id: string): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase
     .from("uova")
     .update({
@@ -193,7 +193,7 @@ export async function aggiornaConservazione(
   id: string,
   conservazione: Conservazione,
 ): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase
     .from("uova")
     .update({ conservazione })
@@ -212,7 +212,7 @@ export interface RegaloInput {
 }
 
 export async function regalaUova(input: RegaloInput): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   if (input.quantita < 1) return { ok: false, error: "Quantità non valida." };
 

@@ -1,11 +1,11 @@
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
 import { StatisticheClient, type StatsData } from "./StatisticheClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function StatistichePage() {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const [uovaRes, animaliRes, speseRes, meteoRes, periodiMutaRes] =
     await Promise.all([

@@ -1,10 +1,10 @@
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { BatchUovaForm } from "./BatchUovaForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function BatchUovaPage() {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const [animaliRes, nidiRes] = await Promise.all([
     supabase

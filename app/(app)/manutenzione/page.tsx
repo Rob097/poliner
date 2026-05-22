@@ -1,4 +1,4 @@
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { CONSIGLI_MANUTENZIONE } from "@/lib/constants/manutenzione";
@@ -11,7 +11,7 @@ import { ManutenzioneClient } from "./ManutenzioneClient";
 export const dynamic = "force-dynamic";
 
 export default async function ManutenzionePage() {
-  const { supabase, pollaio, ruolo } = await requirePollaio();
+  const { supabase, pollaio, ruolo } = await requireAdminPollaio();
 
   type VoceRow = {
     id: string;

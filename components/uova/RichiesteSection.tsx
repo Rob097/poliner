@@ -31,11 +31,12 @@ interface Props {
   richieste: RichiestaRow[];
   uovaDisponibili: number;
   ruolo: "admin" | "guest";
+  autoOpen?: boolean;
 }
 
-export function RichiesteSection({ richieste, uovaDisponibili, ruolo }: Props) {
-  const [showRichiediModal, setShowRichiediModal] = useState(false);
+export function RichiesteSection({ richieste, uovaDisponibili, ruolo, autoOpen = false }: Props) {
   const isAdmin = ruolo === "admin";
+  const [showRichiediModal, setShowRichiediModal] = useState(autoOpen && !isAdmin);
 
   return (
     <div className="px-4">

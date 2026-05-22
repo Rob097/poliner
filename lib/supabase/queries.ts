@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "./server";
 import type { Database } from "./database.types";
 
@@ -78,4 +78,15 @@ export async function requirePollaio() {
   const ruolo = rows.find((r) => r.pollai.id === attivoId)?.ruolo ?? "guest";
 
   return { supabase, user, pollaio, ruolo, pollai, pollaiConRuolo, profile: prof };
+}
+
+/**
+ * Variante di requirePollaio() che blocca i guest: se il ruolo nel pollaio
+ * attivo non è 'admin' chiama notFound(). Da usare in page server component
+ * e in server actions di mutazione admin-only.
+ */
+export async function requireAdminPollaio() {
+  const ctx = await requirePollaio();
+  if (ctx.ruolo !== "admin") notFound();
+  return ctx;
 }

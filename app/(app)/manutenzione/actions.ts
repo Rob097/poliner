@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import type { ActionResult } from "@/lib/types";
 
 export type { ActionResult };
@@ -13,7 +13,7 @@ export interface NuovoInterventoInput {
 }
 
 export async function registraIntervento(input: NuovoInterventoInput): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
   const { error } = await supabase.from("manutenzioni").insert({
     pollaio_id: pollaio.id,
     voce_id: input.voceId,
@@ -27,7 +27,7 @@ export async function registraIntervento(input: NuovoInterventoInput): Promise<A
 }
 
 export async function eliminaIntervento(id: string): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase.from("manutenzioni").delete().eq("id", id);
   if (error) return { ok: false, error: "Non sono riuscita a eliminare l'intervento." };
   revalidatePath("/manutenzione");
@@ -51,7 +51,7 @@ export async function creaVoce(input: NuovaVoceInput): Promise<ActionResult & { 
   if (!nome) return { ok: false, error: "Dai un nome a questa voce." };
   if (input.frequenzaGiorni < 1) return { ok: false, error: "La frequenza deve essere almeno 1 giorno." };
 
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
   const { data, error } = await supabase
     .from("manutenzioni_voci")
     .insert({
@@ -102,7 +102,7 @@ export async function aggiornaVoce(id: string, patch: AggiornaVoceInput): Promis
 
   if (Object.keys(update).length === 0) return { ok: true };
 
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase.from("manutenzioni_voci").update(update).eq("id", id);
   if (error) return { ok: false, error: "Ops, riprova!" };
   revalidatePath("/manutenzione");

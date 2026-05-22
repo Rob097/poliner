@@ -1,4 +1,4 @@
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { NidiManager } from "./NidiManager";
@@ -6,7 +6,7 @@ import { NidiManager } from "./NidiManager";
 export const dynamic = "force-dynamic";
 
 export default async function NidiPage() {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const { data: nidi } = await supabase
     .from("nidi")

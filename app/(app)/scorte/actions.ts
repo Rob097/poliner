@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 
 export interface ActionResult {
   ok: boolean;
@@ -17,7 +17,7 @@ export interface NuovaScortaInput {
 }
 
 export async function createScorta(input: NuovaScortaInput): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
   const { data, error } = await supabase
     .from("scorte_cibo")
     .insert({
@@ -40,7 +40,7 @@ export async function updateScorta(
   id: string,
   input: NuovaScortaInput,
 ): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase
     .from("scorte_cibo")
     .update({
@@ -58,7 +58,7 @@ export async function updateScorta(
 }
 
 export async function deleteScorta(id: string): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase.from("scorte_cibo").delete().eq("id", id);
   if (error) return { ok: false, error: "Non sono riuscita a eliminare la scorta." };
   revalidatePath("/scorte");
@@ -71,7 +71,7 @@ export async function rifornisciScorta(
   note: string | null = null,
 ): Promise<ActionResult> {
   if (quantitaAggiunta <= 0) return { ok: false, error: "Quantità non valida." };
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
 
   // 1. Trova quantità attuale
   const { data: scorta, error: sErr } = await supabase
@@ -107,7 +107,7 @@ export async function consumaScorta(
   quantitaConsumata: number,
 ): Promise<ActionResult> {
   if (quantitaConsumata <= 0) return { ok: false, error: "Quantità non valida." };
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { data: scorta, error: sErr } = await supabase
     .from("scorte_cibo")
     .select("quantita")

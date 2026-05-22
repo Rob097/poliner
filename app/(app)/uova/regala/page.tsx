@@ -1,10 +1,10 @@
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { RegalaUovaForm } from "./RegalaUovaForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function RegalaUovaPage() {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const [contattiRes, countRes, regaliRes] = await Promise.all([
     supabase

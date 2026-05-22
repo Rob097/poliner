@@ -1,10 +1,10 @@
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { NuovoUovoForm } from "./NuovoUovoForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function NuovoUovoPage() {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const [animaliRes, nidiRes] = await Promise.all([
     supabase

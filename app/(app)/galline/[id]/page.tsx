@@ -5,7 +5,7 @@ import { ChickenDetail, type ChickenData } from "./ChickenDetail";
 export const dynamic = "force-dynamic";
 
 export default async function GallinaPage({ params }: { params: { id: string } }) {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio, ruolo } = await requirePollaio();
 
   const { data: animale } = await supabase
     .from("animali")
@@ -89,5 +89,5 @@ export default async function GallinaPage({ params }: { params: { id: string } }
     },
   };
 
-  return <ChickenDetail data={data} />;
+  return <ChickenDetail data={data} ruolo={ruolo} />;
 }

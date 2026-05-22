@@ -40,6 +40,7 @@ import {
   hideLoadingOverlay,
   showLoadingOverlay,
 } from "@/components/layout/NavigationOverlay";
+import type { RuoloPollaio } from "@/lib/supabase/queries";
 
 type Tipo = "gallina" | "gallo";
 
@@ -130,9 +131,10 @@ const SUGGERIMENTI_TRATTAMENTO = [
   "Vaccino",
 ];
 
-export function ChickenDetail({ data }: { data: ChickenData }) {
+export function ChickenDetail({ data, ruolo }: { data: ChickenData; ruolo: RuoloPollaio }) {
   const router = useRouter();
   const { animale, uova, trattamenti, periodiMuta, eventiSalute, eventiInserimento, statsUova } = data;
+  const isAdmin = ruolo === "admin";
   const inInserimento =
     eventiInserimento.length > 0 &&
     !eventiInserimento.some((e) => e.tipo === "completato");
@@ -159,18 +161,25 @@ export function ChickenDetail({ data }: { data: ChickenData }) {
   const bg = avatarBgFor(animale.id);
   const emoji = defaultEmojiFor(tipo);
 
-  const tabs = tipo === "gallina"
-    ? [
-        { value: "info" as const, label: "Info" },
-        { value: "uova" as const, label: "Uova" },
-        { value: "salute" as const, label: "Salute" },
-        { value: "inserimento" as const, label: "Inserimento" },
-      ]
-    : [
-        { value: "info" as const, label: "Info" },
-        { value: "salute" as const, label: "Salute" },
-        { value: "inserimento" as const, label: "Inserimento" },
-      ];
+  const tabs = isAdmin
+    ? tipo === "gallina"
+      ? [
+          { value: "info" as const, label: "Info" },
+          { value: "uova" as const, label: "Uova" },
+          { value: "salute" as const, label: "Salute" },
+          { value: "inserimento" as const, label: "Inserimento" },
+        ]
+      : [
+          { value: "info" as const, label: "Info" },
+          { value: "salute" as const, label: "Salute" },
+          { value: "inserimento" as const, label: "Inserimento" },
+        ]
+    : tipo === "gallina"
+      ? [
+          { value: "info" as const, label: "Info" },
+          { value: "uova" as const, label: "Uova" },
+        ]
+      : [{ value: "info" as const, label: "Info" }];
 
   return (
     <>
@@ -178,7 +187,7 @@ export function ChickenDetail({ data }: { data: ChickenData }) {
         title={animale.nome}
         onBack={() => router.back()}
         right={
-          isDefunta ? null : (
+          isDefunta || !isAdmin ? null : (
             <Button
               variant="icon"
               onClick={() => router.push(`/galline/${animale.id}/modifica`)}
@@ -220,17 +229,17 @@ export function ChickenDetail({ data }: { data: ChickenData }) {
                 💔 In memoria
               </Badge>
             )}
-            {!isDefunta && inInserimento && (
+            {isAdmin && !isDefunta && inInserimento && (
               <Badge bg="#FFE07A55" color="#7a5d1a">
                 🏠+→ In inserimento
               </Badge>
             )}
-            {!isDefunta && problemaAttivo && (
+            {isAdmin && !isDefunta && problemaAttivo && (
               <Badge bg="#FFD6E0" color="#c0435a">
                 ❤️‍🩹 Problema salute
               </Badge>
             )}
-            {!isDefunta && muta.inMuta && (
+            {isAdmin && !isDefunta && muta.inMuta && (
               <Badge bg="#E8DAFF" color="#7b5ea7">
                 🪶 In muta da {muta.giorni} {muta.giorni === 1 ? "giorno" : "giorni"}
               </Badge>
@@ -271,6 +280,7 @@ export function ChickenDetail({ data }: { data: ChickenData }) {
             fase={fase}
             problema={problemaAttivo}
             isDefunta={isDefunta}
+            isAdmin={isAdmin}
             onSegnaDefunta={() => setShowDefunta(true)}
           />
         )}
@@ -352,6 +362,7 @@ function InfoTab({
   fase,
   problema,
   isDefunta,
+  isAdmin,
   onSegnaDefunta,
 }: {
   animale: Animale;
@@ -359,6 +370,7 @@ function InfoTab({
   fase: ReturnType<typeof faseProduttiva>;
   problema: EventoSalute | undefined;
   isDefunta: boolean;
+  isAdmin: boolean;
   onSegnaDefunta: () => void;
 }) {
   const razza = trovaRazza(animale.razza_id);
@@ -406,7 +418,7 @@ function InfoTab({
         </>
       )}
 
-      {problema && !isDefunta && (
+      {isAdmin && problema && !isDefunta && (
         <>
           <SectionTitle>Problema attivo</SectionTitle>
           <Card style={{ borderLeft: "4px solid #E8678A" }}>
@@ -441,7 +453,7 @@ function InfoTab({
         </>
       )}
 
-      {!isDefunta && (
+      {isAdmin && !isDefunta && (
         <details className="mt-5 group">
           <summary
             className="list-none cursor-pointer flex items-center justify-between px-1 py-2 text-[12px] uppercase tracking-wider font-bold text-[var(--text-secondary)]"

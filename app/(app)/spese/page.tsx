@@ -1,4 +1,4 @@
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { SpeseClient, type SpesaItem } from "./SpeseClient";
@@ -6,7 +6,7 @@ import { SpeseClient, type SpesaItem } from "./SpeseClient";
 export const dynamic = "force-dynamic";
 
 export default async function SpesePage() {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   // Fetch tutte le spese (ordinate desc)
   const { data: spese } = await supabase

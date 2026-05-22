@@ -133,22 +133,24 @@ export default async function HomePage() {
       <Header
         subtitle={<PollaioSwitcher pollai={pollaiConRuolo} attivoId={pollaio.id} prominent />}
         right={
-          <Link
-            href="/notifiche"
-            className="relative p-1.5 -mr-1.5"
-            aria-label={
-              counters.notificheDaLeggere > 0
-                ? `Notifiche, ${counters.notificheDaLeggere} da leggere`
-                : "Notifiche"
-            }
-          >
-            <span className="text-xl">🔔</span>
-            {counters.notificheDaLeggere > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E8678A] text-white text-[10px] font-bold leading-[18px] text-center shadow-[0_1px_3px_rgba(0,0,0,0.18)]">
-                {counters.notificheDaLeggere > 99 ? "99+" : counters.notificheDaLeggere}
-              </span>
-            )}
-          </Link>
+          ruolo === "admin" ? (
+            <Link
+              href="/notifiche"
+              className="relative p-1.5 -mr-1.5"
+              aria-label={
+                counters.notificheDaLeggere > 0
+                  ? `Notifiche, ${counters.notificheDaLeggere} da leggere`
+                  : "Notifiche"
+              }
+            >
+              <span className="text-xl">🔔</span>
+              {counters.notificheDaLeggere > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E8678A] text-white text-[10px] font-bold leading-[18px] text-center shadow-[0_1px_3px_rgba(0,0,0,0.18)]">
+                  {counters.notificheDaLeggere > 99 ? "99+" : counters.notificheDaLeggere}
+                </span>
+              )}
+            </Link>
+          ) : null
         }
       />
       <ScreenContainer>
@@ -255,12 +257,24 @@ export default async function HomePage() {
 
         {/* Azioni rapide */}
         <SectionTitle>Azioni rapide</SectionTitle>
-        <div className="grid grid-cols-3 gap-2.5">
-          {[
-            { label: "Aggiungi\nuovo", icon: "🥚", bg: "#FFE4D0", href: "/uova/nuovo" },
-            { label: "Segnala\npulizia", icon: "🧹", bg: "#B5D4B5", href: "/manutenzione" },
-            { label: "Nota\nrapida", icon: "📝", bg: "#E8DAFF", href: "/note" },
-          ].map((a) => (
+        <div
+          className={ruolo === "admin" ? "grid grid-cols-3 gap-2.5" : "grid grid-cols-1 gap-2.5"}
+        >
+          {(ruolo === "admin"
+            ? [
+                { label: "Aggiungi\nuovo", icon: "🥚", bg: "#FFE4D0", href: "/uova/nuovo" },
+                { label: "Segnala\npulizia", icon: "🧹", bg: "#B5D4B5", href: "/manutenzione" },
+                { label: "Nota\nrapida", icon: "📝", bg: "#E8DAFF", href: "/note" },
+              ]
+            : [
+                {
+                  label: "Richiedi uova in regalo",
+                  icon: "🙏",
+                  bg: "#FFD6E0",
+                  href: "/uova?richiedi=1",
+                },
+              ]
+          ).map((a) => (
             <Link key={a.href} href={a.href}>
               <Card clickable className="text-center px-2 py-4 border-none">
                 <div

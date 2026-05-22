@@ -1,4 +1,4 @@
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { RubricaClient } from "./RubricaClient";
@@ -6,7 +6,7 @@ import { RubricaClient } from "./RubricaClient";
 export const dynamic = "force-dynamic";
 
 export default async function RubricaPage() {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   // Tutti i contatti
   const { data: contatti } = await supabase

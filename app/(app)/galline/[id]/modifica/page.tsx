@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { ModificaGallinaForm } from "./ModificaGallinaForm";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ export default async function ModificaGallinaPage({
 }: {
   params: { id: string };
 }) {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const { data: animale } = await supabase
     .from("animali")

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 
 export interface ActionResult {
   ok: boolean;
@@ -22,7 +22,7 @@ export interface NuovaNotaInput {
 }
 
 export async function createNota(input: NuovaNotaInput): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
   const { error } = await supabase.from("note").insert({
     id: input.id,
     pollaio_id: pollaio.id,
@@ -42,7 +42,7 @@ export async function updateNota(
   id: string,
   input: Omit<NuovaNotaInput, "id">,
 ): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase
     .from("note")
     .update({
@@ -61,7 +61,7 @@ export async function updateNota(
 }
 
 export async function deleteNota(id: string): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase.from("note").delete().eq("id", id);
   if (error) return { ok: false, error: "Ops, riprova!" };
   revalidatePath("/note");
@@ -70,7 +70,7 @@ export async function deleteNota(id: string): Promise<ActionResult> {
 }
 
 export async function archiviaNota(id: string, archiviata: boolean): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase
     .from("note")
     .update({ archiviata })

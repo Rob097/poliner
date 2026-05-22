@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 
 export interface ActionResult {
   ok: boolean;
@@ -18,7 +18,7 @@ export interface NuovaVoceInput {
 }
 
 export async function aggiungiVoce(input: NuovaVoceInput): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
   const { data, error } = await supabase
     .from("lista_spesa")
     .insert({
@@ -35,7 +35,7 @@ export async function aggiungiVoce(input: NuovaVoceInput): Promise<ActionResult>
 }
 
 export async function toggleVoce(id: string, comprato: boolean): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase
     .from("lista_spesa")
     .update({
@@ -49,7 +49,7 @@ export async function toggleVoce(id: string, comprato: boolean): Promise<ActionR
 }
 
 export async function eliminaVoce(id: string): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase.from("lista_spesa").delete().eq("id", id);
   if (error) return { ok: false, error: "Ops, riprova!" };
   revalidatePath("/lista-spesa");
@@ -57,7 +57,7 @@ export async function eliminaVoce(id: string): Promise<ActionResult> {
 }
 
 export async function svuotaAcquistati(): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
   const { error } = await supabase
     .from("lista_spesa")
     .delete()

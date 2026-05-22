@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { dateIsoInTimeZone, timeIsoInTimeZone } from "@/lib/utils/date";
 import type { ActionResult } from "@/lib/types";
 
@@ -25,7 +25,7 @@ function nowUscita() {
  * Se la riga di oggi esiste già con ora_uscita, non sovrascrive (idempotente).
  */
 export async function registraApertura(): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
   const { data, ora } = nowUscita();
 
   // Verifica se la riga di oggi esiste già
@@ -63,7 +63,7 @@ export async function registraApertura(): Promise<ActionResult> {
  * Se non esiste una riga di oggi, la crea con solo ora_rientro.
  */
 export async function registraChiusura(): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
   const { data, ora } = nowUscita();
 
   const { data: existing } = await supabase
@@ -105,7 +105,7 @@ export async function aggiornaOrario(
   id: string,
   patch: AggiornaOrarioInput,
 ): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
 
   const update: Record<string, unknown> = {};
   if (patch.oraUscita !== undefined) {
@@ -135,7 +135,7 @@ export async function creaUscitaManuale(input: {
   oraRientro?: string | null;
   note?: string | null;
 }): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const { error } = await supabase.from("log_uscite").upsert(
     {
@@ -155,7 +155,7 @@ export async function creaUscitaManuale(input: {
 }
 
 export async function eliminaUscita(id: string): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase.from("log_uscite").delete().eq("id", id);
   if (error) return { ok: false, error: "Non sono riuscita a eliminare la giornata." };
   revalidatePath("/");

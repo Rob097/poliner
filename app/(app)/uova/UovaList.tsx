@@ -44,9 +44,10 @@ type TabId = "scorte" | "storico";
 interface Props {
   uova: UovoDisplay[];
   conservazioneSettings: ConservazioneSettings;
+  isAdmin: boolean;
 }
 
-export function UovaList({ uova, conservazioneSettings }: Props) {
+export function UovaList({ uova, conservazioneSettings, isAdmin }: Props) {
   const [tab, setTab] = useState<TabId>("scorte");
 
   const disponibili = useMemo(
@@ -76,9 +77,10 @@ export function UovaList({ uova, conservazioneSettings }: Props) {
             consumate={consumate}
             regalate={regalate}
             settings={conservazioneSettings}
+            isAdmin={isAdmin}
           />
         ) : (
-          <Storico uova={uova} settings={conservazioneSettings} />
+          <Storico uova={uova} settings={conservazioneSettings} isAdmin={isAdmin} />
         )}
       </div>
     </>
@@ -91,11 +93,13 @@ function Scorte({
   consumate,
   regalate,
   settings,
+  isAdmin,
 }: {
   disponibili: UovoDisplay[];
   consumate: UovoDisplay[];
   regalate: UovoDisplay[];
   settings: ConservazioneSettings;
+  isAdmin: boolean;
 }) {
   const inScadenza = useMemo(
     () =>
@@ -173,7 +177,7 @@ function Scorte({
           <div className="flex-1 text-[13px] text-text">
             <strong>{inScadenza.length} uova in scadenza</strong> — usale o regalale presto!
           </div>
-          {disponibili.length > 0 && (
+          {isAdmin && disponibili.length > 0 && (
             <Link href="/uova/regala">
               <Button size="md" className="text-xs px-3 py-2">
                 Regala
@@ -203,32 +207,36 @@ function Scorte({
             </div>
             <div className="flex flex-col gap-1.5">
               {eggs.map((u) => (
-                <UovoRow key={u.id} u={u} settings={settings} variant="scorta" />
+                <UovoRow key={u.id} u={u} settings={settings} variant="scorta" isAdmin={isAdmin} />
               ))}
             </div>
           </div>
         ))
       )}
 
-      <div className="flex gap-2 mt-5">
-        <Link href="/uova/nuovo" className="flex-1">
-          <Button fullWidth>
-            <IconPlus size={18} /> Aggiungi uovo
-          </Button>
-        </Link>
-        <Link href="/uova/regala" className="flex-1">
-          <Button variant="secondary" fullWidth disabled={disponibili.length === 0}>
-            🎁 Regala uova
-          </Button>
-        </Link>
-      </div>
+      {isAdmin && (
+        <>
+          <div className="flex gap-2 mt-5">
+            <Link href="/uova/nuovo" className="flex-1">
+              <Button fullWidth>
+                <IconPlus size={18} /> Aggiungi uovo
+              </Button>
+            </Link>
+            <Link href="/uova/regala" className="flex-1">
+              <Button variant="secondary" fullWidth disabled={disponibili.length === 0}>
+                🎁 Regala uova
+              </Button>
+            </Link>
+          </div>
 
-      <Link
-        href="/uova/nidi"
-        className="block text-center mt-3 text-sm text-[var(--primary)] font-semibold"
-      >
-        Gestisci nidi →
-      </Link>
+          <Link
+            href="/uova/nidi"
+            className="block text-center mt-3 text-sm text-[var(--primary)] font-semibold"
+          >
+            Gestisci nidi →
+          </Link>
+        </>
+      )}
     </div>
   );
 }
@@ -237,9 +245,11 @@ function Scorte({
 function Storico({
   uova,
   settings,
+  isAdmin,
 }: {
   uova: UovoDisplay[];
   settings: ConservazioneSettings;
+  isAdmin: boolean;
 }) {
   if (uova.length === 0) {
     return (
@@ -253,7 +263,7 @@ function Storico({
   return (
     <div className="flex flex-col gap-1.5">
       {uova.map((u) => (
-        <UovoRow key={u.id} u={u} settings={settings} variant="storico" />
+        <UovoRow key={u.id} u={u} settings={settings} variant="storico" isAdmin={isAdmin} />
       ))}
     </div>
   );
@@ -287,10 +297,12 @@ function UovoRow({
   u,
   settings,
   variant,
+  isAdmin,
 }: {
   u: UovoDisplay;
   settings: ConservazioneSettings;
   variant: "scorta" | "storico";
+  isAdmin: boolean;
 }) {
   const { show } = useToast();
   const [pending, startTransition] = useTransition();
@@ -394,17 +406,19 @@ function UovoRow({
         <Badge small bg={colors.bg} color={colors.color}>
           {statoUovoLabel(u.stato)}
         </Badge>
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          className="text-xs text-[var(--text-secondary)] underline-offset-2"
-          aria-label="Apri azioni"
-        >
-          {open ? "✕" : "•••"}
-        </button>
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            className="text-xs text-[var(--text-secondary)] underline-offset-2"
+            aria-label="Apri azioni"
+          >
+            {open ? "✕" : "•••"}
+          </button>
+        )}
       </div>
 
-      {open && (
+      {isAdmin && open && (
         <div className="flex flex-wrap gap-2 pt-1 border-t border-[var(--border)] mt-1">
           {u.stato === "disponibile" && (
             <>

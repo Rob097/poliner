@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { todayIso } from "@/lib/utils/date";
 
 export interface NuovaGallinaInput {
@@ -28,7 +28,7 @@ export interface ActionResult {
 }
 
 export async function createAnimale(input: NuovaGallinaInput): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const isDefunta = !!input.defuntaIl;
   const { error } = await supabase.from("animali").insert({
@@ -72,7 +72,7 @@ export interface ModificaGallinaInput {
 }
 
 export async function updateAnimale(input: ModificaGallinaInput): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const { error } = await supabase
     .from("animali")
@@ -103,7 +103,7 @@ export async function updateAnimale(input: ModificaGallinaInput): Promise<Action
 }
 
 export async function archiviaAnimale(id: string): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
 
   const { error } = await supabase
     .from("animali")
@@ -128,7 +128,7 @@ export interface SegnaDefuntaInput {
 export async function segnaAnimaleDefunto(
   input: SegnaDefuntaInput,
 ): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
 
   const { error } = await supabase
     .from("animali")
@@ -156,7 +156,7 @@ export async function segnaAnimaleDefunto(
 // ── MUTA ──────────────────────────────────────────────────
 
 export async function avviaMuta(animaleId: string): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   // Se c'è già una muta aperta, non crearne una nuova.
   const { data: aperta } = await supabase
@@ -181,7 +181,7 @@ export async function avviaMuta(animaleId: string): Promise<ActionResult> {
 }
 
 export async function terminaMuta(animaleId: string): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
 
   const { data: aperta } = await supabase
     .from("periodi_muta")
@@ -215,7 +215,7 @@ export interface NuovoEventoSaluteInput {
 }
 
 export async function aggiungiEventoSalute(input: NuovoEventoSaluteInput): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const homeHospital = !!input.homeHospital;
   const { error } = await supabase.from("eventi_salute").insert({
@@ -236,7 +236,7 @@ export async function aggiungiEventoSalute(input: NuovoEventoSaluteInput): Promi
 }
 
 export async function risolviEventoSalute(eventoId: string, animaleId: string): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
 
   const today = todayIso();
 
@@ -282,7 +282,7 @@ export interface AggiornaHomeHospitalInput {
 export async function aggiornaHomeHospital(
   input: AggiornaHomeHospitalInput,
 ): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
 
   const today = todayIso();
   const { error } = await supabase
@@ -315,7 +315,7 @@ export interface NuovoTrattamentoInput {
 }
 
 export async function aggiungiTrattamento(input: NuovoTrattamentoInput): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const { error } = await supabase.from("trattamenti").insert({
     pollaio_id: pollaio.id,
@@ -336,7 +336,7 @@ export async function aggiungiTrattamento(input: NuovoTrattamentoInput): Promise
 }
 
 export async function eliminaTrattamento(id: string, animaleId: string | null): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase.from("trattamenti").delete().eq("id", id);
   if (error) return { ok: false, error: "Non sono riuscita a eliminare il trattamento." };
   if (animaleId) revalidatePath(`/galline/${animaleId}`);
@@ -370,7 +370,7 @@ export interface NuovoEventoInserimentoInput {
 export async function aggiungiEventoInserimento(
   input: NuovoEventoInserimentoInput,
 ): Promise<ActionResult> {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const today = todayIso();
   const { error } = await supabase.from("eventi_inserimento").insert({
@@ -393,7 +393,7 @@ export async function eliminaEventoInserimento(
   id: string,
   animaleId: string,
 ): Promise<ActionResult> {
-  const { supabase } = await requirePollaio();
+  const { supabase } = await requireAdminPollaio();
   const { error } = await supabase.from("eventi_inserimento").delete().eq("id", id);
   if (error) return { ok: false, error: "Non sono riuscita a eliminare l'evento." };
   revalidatePath(`/galline/${animaleId}`);

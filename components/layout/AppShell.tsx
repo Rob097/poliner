@@ -12,16 +12,17 @@ import {
   isSubscribed,
   migratePushSubscriptionToAppWorker,
 } from "@/lib/push/client";
+import type { RuoloPollaio } from "@/lib/supabase/queries";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ ruolo, children }: { ruolo: RuoloPollaio; children: ReactNode }) {
   return (
     <ToastProvider>
       <PwaInstallProvider>
-        <Suspense fallback={<AppShellInner>{children}</AppShellInner>}>
+        <Suspense fallback={<AppShellInner ruolo={ruolo}>{children}</AppShellInner>}>
           <NavigationOverlayProvider>
-            <AppShellInner>{children}</AppShellInner>
+            <AppShellInner ruolo={ruolo}>{children}</AppShellInner>
           </NavigationOverlayProvider>
         </Suspense>
       </PwaInstallProvider>
@@ -29,7 +30,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 }
 
-function AppShellInner({ children }: { children: ReactNode }) {
+function AppShellInner({ ruolo, children }: { ruolo: RuoloPollaio; children: ReactNode }) {
   const [fabOpen, setFabOpen] = useState(false);
 
   useEffect(() => {
@@ -48,7 +49,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
       {children}
       <InstallPrompt />
       <TabBar onFab={() => setFabOpen(true)} />
-      <FABMenu open={fabOpen} onClose={() => setFabOpen(false)} />
+      <FABMenu ruolo={ruolo} open={fabOpen} onClose={() => setFabOpen(false)} />
     </>
   );
 }

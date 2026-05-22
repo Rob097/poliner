@@ -1,4 +1,4 @@
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { ScorteClient, type ScortaItem } from "./ScorteClient";
@@ -6,7 +6,7 @@ import { ScorteClient, type ScortaItem } from "./ScorteClient";
 export const dynamic = "force-dynamic";
 
 export default async function ScortePage() {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const { data: scorte } = await supabase
     .from("scorte_cibo")

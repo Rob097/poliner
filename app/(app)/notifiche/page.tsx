@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireUser } from "@/lib/supabase/queries";
+import { requireAdminPollaio, requireUser } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { Card } from "@/components/ui/Card";
@@ -75,6 +75,7 @@ const META: Record<string, CategoriaMeta> = {
 };
 
 export default async function NotifichePage() {
+  await requireAdminPollaio();
   const { supabase, user } = await requireUser();
 
   interface NotificaRow {

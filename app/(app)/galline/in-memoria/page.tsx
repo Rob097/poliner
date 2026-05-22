@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { Card } from "@/components/ui/Card";
@@ -13,7 +13,7 @@ import { formatDataLunga } from "@/lib/utils/date";
 export const dynamic = "force-dynamic";
 
 export default async function GallineInMemoriaPage() {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const { data: animali } = await supabase
     .from("animali")

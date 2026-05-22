@@ -7,8 +7,13 @@ import { UovaList, type UovoDisplay } from "./UovaList";
 
 export const dynamic = "force-dynamic";
 
-export default async function UovaPage() {
+export default async function UovaPage({
+  searchParams,
+}: {
+  searchParams?: { richiedi?: string };
+}) {
   const { supabase, user, pollaio, ruolo } = await requirePollaio();
+  const autoOpenRichiesta = searchParams?.richiedi === "1";
 
   // Fetch uova: tutte (per scorte + storico)
   const { data: uova } = await supabase
@@ -126,6 +131,7 @@ export default async function UovaPage() {
           richieste={richieste}
           uovaDisponibili={uovaDisponibili}
           ruolo={ruolo}
+          autoOpen={autoOpenRichiesta}
         />
         <UovaList
           uova={uovaDisplay}
@@ -133,6 +139,7 @@ export default async function UovaPage() {
             ambiente: pollaio.conservazione_ambiente_giorni,
             frigo: pollaio.conservazione_frigo_giorni,
           }}
+          isAdmin={ruolo === "admin"}
         />
       </ScreenContainer>
     </>

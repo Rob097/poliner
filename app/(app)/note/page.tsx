@@ -1,4 +1,4 @@
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { NoteClient, type NotaItem } from "./NoteClient";
@@ -14,7 +14,7 @@ export default async function NotePage({
 }: {
   searchParams: SearchParams;
 }) {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   const { data: note } = await supabase
     .from("note")

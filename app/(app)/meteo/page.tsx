@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requirePollaio } from "@/lib/supabase/queries";
+import { requireAdminPollaio } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { Card } from "@/components/ui/Card";
@@ -12,7 +12,7 @@ import { salvaMeteoStorico } from "@/lib/utils/meteo-storico";
 export const dynamic = "force-dynamic";
 
 export default async function MeteoPage() {
-  const { supabase, pollaio } = await requirePollaio();
+  const { supabase, pollaio } = await requireAdminPollaio();
 
   if (!hasCoords(pollaio)) {
     return (

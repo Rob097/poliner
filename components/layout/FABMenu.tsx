@@ -2,8 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { IconClose } from "@/components/ui/icons";
+import type { RuoloPollaio } from "@/lib/supabase/queries";
 
 interface FABMenuProps {
+  ruolo: RuoloPollaio;
   open: boolean;
   onClose: () => void;
 }
@@ -16,7 +18,7 @@ interface Action {
   onClick: () => void;
 }
 
-export function FABMenu({ open, onClose }: FABMenuProps) {
+export function FABMenu({ ruolo, open, onClose }: FABMenuProps) {
   const router = useRouter();
 
   if (!open) return null;
@@ -26,29 +28,39 @@ export function FABMenu({ open, onClose }: FABMenuProps) {
     onClose();
   }
 
-  const actions: Action[] = [
-    {
-      id: "add-egg",
-      label: "Aggiungi uova",
-      icon: "🥚",
-      bg: "#FFE4D0",
-      onClick: () => go("/uova/nuovo"),
-    },
-    {
-      id: "go-manutenzione",
-      label: "Manutenzione",
-      icon: "🧹",
-      bg: "#B5D4B5",
-      onClick: () => go("/manutenzione"),
-    },
-    {
-      id: "add-note",
-      label: "Nota rapida",
-      icon: "📝",
-      bg: "#E8DAFF",
-      onClick: () => go("/note?nuova=1"),
-    },
-  ];
+  const actions: Action[] = ruolo === "admin"
+    ? [
+        {
+          id: "add-egg",
+          label: "Aggiungi uova",
+          icon: "🥚",
+          bg: "#FFE4D0",
+          onClick: () => go("/uova/nuovo"),
+        },
+        {
+          id: "go-manutenzione",
+          label: "Manutenzione",
+          icon: "🧹",
+          bg: "#B5D4B5",
+          onClick: () => go("/manutenzione"),
+        },
+        {
+          id: "add-note",
+          label: "Nota rapida",
+          icon: "📝",
+          bg: "#E8DAFF",
+          onClick: () => go("/note?nuova=1"),
+        },
+      ]
+    : [
+        {
+          id: "ask-eggs",
+          label: "Richiedi uova in regalo",
+          icon: "🙏",
+          bg: "#FFD6E0",
+          onClick: () => go("/uova?richiedi=1"),
+        },
+      ];
 
   return (
     <div

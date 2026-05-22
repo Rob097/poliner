@@ -63,7 +63,11 @@
       "Bash(git commit -m ' *)",
       "Bash(sed -i 's/new Date\\(\\)\\\\.toISOString\\(\\)\\\\.slice\\(0, 10\\)/todayIso\\(\\)/g' app/\\\\\\(app\\\\\\)/galline/\\\\[id\\\\]/ChickenDetail.tsx && grep -c \"new Date\\(\\)\\\\.toISOString\" app/\\\\\\(app\\\\\\)/galline/\\\\[id\\\\]/ChickenDetail.tsx)",
       "Bash(sed -i 's/new Date\\(\\)\\\\.toISOString\\(\\)\\\\.slice\\(0, 10\\)/todayIso\\(\\)/g' app/\\\\\\(app\\\\\\)/spese/SpeseClient.tsx app/\\\\\\(app\\\\\\)/uscite/UsciteClient.tsx app/\\\\\\(app\\\\\\)/galline/nuova/NuovaGallinaForm.tsx app/\\\\\\(app\\\\\\)/galline/\\\\[id\\\\]/modifica/ModificaGallinaForm.tsx)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(grep -E \"\\\\.sql$\")",
+      "Bash(grep -v \"^--$\")",
+      "Bash(grep -nA 15 \"create table.*periodi_muta\\\\|create table public.periodi_muta\" /home/roberto/personal-projects/claude-code/poliner/supabase/migrations/0001_init.sql)",
+      "Bash(grep -nA 12 \"create table .* public.manutenzioni_voci\" /home/roberto/personal-projects/claude-code/poliner/supabase/migrations/0013_manutenzione_dinamica.sql)"
     ],
     "additionalDirectories": [
       "/tmp",
