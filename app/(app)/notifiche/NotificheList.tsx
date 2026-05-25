@@ -198,9 +198,9 @@ export function NotificheList({ items, unreadCount }: Props) {
 
       {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
 
-      {!hasMore && items.length > 0 && (
+      {!hasMore && items.length >= 80 && (
         <p className="text-center text-xs text-(--text-secondary) mt-6 italic">
-          Mostriamo solo gli ultimi {items.length} avvisi degli ultimi 30 giorni.
+          Mostriamo solo gli ultimi 80 avvisi degli ultimi 30 giorni.
         </p>
       )}
     </>

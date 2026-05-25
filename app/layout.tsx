@@ -31,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="it">
+    <html lang="it" suppressHydrationWarning>
       <body>
         <div className="app-frame-desktop h-dvh flex justify-center">
           <div className="app-frame">{children}</div>
