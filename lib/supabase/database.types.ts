@@ -114,6 +114,103 @@ export type Database = {
           },
         ]
       }
+      chat_conversazioni: {
+        Row: {
+          created_at: string
+          id: string
+          pollaio_id: string
+          titolo: string
+          ultimo_messaggio_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pollaio_id: string
+          titolo?: string
+          ultimo_messaggio_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pollaio_id?: string
+          titolo?: string
+          ultimo_messaggio_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_conversazioni_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messaggi: {
+        Row: {
+          allegati: Json
+          contenuto: string
+          conversazione_id: string
+          created_at: string
+          id: string
+          ruolo: string
+          token_input: number | null
+          token_output: number | null
+          tool_call: Json | null
+        }
+        Insert: {
+          allegati?: Json
+          contenuto?: string
+          conversazione_id: string
+          created_at?: string
+          id?: string
+          ruolo: string
+          token_input?: number | null
+          token_output?: number | null
+          tool_call?: Json | null
+        }
+        Update: {
+          allegati?: Json
+          contenuto?: string
+          conversazione_id?: string
+          created_at?: string
+          id?: string
+          ruolo?: string
+          token_input?: number | null
+          token_output?: number | null
+          tool_call?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messaggi_conversazione_id_fkey"
+            columns: ["conversazione_id"]
+            isOneToOne: false
+            referencedRelation: "chat_conversazioni"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_quota_uso: {
+        Row: {
+          count: number
+          data: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          data: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          data?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       contatti: {
         Row: {
           created_at: string
