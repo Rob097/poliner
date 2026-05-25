@@ -34,6 +34,7 @@ export interface NotaItem {
   promemoriaData: string | null;
   promemoriaCanale: CanaleNotifica | null;
   promemoriaInviato: boolean;
+  archiviata: boolean;
 }
 
 const TAGS: { value: TagNota; label: string; icon: string; bg: string; color: string }[] = [

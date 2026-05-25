@@ -21,7 +21,6 @@ export default async function NotePage({
     .from("note")
     .select("*")
     .eq("pollaio_id", pollaio.id)
-    .eq("archiviata", false)
     .order("data", { ascending: false });
 
   const items: NotaItem[] = (note ?? []).map((n) => ({
@@ -33,6 +32,7 @@ export default async function NotePage({
     promemoriaData: n.promemoria_data,
     promemoriaCanale: n.promemoria_canale as NotaItem["promemoriaCanale"],
     promemoriaInviato: n.promemoria_inviato,
+    archiviata: !!n.archiviata,
   }));
 
   const apriNuova = resolvedSearchParams.nuova === "1";
@@ -42,11 +42,11 @@ export default async function NotePage({
       header={(
         <Header
           title="Note e promemoria"
-          subtitle={
-            items.length === 0
-              ? "Appunta tutto quello che ti viene in mente"
-              : `${items.length} not${items.length === 1 ? "a" : "e"}`
-          }
+          subtitle={(() => {
+            const attive = items.filter((n) => !n.archiviata).length;
+            if (items.length === 0) return "Appunta tutto quello che ti viene in mente";
+            return `${attive} not${attive === 1 ? "a" : "e"}`;
+          })()}
         />
       )}
     >
