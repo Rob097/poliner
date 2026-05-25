@@ -85,6 +85,35 @@ export type Database = {
           },
         ]
       }
+      avvisi_letti: {
+        Row: {
+          avviso_key: string
+          letto_il: string
+          pollaio_id: string
+          user_id: string
+        }
+        Insert: {
+          avviso_key: string
+          letto_il?: string
+          pollaio_id: string
+          user_id: string
+        }
+        Update: {
+          avviso_key?: string
+          letto_il?: string
+          pollaio_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avvisi_letti_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contatti: {
         Row: {
           created_at: string
@@ -1227,7 +1256,10 @@ export type Database = {
     Functions: {
       accept_invito: { Args: { p_token: string }; Returns: Json }
       accetta_richiesta_uova: { Args: { p_richiesta: string }; Returns: Json }
-      animale_in_inserimento: { Args: { p_animale_id: string }; Returns: boolean }
+      animale_in_inserimento: {
+        Args: { p_animale_id: string }
+        Returns: boolean
+      }
       is_my_pollaio: { Args: { p_pollaio: string }; Returns: boolean }
       merge_contatto_con_utente: {
         Args: { p_contatto: string; p_rinomina?: string; p_utente: string }
@@ -1237,9 +1269,9 @@ export type Database = {
       public_pollaio_stats: {
         Args: { p_slug: string }
         Returns: {
+          galline_count: number
           uova_totali: number
           uova_ultimo_mese: number
-          galline_count: number
         }[]
       }
       rifiuta_richiesta_uova: { Args: { p_richiesta: string }; Returns: Json }
