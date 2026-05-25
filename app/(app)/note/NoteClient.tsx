@@ -89,6 +89,14 @@ export function NoteClient({ items, apriNuova }: Props) {
         <FiltroChip active={filtro === "tutte"} onClick={() => setFiltro("tutte")}>
           Tutte ({nonArchiviati.length})
         </FiltroChip>
+        {archiviati.length > 0 && (
+          <FiltroChip
+            active={filtro === "archiviate"}
+            onClick={() => setFiltro("archiviate")}
+          >
+            🗄️ Archiviate ({archiviati.length})
+          </FiltroChip>
+        )}
         {TAGS.map((t) => {
           const count = nonArchiviati.filter((n) => n.tag === t.value).length;
           if (count === 0) return null;
@@ -102,14 +110,6 @@ export function NoteClient({ items, apriNuova }: Props) {
             </FiltroChip>
           );
         })}
-        {archiviati.length > 0 && (
-          <FiltroChip
-            active={filtro === "archiviate"}
-            onClick={() => setFiltro("archiviate")}
-          >
-            🗄️ Archiviate ({archiviati.length})
-          </FiltroChip>
-        )}
       </div>
 
       {filtered.length === 0 ? (
