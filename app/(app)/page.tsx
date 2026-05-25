@@ -20,6 +20,15 @@ interface Alert {
   subtitle?: string;
   color: string;
   href: string;
+  avvisoKey: string;
+}
+
+function djb2(s: string): string {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) + h) ^ s.charCodeAt(i);
+  }
+  return (h >>> 0).toString(36);
 }
 
 export default async function HomePage() {
@@ -44,6 +53,7 @@ export default async function HomePage() {
       subtitle: `Da ${s.giorniDaUltimo} giorni`,
       color: "#E8678A",
       href: "/manutenzione",
+      avvisoKey: `manut_ritardo:${s.voce.id}:${s.ultimoIntervento ?? "mai"}`,
     });
   }
   // Manutenzioni in scadenza
@@ -56,6 +66,7 @@ export default async function HomePage() {
       subtitle: `Tra ${s.giorniRimanenti} giorni`,
       color: "#FFE07A",
       href: "/manutenzione",
+      avvisoKey: `manut_imminente:${s.voce.id}:${s.ultimoIntervento ?? "mai"}`,
     });
   }
   // Galline con problemi attivi
@@ -66,16 +77,19 @@ export default async function HomePage() {
       subtitle: e.descrizione ?? e.tipo,
       color: "#E8678A",
       href: `/galline/${e.animale_id}`,
+      avvisoKey: `salute:${e.id}`,
     });
   }
   // Uova in scadenza
-  if (data.uovaInScadenza > 0) {
+  if (data.uovaInScadenzaIds.length > 0) {
+    const hashIds = djb2([...data.uovaInScadenzaIds].sort().join(","));
     alerts.push({
       icon: "🥚",
-      title: `${data.uovaInScadenza} uova in scadenza`,
+      title: `${data.uovaInScadenzaIds.length} uova in scadenza`,
       subtitle: "Usale o regalale presto!",
       color: "#FFE07A",
       href: "/uova",
+      avvisoKey: `uova_scadenza:${hashIds}`,
     });
   }
   // Scorte basse
@@ -86,6 +100,7 @@ export default async function HomePage() {
       subtitle: `Quantità sotto soglia`,
       color: "#FFE07A",
       href: "/scorte",
+      avvisoKey: `scorte_basse:${s.id}:${s.ultimoRifornimento ?? "mai"}`,
     });
   }
   // Promemoria in arrivo (< 24h) o scaduti
@@ -105,8 +120,11 @@ export default async function HomePage() {
       subtitle,
       color: diffH < 0 ? "#E8678A" : "#E8DAFF",
       href: "/note",
+      avvisoKey: `promemoria:${p.id}`,
     });
   }
+
+  const alertsVisibili = alerts.filter((a) => !data.avvisiLetti.has(a.avvisoKey));
 
   // ── Meteo (fail-safe: home non si rompe se Open-Meteo è giù) ──
   let meteo: MeteoData | null = null;
@@ -294,19 +312,20 @@ export default async function HomePage() {
         </div>
 
         {/* Alerts */}
-        {alerts.length > 0 && (
+        {alertsVisibili.length > 0 && (
           <>
             <SectionTitle>Avvisi</SectionTitle>
             <div className="flex flex-col gap-2">
-              {alerts.slice(0, 4).map((a, i) => (
-                <Link key={i} href={a.href}>
-                  <AlertCard
-                    icon={a.icon}
-                    title={a.title}
-                    subtitle={a.subtitle}
-                    color={a.color}
-                  />
-                </Link>
+              {alertsVisibili.slice(0, 4).map((a) => (
+                <AlertCard
+                  key={a.avvisoKey}
+                  icon={a.icon}
+                  title={a.title}
+                  subtitle={a.subtitle}
+                  color={a.color}
+                  href={a.href}
+                  avvisoKey={a.avvisoKey}
+                />
               ))}
             </div>
           </>
