@@ -10,6 +10,12 @@ export interface ActionResult {
   id?: string;
 }
 
+export interface PrimoUovo {
+  animaleId: string;
+  nome: string;
+  fotoUrl: string | null;
+}
+
 // ── NIDI ──────────────────────────────────────────────────
 
 export async function createNido(input: {
@@ -71,8 +77,22 @@ export interface NuovoUovoInput {
   fotoUrl: string | null;
 }
 
-export async function createUovo(input: NuovoUovoInput): Promise<ActionResult> {
+export async function createUovo(
+  input: NuovoUovoInput,
+): Promise<ActionResult & { primeUova?: PrimoUovo[] }> {
   const { supabase, pollaio } = await requireAdminPollaio();
+
+  // Detection PRE-insert: se la gallina è specificata e non ha uova,
+  // è candidata a "primo uovo".
+  let isPrimo = false;
+  if (input.animaleId) {
+    const { count } = await supabase
+      .from("uova")
+      .select("id", { count: "exact", head: true })
+      .eq("animale_id", input.animaleId);
+    isPrimo = (count ?? 0) === 0;
+  }
+
   const { error } = await supabase.from("uova").insert({
     id: input.id,
     pollaio_id: pollaio.id,
@@ -84,9 +104,28 @@ export async function createUovo(input: NuovoUovoInput): Promise<ActionResult> {
     foto_url: input.fotoUrl,
   });
   if (error) return { ok: false, error: "Ops, non sono riuscita a registrare l'uovo." };
+
+  let primeUova: PrimoUovo[] | undefined;
+  if (isPrimo && input.animaleId) {
+    const { data: gallina } = await supabase
+      .from("animali")
+      .select("nome, foto_url")
+      .eq("id", input.animaleId)
+      .maybeSingle();
+    if (gallina) {
+      primeUova = [
+        {
+          animaleId: input.animaleId,
+          nome: gallina.nome,
+          fotoUrl: gallina.foto_url,
+        },
+      ];
+    }
+  }
+
   revalidatePath("/uova");
   revalidatePath("/");
-  return { ok: true, id: input.id };
+  return { ok: true, id: input.id, primeUova };
 }
 
 /**
@@ -109,7 +148,7 @@ export interface CreaUovaBulkInput {
 
 export async function createUovaBulk(
   input: CreaUovaBulkInput,
-): Promise<ActionResult & { creati?: number }> {
+): Promise<ActionResult & { creati?: number; primeUova?: PrimoUovo[] }> {
   const { supabase, pollaio } = await requireAdminPollaio();
 
   const note = input.noteGlobali?.trim() || null;
@@ -140,13 +179,49 @@ export async function createUovaBulk(
     return { ok: false, error: "Aggiungi almeno un uovo prima di salvare." };
   }
 
+  // Detection PRE-insert: trova le galline distinte non-null
+  // che NON hanno ancora uova nel DB.
+  const animaleIdsDistinct = Array.from(
+    new Set(
+      input.righe
+        .map((r) => r.animaleId)
+        .filter((id): id is string => id !== null),
+    ),
+  );
+
+  const animaliConUova = new Set<string>();
+  if (animaleIdsDistinct.length > 0) {
+    const { data: esistenti } = await supabase
+      .from("uova")
+      .select("animale_id")
+      .in("animale_id", animaleIdsDistinct);
+    for (const row of esistenti ?? []) {
+      if (row.animale_id) animaliConUova.add(row.animale_id);
+    }
+  }
+  const animaliPrime = animaleIdsDistinct.filter((id) => !animaliConUova.has(id));
+
   const { error } = await supabase.from("uova").insert(rows);
   if (error) {
     return { ok: false, error: "Ops, non sono riuscita a registrare le uova." };
   }
+
+  let primeUova: PrimoUovo[] | undefined;
+  if (animaliPrime.length > 0) {
+    const { data: galline } = await supabase
+      .from("animali")
+      .select("id, nome, foto_url")
+      .in("id", animaliPrime);
+    primeUova = (galline ?? []).map((g) => ({
+      animaleId: g.id,
+      nome: g.nome,
+      fotoUrl: g.foto_url,
+    }));
+  }
+
   revalidatePath("/uova");
   revalidatePath("/");
-  return { ok: true, creati: rows.length };
+  return { ok: true, creati: rows.length, primeUova };
 }
 
 export async function deleteUovo(id: string): Promise<ActionResult> {
