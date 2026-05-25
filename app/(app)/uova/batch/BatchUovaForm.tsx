@@ -18,7 +18,8 @@ import {
   hideLoadingOverlay,
   showLoadingOverlay,
 } from "@/components/layout/NavigationOverlay";
-import { createUovaBulk } from "../actions";
+import { PrimoUovoModal } from "@/components/uova/PrimoUovoModal";
+import { createUovaBulk, type PrimoUovo } from "../actions";
 
 export interface BatchGallina {
   id: string;
@@ -98,6 +99,7 @@ export function BatchUovaForm({ galline, nidi }: Props) {
   const [data, setData] = useState(defaultDateTime);
   const [conservazione, setConservazione] = useState<"ambiente" | "frigo">("ambiente");
   const [note, setNote] = useState("");
+  const [primeUova, setPrimeUova] = useState<PrimoUovo[] | null>(null);
 
   // Nido attivo: se l'utente vuole assegnare un nido a tutto, può scegliere
   // qui (oppure null = "Non so"). Per ora teniamo il nido come unico
@@ -140,6 +142,11 @@ export function BatchUovaForm({ galline, nidi }: Props) {
       });
 
       if (res.ok) {
+        if (res.primeUova && res.primeUova.length > 0) {
+          setPrimeUova(res.primeUova);
+          hideLoadingOverlay();
+          return;
+        }
         show(`✓ ${res.creati} uova registrate 🥚`);
         router.push("/uova");
         router.refresh();
@@ -277,6 +284,15 @@ export function BatchUovaForm({ galline, nidi }: Props) {
               ? "Aggiungi almeno un uovo"
               : `Registra ${totale} ${totale === 1 ? "uovo" : "uova"} 🥚`}
         </Button>
+        {primeUova && (
+          <PrimoUovoModal
+            prime={primeUova}
+            onClose={() => {
+              router.push("/uova");
+              router.refresh();
+            }}
+          />
+        )}
     </ScreenContainer>
   );
 }
