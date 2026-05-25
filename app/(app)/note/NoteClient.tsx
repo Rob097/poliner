@@ -182,11 +182,41 @@ function FiltroChip({
 function NotaCard({
   nota,
   onEdit,
+  isArchiveView,
 }: {
   nota: NotaItem;
   onEdit: () => void;
-  isArchiveView?: boolean;
+  isArchiveView: boolean;
 }) {
+  const { show } = useToast();
+  const [pending, startTransition] = useTransition();
+  const [open, setOpen] = useState(false);
+
+  function onArchive() {
+    startTransition(async () => {
+      const res = await archiviaNota(nota.id, true);
+      if (res.ok) show("Nota archiviata");
+      else show(res.error ?? "Ops, riprova!");
+    });
+  }
+
+  function onRestore() {
+    startTransition(async () => {
+      const res = await archiviaNota(nota.id, false);
+      if (res.ok) show("Nota ripristinata");
+      else show(res.error ?? "Ops, riprova!");
+    });
+  }
+
+  function onDelete() {
+    if (!window.confirm("Eliminare questa nota?")) return;
+    startTransition(async () => {
+      const res = await deleteNota(nota.id);
+      if (res.ok) show("Nota eliminata");
+      else show(res.error ?? "Ops, riprova!");
+    });
+  }
+
   const tag = TAGS.find((t) => t.value === nota.tag);
   return (
     <Card>
@@ -204,11 +234,11 @@ function NotaCard({
           </span>
           <button
             type="button"
-            onClick={onEdit}
-            className="text-(--text-secondary)"
-            aria-label="Modifica"
+            onClick={() => setOpen((o) => !o)}
+            className="text-xs text-(--text-secondary) underline-offset-2"
+            aria-label="Apri azioni"
           >
-            <IconEdit size={14} />
+            {open ? "✕" : "•••"}
           </button>
         </div>
       </div>
@@ -237,6 +267,51 @@ function NotaCard({
           {nota.promemoriaCanale && (
             <span className="ml-1">· {canaleLabel(nota.promemoriaCanale)}</span>
           )}
+        </div>
+      )}
+      {open && (
+        <div className="flex flex-wrap gap-2 pt-2 border-t border-(--border) mt-2">
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={() => {
+              setOpen(false);
+              onEdit();
+            }}
+            disabled={pending}
+            className="text-xs px-3 py-2"
+          >
+            ✏️ Modifica
+          </Button>
+          {isArchiveView ? (
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={onRestore}
+              disabled={pending}
+              className="text-xs px-3 py-2"
+            >
+              ↩️ Ripristina
+            </Button>
+          ) : (
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={onArchive}
+              disabled={pending}
+              className="text-xs px-3 py-2"
+            >
+              🗄️ Archivia
+            </Button>
+          )}
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={pending}
+            className="text-xs text-[#c0435a] font-semibold ml-auto"
+          >
+            Elimina
+          </button>
         </div>
       )}
     </Card>
