@@ -17,20 +17,76 @@ export interface NotificaItem {
   letta_il: string | null;
 }
 
-export interface CategoriaMeta {
+interface CategoriaMeta {
   label: string;
   icona: string;
   color: string;
   hrefFn?: (riferimentoId: string) => string;
 }
 
+const META: Record<string, CategoriaMeta> = {
+  promemoria: {
+    label: "Promemoria",
+    icona: "🔔",
+    color: "#E8DAFF",
+    hrefFn: () => "/note",
+  },
+  uova_scadenza: {
+    label: "Uova in scadenza",
+    icona: "🥚",
+    color: "#FFE07A",
+    hrefFn: () => "/uova",
+  },
+  manutenzione: {
+    label: "Manutenzione",
+    icona: "🧹",
+    color: "#B5D4B5",
+    hrefFn: () => "/manutenzione",
+  },
+  trattamenti: {
+    label: "Trattamento",
+    icona: "💊",
+    color: "#FFD6E0",
+    hrefFn: () => "/galline",
+  },
+  scorte: {
+    label: "Scorte basse",
+    icona: "📦",
+    color: "#FFE4D0",
+    hrefFn: () => "/scorte",
+  },
+  meteo: {
+    label: "Meteo",
+    icona: "⛅",
+    color: "#D9EEF8",
+    hrefFn: () => "/meteo",
+  },
+  chiusura_pollaio: {
+    label: "Chiusura pollaio",
+    icona: "🌙",
+    color: "#E6E0FF",
+    hrefFn: () => "/",
+  },
+  fine_produzione: {
+    label: "Fine produzione",
+    icona: "🐔",
+    color: "#FFF0D6",
+    hrefFn: () => "/galline",
+  },
+  muta_lunga: {
+    label: "Muta lunga",
+    icona: "🪶",
+    color: "#F0EDE8",
+    hrefFn: (riferimentoId: string) => `/galline/${riferimentoId.split("-")[0]}`,
+  },
+};
+
 interface Props {
   items: NotificaItem[];
   unreadCount: number;
-  meta: Record<string, CategoriaMeta>;
 }
 
-export function NotificheList({ items, unreadCount, meta }: Props) {
+export function NotificheList({ items, unreadCount }: Props) {
   const { visible, hasMore, remaining, loadMore } = usePagination(items);
 
   const grouped = useMemo(() => {
@@ -60,7 +116,7 @@ export function NotificheList({ items, unreadCount, meta }: Props) {
           </div>
           <div className="flex flex-col gap-1.5">
             {group.map((n) => {
-              const m = meta[n.categoria] ?? {
+              const m = META[n.categoria] ?? {
                 label: n.categoria,
                 icona: "🔔",
                 color: "#F0EDE8",

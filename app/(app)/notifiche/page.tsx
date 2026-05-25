@@ -2,66 +2,9 @@ import { requireAdminPollaio, requireUser } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { NotificheList, type NotificaItem, type CategoriaMeta } from "./NotificheList";
+import { NotificheList, type NotificaItem } from "./NotificheList";
 
 export const dynamic = "force-dynamic";
-
-const META: Record<string, CategoriaMeta> = {
-  promemoria: {
-    label: "Promemoria",
-    icona: "🔔",
-    color: "#E8DAFF",
-    hrefFn: () => "/note",
-  },
-  uova_scadenza: {
-    label: "Uova in scadenza",
-    icona: "🥚",
-    color: "#FFE07A",
-    hrefFn: () => "/uova",
-  },
-  manutenzione: {
-    label: "Manutenzione",
-    icona: "🧹",
-    color: "#B5D4B5",
-    hrefFn: () => "/manutenzione",
-  },
-  trattamenti: {
-    label: "Trattamento",
-    icona: "💊",
-    color: "#FFD6E0",
-    hrefFn: () => "/galline",
-  },
-  scorte: {
-    label: "Scorte basse",
-    icona: "📦",
-    color: "#FFE4D0",
-    hrefFn: () => "/scorte",
-  },
-  meteo: {
-    label: "Meteo",
-    icona: "⛅",
-    color: "#D9EEF8",
-    hrefFn: () => "/meteo",
-  },
-  chiusura_pollaio: {
-    label: "Chiusura pollaio",
-    icona: "🌙",
-    color: "#E6E0FF",
-    hrefFn: () => "/",
-  },
-  fine_produzione: {
-    label: "Fine produzione",
-    icona: "🐔",
-    color: "#FFF0D6",
-    hrefFn: () => "/galline",
-  },
-  muta_lunga: {
-    label: "Muta lunga",
-    icona: "🪶",
-    color: "#F0EDE8",
-    hrefFn: (riferimentoId: string) => `/galline/${riferimentoId.split("-")[0]}`,
-  },
-};
 
 export default async function NotifichePage() {
   await requireAdminPollaio();
@@ -99,7 +42,7 @@ export default async function NotifichePage() {
           subtitle="Le notifiche inviate appariranno qui."
         />
       ) : (
-        <NotificheList items={items} unreadCount={unreadCount} meta={META} />
+        <NotificheList items={items} unreadCount={unreadCount} />
       )}
     </ScreenContainer>
   );

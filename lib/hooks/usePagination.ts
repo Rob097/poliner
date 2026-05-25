@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-export const PAGE_SIZE_DEFAULT = 25;
+export const PAGE_SIZE_DEFAULT = 15;
 
 export interface UsePaginationResult<T> {
   visible: T[];
