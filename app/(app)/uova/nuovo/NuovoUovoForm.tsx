@@ -20,7 +20,8 @@ import {
   hideLoadingOverlay,
   showLoadingOverlay,
 } from "@/components/layout/NavigationOverlay";
-import { createUovo } from "../actions";
+import { PrimoUovoModal } from "@/components/uova/PrimoUovoModal";
+import { createUovo, type PrimoUovo } from "../actions";
 
 export interface Gallina {
   id: string;
@@ -59,6 +60,7 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
   const [showFoto, setShowFoto] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [primeUova, setPrimeUova] = useState<PrimoUovo[] | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -81,6 +83,10 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
       });
       if (!res.ok) {
         setError(res.error ?? "Ops, riprova!");
+        return;
+      }
+      if (res.primeUova && res.primeUova.length > 0) {
+        setPrimeUova(res.primeUova);
         return;
       }
       show("✓ Ottimo! Uovo registrato 🥚");
@@ -260,6 +266,15 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
             {pending ? "Sto salvando..." : "Registra uovo 🥚"}
           </Button>
         </form>
+        {primeUova && (
+          <PrimoUovoModal
+            prime={primeUova}
+            onClose={() => {
+              router.push("/uova");
+              router.refresh();
+            }}
+          />
+        )}
     </ScreenContainer>
   );
 }
