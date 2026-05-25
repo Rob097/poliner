@@ -185,7 +185,10 @@ export function ChatViewClient({ conversation, initialMessages, userId }: Props)
   }
 
   return (
-    <div className="flex flex-col h-[100dvh]">
+    <div
+      className="flex flex-col"
+      style={{ height: "calc(100dvh - var(--tab-bar-height, 0px))" }}
+    >
       <Header
         title={titolo}
         onBack={() => router.push("/chat")}

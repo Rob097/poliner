@@ -73,10 +73,7 @@ export function Composer({ conversationId, userId, disabled, onSend }: Props) {
   }
 
   return (
-    <div
-      className="sticky bottom-0 z-10 bg-(--bg) border-t border-(--border) px-3 py-2"
-      style={{ paddingBottom: "calc(8px + env(safe-area-inset-bottom, 0px))" }}
-    >
+    <div className="bg-(--bg) border-t border-(--border) px-3 py-2 pb-2">
       {allegati.length > 0 && (
         <div className="flex gap-2 mb-2 overflow-x-auto">
           {allegati.map((a) => (
