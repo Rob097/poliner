@@ -32,7 +32,10 @@ export function AlertCard({
     e.stopPropagation();
     if (!avvisoKey) return;
     startTransition(async () => {
-      await segnaAvvisoComeLetto(avvisoKey);
+      const res = await segnaAvvisoComeLetto(avvisoKey);
+      if (!res.ok) {
+        console.warn("[AlertCard] segnaAvvisoComeLetto failed:", res.error);
+      }
     });
   }
 

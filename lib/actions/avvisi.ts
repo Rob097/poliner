@@ -27,7 +27,10 @@ export async function segnaAvvisoComeLetto(
       pollaio_id: pollaio.id,
       avviso_key: avvisoKey,
     },
-    { onConflict: "user_id,pollaio_id,avviso_key" },
+    {
+      onConflict: "user_id,pollaio_id,avviso_key",
+      ignoreDuplicates: true,
+    },
   );
   if (error) {
     console.error("[avvisi] segnaAvvisoComeLetto:", error.message);
