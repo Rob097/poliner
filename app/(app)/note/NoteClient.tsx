@@ -385,29 +385,6 @@ function NotaFormModal({
     });
   }
 
-  function onDelete() {
-    if (!initial) return;
-    if (!window.confirm("Eliminare questa nota?")) return;
-    startTransition(async () => {
-      const res = await deleteNota(initial.id);
-      if (res.ok) {
-        show("Nota eliminata");
-        onClose();
-      } else show("Ops, riprova!");
-    });
-  }
-
-  function onArchive() {
-    if (!initial) return;
-    startTransition(async () => {
-      const res = await archiviaNota(initial.id, true);
-      if (res.ok) {
-        show("Nota archiviata");
-        onClose();
-      } else show("Ops, riprova!");
-    });
-  }
-
   return (
     <Modal
       title={mode === "create" ? "Nuova nota" : "Modifica nota"}
@@ -510,27 +487,6 @@ function NotaFormModal({
               ? "Salva nota"
               : "Salva modifiche"}
         </Button>
-
-        {mode === "edit" && (
-          <div className="flex gap-3 justify-center mt-3">
-            <button
-              type="button"
-              onClick={onArchive}
-              disabled={pending}
-              className="text-xs text-(--text-secondary) py-2"
-            >
-              Archivia
-            </button>
-            <button
-              type="button"
-              onClick={onDelete}
-              disabled={pending}
-              className="text-xs text-[#c0435a] font-semibold py-2"
-            >
-              Elimina
-            </button>
-          </div>
-        )}
       </form>
     </Modal>
   );
