@@ -43,6 +43,8 @@ const TAGS: { value: TagNota; label: string; icon: string; bg: string; color: st
   { value: "promemoria", label: "Promemoria", icon: "🔔", bg: "#E8DAFF44", color: "#7b5ea7" },
 ];
 
+type Filtro = "tutte" | TagNota | "archiviate";
+
 interface Props {
   items: NotaItem[];
   apriNuova: boolean;
@@ -51,17 +53,33 @@ interface Props {
 export function NoteClient({ items, apriNuova }: Props) {
   const [creating, setCreating] = useState(apriNuova);
   const [editing, setEditing] = useState<NotaItem | null>(null);
-  const [filtro, setFiltro] = useState<TagNota | "tutte">("tutte");
+  const [filtro, setFiltro] = useState<Filtro>("tutte");
 
   // Se siamo arrivati con ?nuova=1 e poi cambia, evita riapertura
   useEffect(() => {
     if (apriNuova) setCreating(true);
   }, [apriNuova]);
 
-  const filtered = useMemo(
-    () => (filtro === "tutte" ? items : items.filter((n) => n.tag === filtro)),
-    [items, filtro],
+  const nonArchiviati = useMemo(
+    () => items.filter((n) => !n.archiviata),
+    [items],
   );
+  const archiviati = useMemo(
+    () => items.filter((n) => n.archiviata),
+    [items],
+  );
+
+  const filtered = useMemo(() => {
+    if (filtro === "archiviate") return archiviati;
+    if (filtro === "tutte") return nonArchiviati;
+    return nonArchiviati.filter((n) => n.tag === filtro);
+  }, [filtro, nonArchiviati, archiviati]);
+
+  useEffect(() => {
+    if (filtro === "archiviate" && archiviati.length === 0) {
+      setFiltro("tutte");
+    }
+  }, [filtro, archiviati.length]);
 
   const { visible, hasMore, remaining, loadMore } = usePagination(filtered);
 
@@ -69,10 +87,10 @@ export function NoteClient({ items, apriNuova }: Props) {
     <>
       <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-4 px-4">
         <FiltroChip active={filtro === "tutte"} onClick={() => setFiltro("tutte")}>
-          Tutte ({items.length})
+          Tutte ({nonArchiviati.length})
         </FiltroChip>
         {TAGS.map((t) => {
-          const count = items.filter((n) => n.tag === t.value).length;
+          const count = nonArchiviati.filter((n) => n.tag === t.value).length;
           if (count === 0) return null;
           return (
             <FiltroChip
@@ -84,25 +102,38 @@ export function NoteClient({ items, apriNuova }: Props) {
             </FiltroChip>
           );
         })}
+        {archiviati.length > 0 && (
+          <FiltroChip
+            active={filtro === "archiviate"}
+            onClick={() => setFiltro("archiviate")}
+          >
+            🗄️ Archiviate ({archiviati.length})
+          </FiltroChip>
+        )}
       </div>
 
       {filtered.length === 0 ? (
         <EmptyState
           icon="📝"
-          title={items.length === 0 ? "Nessuna nota ancora" : "Nessuna nota in questa categoria"}
+          title={nonArchiviati.length === 0 ? "Nessuna nota ancora" : "Nessuna nota in questa categoria"}
           subtitle={
-            items.length === 0
+            nonArchiviati.length === 0
               ? "Appunta osservazioni, idee, promemoria... tutto resta qui."
               : undefined
           }
-          action={items.length === 0 ? "Scrivi la prima nota" : undefined}
+          action={nonArchiviati.length === 0 ? "Scrivi la prima nota" : undefined}
           onAction={() => setCreating(true)}
         />
       ) : (
         <>
           <div className="flex flex-col gap-2">
             {visible.map((n) => (
-              <NotaCard key={n.id} nota={n} onEdit={() => setEditing(n)} />
+              <NotaCard
+                key={n.id}
+                nota={n}
+                onEdit={() => setEditing(n)}
+                isArchiveView={filtro === "archiviate"}
+              />
             ))}
           </div>
           {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
@@ -148,7 +179,14 @@ function FiltroChip({
   );
 }
 
-function NotaCard({ nota, onEdit }: { nota: NotaItem; onEdit: () => void }) {
+function NotaCard({
+  nota,
+  onEdit,
+}: {
+  nota: NotaItem;
+  onEdit: () => void;
+  isArchiveView?: boolean;
+}) {
   const tag = TAGS.find((t) => t.value === nota.tag);
   return (
     <Card>
