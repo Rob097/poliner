@@ -44,6 +44,7 @@ export interface SalutateAttiva {
 export interface ScortaBassa {
   id: string;
   nome: string;
+  ultimoRifornimento: string | null; // ISO date della riga più recente in scorte_rifornimenti, oppure null
 }
 
 export interface PromemoriaImminente {
@@ -63,9 +64,10 @@ export interface HomeData {
   hhList: HHGallina[];
   manutenzioneStati: StatoVoce[];
   saluteAttivi: SalutateAttiva[];
-  uovaInScadenza: number;
+  uovaInScadenzaIds: string[];
   scorteBasse: ScortaBassa[];
   promemoriaImminenti: PromemoriaImminente[];
+  avvisiLetti: Set<string>;
 }
 
 /**
@@ -97,6 +99,7 @@ export async function loadHomeData(
     uscitaOggiRes,
     notificheNonLetteRes,
     homeHospitalRes,
+    avvisiLettiRes,
   ] = await Promise.all([
     supabase
       .from("uova")
@@ -172,6 +175,11 @@ export async function loadHomeData(
       .eq("home_hospital", true)
       .is("hh_a", null)
       .order("hh_da", { ascending: true }),
+    supabase
+      .from("avvisi_letti")
+      .select("avviso_key")
+      .eq("user_id", userId)
+      .eq("pollaio_id", pollaioId),
   ]);
 
   logQueryErrors("home", {
@@ -188,6 +196,7 @@ export async function loadHomeData(
     uscitaOggi: uscitaOggiRes.error,
     notificheNonLette: notificheNonLetteRes.error,
     homeHospital: homeHospitalRes.error,
+    avvisiLetti: avvisiLettiRes.error,
   });
 
   type VoceRow = {
@@ -234,23 +243,47 @@ export async function loadHomeData(
     };
   });
 
-  const uovaInScadenza = (uovaTutte.data ?? []).filter((u) => {
-    const s = calcolaScadenza(
-      u.data_deposizione,
-      u.conservazione as Conservazione,
-      conservazione,
-    );
-    return s.livello === "in_scadenza" || s.livello === "urgente";
-  }).length;
+  const uovaInScadenzaIds = (uovaTutte.data ?? [])
+    .filter((u) => {
+      const s = calcolaScadenza(
+        u.data_deposizione,
+        u.conservazione as Conservazione,
+        conservazione,
+      );
+      return s.livello === "in_scadenza" || s.livello === "urgente";
+    })
+    .map((u) => u.id);
 
-  const scorteBasse: ScortaBassa[] = (scorteRes.data ?? [])
-    .filter(
-      (s) =>
-        s.quantita !== null &&
-        s.soglia_avviso !== null &&
-        Number(s.quantita) <= Number(s.soglia_avviso),
-    )
-    .map((s) => ({ id: s.id, nome: s.nome }));
+  const scorteBasseRaw = (scorteRes.data ?? []).filter(
+    (s) =>
+      s.quantita !== null &&
+      s.soglia_avviso !== null &&
+      Number(s.quantita) <= Number(s.soglia_avviso),
+  );
+
+  const ultimoRifornimentoMap = new Map<string, string>();
+  if (scorteBasseRaw.length > 0) {
+    const ids = scorteBasseRaw.map((s) => s.id);
+    const { data: rifornimentiData, error: rifornimentiErr } = await supabase
+      .from("scorte_rifornimenti")
+      .select("scorta_id, data")
+      .in("scorta_id", ids)
+      .order("data", { ascending: false });
+    if (rifornimentiErr) {
+      console.error("[home] rifornimenti:", rifornimentiErr.message);
+    }
+    for (const r of rifornimentiData ?? []) {
+      if (!ultimoRifornimentoMap.has(r.scorta_id)) {
+        ultimoRifornimentoMap.set(r.scorta_id, r.data);
+      }
+    }
+  }
+
+  const scorteBasse: ScortaBassa[] = scorteBasseRaw.map((s) => ({
+    id: s.id,
+    nome: s.nome,
+    ultimoRifornimento: ultimoRifornimentoMap.get(s.id) ?? null,
+  }));
 
   const promemoriaImminenti: PromemoriaImminente[] = (promemoriaRes.data ?? [])
     .filter((p): p is { id: string; testo: string; promemoria_data: string } =>
@@ -261,6 +294,10 @@ export async function loadHomeData(
       testo: p.testo,
       promemoria_data: p.promemoria_data,
     }));
+
+  const avvisiLetti = new Set<string>(
+    (avvisiLettiRes.data ?? []).map((r) => r.avviso_key),
+  );
 
   type HHRow = {
     id: string;
@@ -312,9 +349,10 @@ export async function loadHomeData(
     hhList,
     manutenzioneStati,
     saluteAttivi,
-    uovaInScadenza,
+    uovaInScadenzaIds,
     scorteBasse,
     promemoriaImminenti,
+    avvisiLetti,
   };
 }
 
