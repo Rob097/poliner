@@ -11,7 +11,7 @@ import { ImageUploadField } from "@/components/ui/ImageUploadField";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
-import { IconPlus, IconEdit } from "@/components/ui/icons";
+import { IconPlus } from "@/components/ui/icons";
 import { formatData, formatDataLunga } from "@/lib/utils/date";
 import { compressAndUpload } from "@/lib/utils/images";
 import {
