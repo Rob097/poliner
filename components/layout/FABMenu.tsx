@@ -31,13 +31,6 @@ export function FABMenu({ ruolo, open, onClose }: FABMenuProps) {
   const actions: Action[] = ruolo === "admin"
     ? [
         {
-          id: "open-chat",
-          label: "Assistente AI",
-          icon: "✨",
-          bg: "#E0F2FE",
-          onClick: () => go("/chat"),
-        },
-        {
           id: "add-egg",
           label: "Aggiungi uova",
           icon: "🥚",
@@ -57,6 +50,13 @@ export function FABMenu({ ruolo, open, onClose }: FABMenuProps) {
           icon: "📝",
           bg: "#E8DAFF",
           onClick: () => go("/note?nuova=1"),
+        },
+        {
+          id: "open-chat",
+          label: "Assistente AI",
+          icon: "✨",
+          bg: "#E0F2FE",
+          onClick: () => go("/chat"),
         },
       ]
     : [
