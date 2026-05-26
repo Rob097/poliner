@@ -23,6 +23,19 @@ const LABEL: Record<string, string> = {
   spunta_lista_spesa: "Spunto dalla lista",
   registra_manutenzione: "Registro la manutenzione",
   marca_uovo_consumato: "Segno l'uovo come consumato",
+  aggiungi_gallina: "Aggiungo la nuova arrivata",
+  registra_trattamento: "Registro il trattamento",
+  registra_uscita: "Registro l'uscita",
+  registra_regalo_uova: "Registro il regalo",
+  aggiungi_contatto: "Aggiungo il contatto",
+  marca_gallina_defunta: "Aggiorno la scheda",
+  aggiungi_nido: "Aggiungo il nido",
+  registra_evento_inserimento: "Registro la fase di inserimento",
+  aggiungi_scorta: "Creo la nuova scorta",
+  crea_voce_manutenzione: "Creo la voce di manutenzione",
+  archivia_nota: "Archivio la nota",
+  ripristina_nota: "Ripristino la nota",
+  registra_muta: "Aggiorno la muta",
 };
 
 interface Props {
