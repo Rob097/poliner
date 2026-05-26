@@ -266,6 +266,23 @@ export async function POST(req: NextRequest) {
           // Continua il loop per la prossima completion
         }
 
+        console.log(
+          `[chat/stream] conv=${conversationId.slice(0, 8)} tokens in=${totalTokenInput} out=${totalTokenOutput} contentLen=${finalAssistantText.length}`,
+        );
+
+        // Caso vuoto: il modello ha terminato senza produrre testo
+        // (es. budget esaurito dai reasoning tokens). Segnala l'errore
+        // al client e non persistere un messaggio assistant vuoto.
+        if (finalAssistantText.trim().length === 0) {
+          send({
+            type: "error",
+            message:
+              "L'assistente non è riuscito a completare la risposta. Riprova, magari con una domanda più semplice o più breve.",
+            code: "empty_response",
+          });
+          return;
+        }
+
         // ── Persisti il messaggio assistant finale ──
         await supabase.from("chat_messaggi").insert({
           conversazione_id: conversationId,

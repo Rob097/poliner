@@ -23,8 +23,13 @@ export const MODELS = {
 // stile complesse e non "pensare ad alta voce" nel testo. Costa un
 // po' di più di "low" ma è il livello che dà risposte di qualità
 // per il nostro caso d'uso. Abbassa a "low" se i costi salgono.
+// NB: max_completion_tokens INCLUDE i reasoning tokens nascosti.
+// Con reasoning_effort "medium" il modello può usarne 500-1500 prima
+// di iniziare a produrre testo visibile: bisogna lasciargli budget
+// abbondante, altrimenti rischia di "esaurire pensando" e restituire
+// una risposta vuota. 4000 è un compromesso prudente.
 export const CHAT_PARAMS = {
-  max_completion_tokens: 2000,
+  max_completion_tokens: 4000,
   reasoning_effort: "medium" as const,
 };
 
