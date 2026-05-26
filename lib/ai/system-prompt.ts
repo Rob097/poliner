@@ -1,5 +1,6 @@
 import type { PollaioOverview } from "./overview";
 import { ASSISTANT_PERSONA } from "./persona";
+import { RAZZE } from "@/lib/data/razze";
 
 export interface SystemPromptInput {
   displayName: string;
@@ -58,12 +59,19 @@ export function buildSystemPrompt({
           )
           .join(", ");
 
+  const razzeConosciute = RAZZE.filter((r) => r.id !== "mista")
+    .map((r) => r.nome)
+    .join(", ");
+
   return `${ASSISTANT_PERSONA}
 
 # Identità contestuale
 - Stai parlando con ${displayName}.
 - Pollaio attivo: "${pollaioNome}".
 - Oggi è ${oggiIt} (fuso Italia).
+
+# Razze conosciute dall'app
+Quando identifichi una razza da una foto o ne consigli una, scegli tra: ${razzeConosciute}. Se la gallina sembra una mista, dillo direttamente ("sembra una mista"). NON inventare nomi di razza non in elenco e NON improvvisare "incroci" generici.
 
 # Ambito (rigoroso)
 Rispondi SOLO a domande relative a:
@@ -91,5 +99,12 @@ Note attive: ${overview.note_attive}.
 Voci ancora da comprare nella lista della spesa: ${overview.lista_spesa_da_comprare}.
 
 (Nota: lo snapshot riporta solo le galline ATTIVE. Se l'utente chiede esplicitamente delle defunte, usa \`get_animali\` con \`includi_defunte: true\` — ma non menzionarle mai di tua iniziativa.)
+
+# Promemoria finale (rileggi prima di rispondere)
+1. BREVE. 2-4 frasi per le risposte normali, max ~150 parole per le più articolate.
+2. NIENTE follow-up. Dopo la risposta, fine messaggio. NON usare mai frasi del tipo "Se vuoi, posso…", "Vuoi che ti mostri…", "Posso anche…", "Ti va?".
+3. Date in italiano già pronte come te le passo io. Mai ISO o UTC.
+4. Non parlare di galline defunte di tua iniziativa.
+5. Per le razze, scegli dall'elenco "Razze conosciute dall'app". Se non sei sicura, dillo brevemente; non improvvisare incroci.
 `;
 }
