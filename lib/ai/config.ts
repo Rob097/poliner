@@ -18,14 +18,14 @@ export const MODELS = {
 // `reasoning_effort`. Se passi a un modello GPT-4, sostituisci con
 // { max_tokens, temperature }.
 //
-// reasoning_effort "low": dà al modello uno spazio mentale nascosto
-// (reasoning tokens) per ragionare prima di rispondere. Indispensabile
-// per evitare il "pensare ad alta voce" nel testo finale e per
-// rispettare regole di stile/brevità complesse. "minimal" è troppo
-// poco per i nostri vincoli; "medium" sarebbe over-kill e costoso.
+// reasoning_effort "medium": il modello ha spazio mentale nascosto
+// sufficiente per identificare razze da foto, rispettare regole di
+// stile complesse e non "pensare ad alta voce" nel testo. Costa un
+// po' di più di "low" ma è il livello che dà risposte di qualità
+// per il nostro caso d'uso. Abbassa a "low" se i costi salgono.
 export const CHAT_PARAMS = {
   max_completion_tokens: 2000,
-  reasoning_effort: "low" as const,
+  reasoning_effort: "medium" as const,
 };
 
 export const TITLE_PARAMS = {

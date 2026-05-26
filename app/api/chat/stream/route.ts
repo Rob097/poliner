@@ -142,6 +142,7 @@ export async function POST(req: NextRequest) {
     displayName,
     pollaioNome: pollaio.nome,
     overview,
+    isFirstExchange: conversazioneIsNew,
   });
 
   // ── 7. Componi messaggi per OpenAI ────────────────────

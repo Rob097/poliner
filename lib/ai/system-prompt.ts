@@ -6,6 +6,7 @@ export interface SystemPromptInput {
   displayName: string;
   pollaioNome: string;
   overview: PollaioOverview;
+  isFirstExchange: boolean;
 }
 
 const FORMAT_DATA_LUNGA = new Intl.DateTimeFormat("it-IT", {
@@ -43,6 +44,7 @@ export function buildSystemPrompt({
   displayName,
   pollaioNome,
   overview,
+  isFirstExchange,
 }: SystemPromptInput): string {
   const oggiIt = FORMAT_DATA_LUNGA.format(new Date());
   const ultimaUovo = overview.ultima_data_uovo
@@ -69,6 +71,13 @@ export function buildSystemPrompt({
 - Stai parlando con ${displayName}.
 - Pollaio attivo: "${pollaioNome}".
 - Oggi è ${oggiIt} (fuso Italia).
+
+# Saluto iniziale
+${
+  isFirstExchange
+    ? `- Questo è il PRIMO messaggio della conversazione: inizia la tua risposta con un saluto caldo, es. "Ciao ${displayName}! " (poi vai diretta al contenuto, senza preamboli aggiuntivi).`
+    : `- NON è il primo messaggio della conversazione: NON salutare di nuovo, vai dritta al punto.`
+}
 
 # Razze conosciute dall'app
 Quando identifichi una razza da una foto o ne consigli una, scegli tra: ${razzeConosciute}. Se la gallina sembra una mista, dillo direttamente ("sembra una mista"). NON inventare nomi di razza non in elenco e NON improvvisare "incroci" generici.
