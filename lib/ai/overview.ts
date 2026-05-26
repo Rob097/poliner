@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import { trovaRazza } from "@/lib/data/razze";
 
 export interface PollaioOverview {
   galline_attive: number;
@@ -15,6 +16,18 @@ export interface PollaioOverview {
   manutenzioni_in_ritardo: number;
   note_attive: number;
   lista_spesa_da_comprare: number;
+  // Raggruppamento delle galline attive per razza (utile all'AI per
+  // priorizzare i match dalle foto sulle razze effettivamente presenti).
+  galline_per_razza: Array<{ razza: string; nomi: string[] }>;
+}
+
+function razzaLabel(
+  razza_id: string | null,
+  razza_custom: string | null,
+): string | null {
+  if (razza_custom) return razza_custom;
+  if (razza_id) return trovaRazza(razza_id)?.nome ?? razza_id;
+  return null;
 }
 
 function dataIsoGiorniFa(giorni: number): string {
@@ -40,7 +53,7 @@ export async function buildOverview(
   ] = await Promise.all([
     supabase
       .from("animali")
-      .select("attivo")
+      .select("attivo, nome, razza_id, razza_custom")
       .eq("pollaio_id", pollaioId)
       .eq("tipo", "gallina"),
     supabase
@@ -85,6 +98,19 @@ export async function buildOverview(
   const attive = gallineRows.filter((g) => g.attivo).length;
   const defunte = gallineRows.length - attive;
 
+  // Raggruppa le ATTIVE per razza
+  const perRazza = new Map<string, string[]>();
+  for (const g of gallineRows) {
+    if (!g.attivo) continue;
+    const razza = razzaLabel(g.razza_id, g.razza_custom) ?? "razza non indicata";
+    const arr = perRazza.get(razza) ?? [];
+    arr.push(g.nome);
+    perRazza.set(razza, arr);
+  }
+  const gallinePerRazza = Array.from(perRazza.entries())
+    .map(([razza, nomi]) => ({ razza, nomi: nomi.sort() }))
+    .sort((l, r) => l.razza.localeCompare(r.razza, "it"));
+
   const sottoSoglia = (scorte.data ?? [])
     .filter(
       (s) =>
@@ -126,5 +152,6 @@ export async function buildOverview(
     manutenzioni_in_ritardo: inRitardo,
     note_attive: note.count ?? 0,
     lista_spesa_da_comprare: spesa.count ?? 0,
+    galline_per_razza: gallinePerRazza,
   };
 }

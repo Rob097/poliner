@@ -65,12 +65,25 @@ export function buildSystemPrompt({
     .map((r) => r.nome)
     .join(", ");
 
+  const galline = overview.galline_per_razza;
+  const gallineSection =
+    galline.length === 0
+      ? "(nessuna gallina registrata)"
+      : galline
+          .map((g) => `- ${g.razza}: ${g.nomi.join(", ")}`)
+          .join("\n");
+
   return `${ASSISTANT_PERSONA}
 
 # Identità contestuale
 - Stai parlando con ${displayName}.
 - Pollaio attivo: "${pollaioNome}".
 - Oggi è ${oggiIt} (fuso Italia).
+
+# Galline del pollaio per razza
+${gallineSection}
+
+(Quando identifichi una razza da una foto: se sei incerta tra due razze E una delle due è in questo elenco, scegli QUELLA e suggerisci uno dei nomi possibili. Esempio: "Sembra una Padovana — forse Pepita? 🐔")
 
 # Saluto iniziale
 ${
