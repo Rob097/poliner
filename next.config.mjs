@@ -109,18 +109,20 @@ const withPWA = withPWAInit({
         handler: "NetworkFirst",
         options: {
           cacheName: "meteo",
-          networkTimeoutSeconds: 5,
+          networkTimeoutSeconds: 10,
           expiration: { maxEntries: 16, maxAgeSeconds: 60 * 60 * 2 },
         },
       },
       // Supabase REST: network-first con fallback su cache.
       // Non cacheiamo auth/v1 per evitare di persistere risposte di sessione/token.
+      // Timeout alto (15s) per tollerare cold start di Cloudflare Workers:
+      // sotto i 5s il SW serviva cache stantia dopo i deploy.
       {
         urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
         handler: "NetworkFirst",
         options: {
           cacheName: "supabase-rest",
-          networkTimeoutSeconds: 5,
+          networkTimeoutSeconds: 15,
           expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 },
           cacheableResponse: { statuses: [0, 200] },
         },
@@ -143,13 +145,16 @@ const withPWA = withPWAInit({
           expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 },
         },
       },
-      // HTML pages: network-first per freschezza
+      // HTML pages: network-first per freschezza.
+      // Timeout alto (15s) per tollerare cold start: sotto i 5s il SW
+      // serviva HTML stantio (pollaio "Poliner", meteo senza posizione,
+      // ecc.) dopo i deploy.
       {
         urlPattern: ({ request }) => request.destination === "document",
         handler: "NetworkFirst",
         options: {
           cacheName: "pages",
-          networkTimeoutSeconds: 5,
+          networkTimeoutSeconds: 15,
           expiration: { maxEntries: 32, maxAgeSeconds: 60 * 60 * 24 },
         },
       },
@@ -159,7 +164,7 @@ const withPWA = withPWAInit({
         handler: "NetworkFirst",
         options: {
           cacheName: "others",
-          networkTimeoutSeconds: 10,
+          networkTimeoutSeconds: 15,
           expiration: { maxEntries: 32, maxAgeSeconds: 60 * 60 * 24 },
         },
       },
