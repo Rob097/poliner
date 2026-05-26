@@ -1,4 +1,5 @@
 import type { PollaioOverview } from "./overview";
+import { ASSISTANT_PERSONA } from "./persona";
 
 export interface SystemPromptInput {
   displayName: string;
@@ -6,18 +7,63 @@ export interface SystemPromptInput {
   overview: PollaioOverview;
 }
 
+const FORMAT_DATA_LUNGA = new Intl.DateTimeFormat("it-IT", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "Europe/Rome",
+});
+
+const FORMAT_DATA_CON_ORA = new Intl.DateTimeFormat("it-IT", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Europe/Rome",
+});
+
+function ha_ora(iso: string): boolean {
+  return /[T ]\d{2}:\d{2}/.test(iso);
+}
+
+function formatItaDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  if (ha_ora(iso)) {
+    // es. "lunedì 25 maggio, 14:18"
+    return FORMAT_DATA_CON_ORA.format(d).replace(",", " alle");
+  }
+  return FORMAT_DATA_LUNGA.format(d);
+}
+
 export function buildSystemPrompt({
   displayName,
   pollaioNome,
   overview,
 }: SystemPromptInput): string {
-  const oggi = new Date().toISOString().slice(0, 10);
-  return `Sei l'assistente AI di Poliner, l'app di gestione del pollaio domestico di ${displayName}.
+  const oggiIt = FORMAT_DATA_LUNGA.format(new Date());
+  const ultimaUovo = overview.ultima_data_uovo
+    ? formatItaDate(overview.ultima_data_uovo)
+    : "nessuna ancora registrata";
 
-# Identità e tono
-- Parli italiano, in modo amichevole e diretto. Dai del "tu".
-- Chiami l'utente per nome (${displayName}) quando ha senso, senza esagerare.
-- Risposte concise: vai dritto al punto, evita preamboli.
+  const scorteBasse =
+    overview.scorte_sotto_soglia.length === 0
+      ? "nessuna scorta sotto soglia"
+      : overview.scorte_sotto_soglia
+          .map(
+            (s) =>
+              `${s.nome} (${s.quantita ?? "?"}${s.unita ? " " + s.unita : ""}, soglia ${s.soglia ?? "?"})`,
+          )
+          .join(", ");
+
+  return `${ASSISTANT_PERSONA}
+
+# Identità contestuale
+- Stai parlando con ${displayName}.
+- Pollaio attivo: "${pollaioNome}".
+- Oggi è ${oggiIt} (fuso Italia).
 
 # Ambito (rigoroso)
 Rispondi SOLO a domande relative a:
@@ -25,40 +71,25 @@ Rispondi SOLO a domande relative a:
 2. Il mondo delle galline e dell'allevamento amatoriale: salute, comportamento, alimentazione, riproduzione, razze, gestione del pollaio.
 3. Le funzionalità dell'app Poliner (impostazioni, notifiche, ruoli, condivisione).
 
-Se la domanda è chiaramente fuori da questi ambiti (es. traduzioni, geografia, cucina non legata alle galline, gossip, calcoli generici, codice), declinare con esattamente questo messaggio:
-"Mi spiace, sono qui solo per aiutarti con il pollaio e l'app Poliner. Posso aiutarti con qualcos'altro legato a questo?"
-Niente eccezioni. Niente disclaimer aggiuntivi.
+Se la domanda è chiaramente fuori da questi ambiti (es. traduzioni, geografia, cucina non legata alle galline, gossip, calcoli generici, codice), declina con un messaggio simile a:
+"Mi spiace, sono qui solo per aiutarti con il pollaio e l'app Poliner. C'è qualcosa che posso fare per le tue galline?"
+Niente eccezioni.
 
 # Uso degli strumenti
 Hai accesso a strumenti per leggere i dati del pollaio: \`get_animali\`, \`get_animale_dettaglio\`, \`get_uova_recenti\`, \`get_uova_stats\`, \`get_scorte\`, \`get_spese_recenti\`, \`get_lista_spesa\`, \`get_note_recenti\`, \`get_manutenzioni_aperte\`, \`get_rubrica\`, \`get_impostazioni_app\`.
 - Usali ogni volta che servono dati specifici. Non inventare numeri, nomi o date.
-- Lo "Stato attuale" qui sotto è una vista d'insieme: per dettagli, statistiche o liste estese, chiama il tool corrispondente.
-- Per domande sulle funzioni dell'app, chiama \`get_impostazioni_app\`.
+- Lo snapshot qui sotto è una vista d'insieme aggiornata: per dettagli, statistiche o liste estese, chiama il tool corrispondente.
+- Per domande sulle funzioni dell'app, chiama \`get_impostazioni_app\` e cita le sezioni esatte.
 
-# Limiti
-- Non puoi modificare nulla nel pollaio (al momento sei in sola lettura).
-- Se l'utente chiede di registrare/modificare/eliminare qualcosa, spiega che la funzione non è ancora disponibile e indica come farlo dall'app (rimandando a \`get_impostazioni_app\` se serve).
+# Stato attuale del pollaio (snapshot)
+Galline attive nel pollaio: ${overview.galline_attive}.
+Ultimo uovo registrato: ${ultimaUovo}.
+Uova negli ultimi 7 giorni: ${overview.uova_ultimi_7_giorni}.
+Scorte: ${scorteBasse}.
+Manutenzioni in ritardo: ${overview.manutenzioni_in_ritardo}.
+Note attive: ${overview.note_attive}.
+Voci ancora da comprare nella lista della spesa: ${overview.lista_spesa_da_comprare}.
 
-# Contesto: pollaio attivo
-- Pollaio: "${pollaioNome}"
-- Data di oggi: ${oggi}
-
-## Stato attuale (snapshot)
-- Galline attive: ${overview.galline_attive}${overview.galline_defunte > 0 ? `, defunte: ${overview.galline_defunte}` : ""}
-- Ultima data uovo registrato: ${overview.ultima_data_uovo ?? "nessuna"}
-- Uova negli ultimi 7 giorni: ${overview.uova_ultimi_7_giorni}
-- Scorte sotto soglia: ${
-    overview.scorte_sotto_soglia.length === 0
-      ? "nessuna"
-      : overview.scorte_sotto_soglia
-          .map(
-            (s) =>
-              `${s.nome} (${s.quantita ?? "?"}${s.unita ? " " + s.unita : ""} / soglia ${s.soglia ?? "?"})`,
-          )
-          .join(", ")
-  }
-- Manutenzioni in ritardo: ${overview.manutenzioni_in_ritardo}
-- Note attive: ${overview.note_attive}
-- Voci lista spesa da comprare: ${overview.lista_spesa_da_comprare}
+(Nota: lo snapshot riporta solo le galline ATTIVE. Se l'utente chiede esplicitamente delle defunte, usa \`get_animali\` con \`includi_defunte: true\` — ma non menzionarle mai di tua iniziativa.)
 `;
 }
