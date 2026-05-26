@@ -14,11 +14,10 @@ import {
 import { MODELS, CHAT_PARAMS, MAX_HISTORY_MESSAGES } from "@/lib/ai/config";
 import { generateTitleFor } from "@/lib/ai/title";
 
-// Niente `runtime = "edge"`: con @opennextjs/cloudflare le route
-// vengono bundlate sul Workers runtime con nodejs_compat, e l'edge
-// runtime esplicito richiederebbe un setup di funzione separata.
-// Lasciamo che OpenNext gestisca il bundling come per le altre
-// route API.
+// Edge runtime: necessario per Cloudflare Pages/Workers e perfetto
+// per lo streaming SSE. L'SDK openai v6 e il client Supabase usano
+// fetch sotto il cofano, quindi sono compatibili.
+export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
 interface Allegato {
