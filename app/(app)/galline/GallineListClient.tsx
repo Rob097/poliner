@@ -121,7 +121,7 @@ export function GallineListClient({ galline, defunteCount }: Props) {
 
       <Link href="/galline/nuova" className="block mt-2">
         <Button fullWidth>
-          <IconPlus size={18} /> Aggiungi animale
+          <IconPlus size={18} /> Nuovo arrivo
         </Button>
       </Link>
 
