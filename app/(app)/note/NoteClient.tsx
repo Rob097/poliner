@@ -112,6 +112,10 @@ export function NoteClient({ items, apriNuova }: Props) {
         })}
       </div>
 
+      <Button fullWidth className="mt-2" onClick={() => setCreating(true)}>
+        <IconPlus size={18} /> Nuova nota
+      </Button>
+
       {filtered.length === 0 ? (
         <EmptyState
           icon="📝"
@@ -121,12 +125,10 @@ export function NoteClient({ items, apriNuova }: Props) {
               ? "Appunta osservazioni, idee, promemoria... tutto resta qui."
               : undefined
           }
-          action={nonArchiviati.length === 0 ? "Scrivi la prima nota" : undefined}
-          onAction={() => setCreating(true)}
         />
       ) : (
         <>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-3">
             {visible.map((n) => (
               <NotaCard
                 key={n.id}
@@ -139,10 +141,6 @@ export function NoteClient({ items, apriNuova }: Props) {
           {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
         </>
       )}
-
-      <Button fullWidth className="mt-4" onClick={() => setCreating(true)}>
-        <IconPlus size={18} /> Nuova nota
-      </Button>
 
       {creating && (
         <NotaFormModal mode="create" onClose={() => setCreating(false)} />

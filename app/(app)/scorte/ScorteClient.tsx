@@ -79,17 +79,19 @@ export function ScorteClient({
         </Card>
       )}
 
+      <Button fullWidth className="mt-2" onClick={() => setCreating(true)}>
+        <IconPlus size={18} /> Aggiungi scorta
+      </Button>
+
       {items.length === 0 ? (
         <EmptyState
           icon="📦"
           title="Nessuna scorta tracciata"
           subtitle="Aggiungi mais, pellet, lettiera... per ricevere avvisi quando stanno per finire."
-          action="Aggiungi prima scorta"
-          onAction={() => setCreating(true)}
         />
       ) : (
         <>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-3">
             {visible.map((s) => (
               <ScortaRow
                 key={s.id}
@@ -103,10 +105,6 @@ export function ScorteClient({
           {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
         </>
       )}
-
-      <Button fullWidth className="mt-4" onClick={() => setCreating(true)}>
-        <IconPlus size={18} /> Aggiungi scorta
-      </Button>
 
       {creating && (
         <ScortaFormModal

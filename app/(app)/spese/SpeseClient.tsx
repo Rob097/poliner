@@ -188,8 +188,6 @@ export function SpeseClient({ spese, uovaDate, suggerimenti }: Props) {
           icon="💶"
           title="Nessuna spesa nel periodo"
           subtitle="Registra le tue spese per scoprire quanto ti costa ogni uovo."
-          action="Aggiungi prima spesa"
-          onAction={() => setCreating(true)}
         />
       ) : (
         <>
@@ -203,10 +201,6 @@ export function SpeseClient({ spese, uovaDate, suggerimenti }: Props) {
           )}
         </>
       )}
-
-      <Button fullWidth className="mt-4" onClick={() => setCreating(true)}>
-        <IconPlus size={18} /> Aggiungi spesa
-      </Button>
 
       {creating && (
         <SpesaFormModal

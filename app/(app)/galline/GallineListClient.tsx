@@ -119,6 +119,12 @@ export function GallineListClient({ galline, defunteCount }: Props) {
         </div>
       )}
 
+      <Link href="/galline/nuova" className="block mt-2">
+        <Button fullWidth>
+          <IconPlus size={18} /> Aggiungi animale
+        </Button>
+      </Link>
+
       {galline.length === 0 ? (
         <EmptyState
           icon="🐔"
@@ -133,7 +139,7 @@ export function GallineListClient({ galline, defunteCount }: Props) {
         />
       ) : (
         <>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-3">
             {visible.map((g) => (
               <GallinaRow key={g.id} g={g} />
             ))}
@@ -141,12 +147,6 @@ export function GallineListClient({ galline, defunteCount }: Props) {
           {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
         </>
       )}
-
-      <Link href="/galline/nuova" className="block mt-4">
-        <Button fullWidth>
-          <IconPlus size={18} /> Aggiungi animale
-        </Button>
-      </Link>
 
       {defunteCount > 0 && (
         <Link

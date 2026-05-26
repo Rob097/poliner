@@ -40,17 +40,19 @@ export function RubricaClient({ items }: { items: ContattoItem[] }) {
 
   return (
     <>
+      <Button fullWidth onClick={() => setCreating(true)} className="mt-2">
+        <IconPlus size={18} /> Aggiungi contatto
+      </Button>
+
       {items.length === 0 ? (
         <EmptyState
           icon="👥"
           title="Nessun contatto ancora"
           subtitle="Aggiungi le persone a cui regali le uova: amici, vicini, familiari."
-          action="Aggiungi il primo contatto"
-          onAction={() => setCreating(true)}
         />
       ) : (
         <>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-3">
             {visible.map((c, i) => (
               <Link key={c.id} href={`/rubrica/${c.id}`}>
                 <Card clickable className="flex items-center gap-3">
@@ -85,10 +87,6 @@ export function RubricaClient({ items }: { items: ContattoItem[] }) {
             ))}
           </div>
           {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
-
-          <Button fullWidth onClick={() => setCreating(true)} className="mt-4">
-            <IconPlus size={18} /> Aggiungi contatto
-          </Button>
         </>
       )}
 

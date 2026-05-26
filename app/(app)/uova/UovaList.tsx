@@ -196,6 +196,27 @@ function Scorte({
         </Card>
       )}
 
+      {/* Azioni rapide admin */}
+      {isAdmin && (
+        <div className="flex gap-2 mb-3">
+          <Link href="/uova/nuovo" className="flex-1">
+            <Button fullWidth className="px-4 text-sm whitespace-nowrap gap-1.5">
+              <IconPlus size={18} /> Aggiungi
+            </Button>
+          </Link>
+          <Link href="/uova/regala" className="flex-1">
+            <Button
+              variant="secondary"
+              fullWidth
+              disabled={disponibili.length === 0}
+              className="px-4 text-sm whitespace-nowrap gap-1.5"
+            >
+              🎁 Regala uova
+            </Button>
+          </Link>
+        </div>
+      )}
+
       {/* Empty */}
       {disponibili.length === 0 ? (
         <EmptyState
@@ -229,32 +250,12 @@ function Scorte({
       )}
 
       {isAdmin && (
-        <>
-          <div className="flex gap-2 mt-5">
-            <Link href="/uova/nuovo" className="flex-1">
-              <Button fullWidth className="px-4 text-sm whitespace-nowrap gap-1.5">
-                <IconPlus size={18} /> Aggiungi
-              </Button>
-            </Link>
-            <Link href="/uova/regala" className="flex-1">
-              <Button
-                variant="secondary"
-                fullWidth
-                disabled={disponibili.length === 0}
-                className="px-4 text-sm whitespace-nowrap gap-1.5"
-              >
-                🎁 Regala uova
-              </Button>
-            </Link>
-          </div>
-
-          <Link
-            href="/uova/nidi"
-            className="block text-center mt-3 text-sm text-(--primary) font-semibold"
-          >
-            Gestisci nidi →
-          </Link>
-        </>
+        <Link
+          href="/uova/nidi"
+          className="block text-center mt-5 text-sm text-(--primary) font-semibold"
+        >
+          Gestisci nidi →
+        </Link>
       )}
     </div>
   );
