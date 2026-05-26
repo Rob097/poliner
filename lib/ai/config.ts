@@ -9,7 +9,13 @@
 // ╚══════════════════════════════════════════════════════════╝
 
 export const MODELS = {
-  chat: process.env.OPENAI_CHAT_MODEL ?? "gpt-5-nano",
+  // gpt-5-mini è il sweet spot per qualità/costo per la chat:
+  // miglior vision di gpt-5-nano (utile per le foto delle galline),
+  // più aderente alle regole di stile, abbastanza veloce con
+  // reasoning_effort 'low'. Override via env se vuoi cambiare.
+  chat: process.env.OPENAI_CHAT_MODEL ?? "gpt-5-mini",
+  // Il titolo della conversazione è un compito banale: gpt-5-nano
+  // basta e avanza, costa meno.
   title: process.env.OPENAI_TITLE_MODEL ?? "gpt-5-nano",
 } as const;
 
@@ -24,13 +30,12 @@ export const MODELS = {
 // po' di più di "low" ma è il livello che dà risposte di qualità
 // per il nostro caso d'uso. Abbassa a "low" se i costi salgono.
 // NB: max_completion_tokens INCLUDE i reasoning tokens nascosti.
-// Con reasoning_effort "medium" il modello può usarne 500-1500 prima
-// di iniziare a produrre testo visibile: bisogna lasciargli budget
-// abbondante, altrimenti rischia di "esaurire pensando" e restituire
-// una risposta vuota. 4000 è un compromesso prudente.
+// Con gpt-5-mini + reasoning_effort 'low' tipicamente si usano
+// 200-500 reasoning tokens + 200-500 testo. 4000 lascia margine
+// abbondante per risposte articolate o sequenze tool-call → testo.
 export const CHAT_PARAMS = {
   max_completion_tokens: 4000,
-  reasoning_effort: "medium" as const,
+  reasoning_effort: "low" as const,
 };
 
 export const TITLE_PARAMS = {
