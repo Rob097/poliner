@@ -288,6 +288,129 @@ export const WRITE_TOOLS: Record<string, ToolRegistration> = {
         ctx,
       ),
   ),
+
+  registra_evento_salute: tool(
+    "registra_evento_salute",
+    "Apre un evento di salute su una gallina (lo stato sarà 'in_corso'). Usa quando l'utente dice cose tipo 'Babet ha la cresta pallida', 'Lulù si gratta', 'ho trovato una piuma sanguinante'.",
+    {
+      type: "object",
+      properties: {
+        gallina_nome: { type: "string" },
+        tipo: {
+          type: "string",
+          enum: ["malattia", "ferita", "comportamento", "parassiti", "guscio", "altro"],
+        },
+        descrizione: {
+          type: "string",
+          description: "Cosa hai osservato (1-2 frasi).",
+        },
+        data: {
+          type: "string",
+          description: "Data ISO YYYY-MM-DD. Default: oggi.",
+        },
+      },
+      required: ["gallina_nome", "tipo"],
+      additionalProperties: false,
+    },
+    (args, ctx) =>
+      W.registra_evento_salute(
+        args as {
+          gallina_nome?: string;
+          tipo?: W.TipoEventoSalute;
+          descrizione?: string;
+          data?: string;
+        },
+        ctx,
+      ),
+  ),
+
+  registra_rifornimento_scorta: tool(
+    "registra_rifornimento_scorta",
+    "Registra l'aggiunta di una quantità a una scorta esistente E aggiorna il totale. Usa quando l'utente dice 'ho comprato 5 kg di mangime', 'ho riempito la scorta di X'.",
+    {
+      type: "object",
+      properties: {
+        scorta_nome: {
+          type: "string",
+          description: "Nome esatto della scorta (es. 'Mangime ovaiole', 'Pellet').",
+        },
+        quantita_aggiunta: { type: "number", exclusiveMinimum: 0 },
+        note: { type: "string" },
+      },
+      required: ["scorta_nome", "quantita_aggiunta"],
+      additionalProperties: false,
+    },
+    (args, ctx) =>
+      W.registra_rifornimento_scorta(
+        args as {
+          scorta_nome?: string;
+          quantita_aggiunta?: number;
+          note?: string;
+        },
+        ctx,
+      ),
+  ),
+
+  spunta_lista_spesa: tool(
+    "spunta_lista_spesa",
+    "Marca una voce della lista della spesa come 'comprata'. Usa quando l'utente dice 'ho comprato X' / 'spunta X dalla lista'. La ricerca è per testo: se il nome dato è ambiguo (più voci), riporta l'errore senza spuntare.",
+    {
+      type: "object",
+      properties: {
+        testo: {
+          type: "string",
+          description: "Testo o parte del testo della voce (es. 'mangime').",
+        },
+      },
+      required: ["testo"],
+      additionalProperties: false,
+    },
+    (args, ctx) => W.spunta_lista_spesa(args as { testo?: string }, ctx),
+  ),
+
+  registra_manutenzione: tool(
+    "registra_manutenzione",
+    "Registra l'esecuzione di una voce di manutenzione (es. 'ho pulito i nidi', 'ho disinfettato'). Cerca la voce per nome tra quelle attive nel pollaio.",
+    {
+      type: "object",
+      properties: {
+        voce_nome: {
+          type: "string",
+          description: "Nome (anche parziale) della voce di manutenzione.",
+        },
+        data: { type: "string" },
+        note: { type: "string" },
+      },
+      required: ["voce_nome"],
+      additionalProperties: false,
+    },
+    (args, ctx) =>
+      W.registra_manutenzione(
+        args as { voce_nome?: string; data?: string; note?: string },
+        ctx,
+      ),
+  ),
+
+  marca_uovo_consumato: tool(
+    "marca_uovo_consumato",
+    "Segna come consumate le N uova più vecchie disponibili (FIFO). Usa quando l'utente dice 'abbiamo mangiato 2 uova', 'oggi ne ho usate 3'. Opzionalmente filtrabile per gallina.",
+    {
+      type: "object",
+      properties: {
+        quantita: { type: "integer", minimum: 1, maximum: 12 },
+        gallina_nome: {
+          type: "string",
+          description: "Se specificato, considera solo le uova di quella gallina.",
+        },
+      },
+      additionalProperties: false,
+    },
+    (args, ctx) =>
+      W.marca_uovo_consumato(
+        args as { quantita?: number; gallina_nome?: string },
+        ctx,
+      ),
+  ),
 };
 
 // ── REGISTRY UNIFICATO ───────────────────────────────────

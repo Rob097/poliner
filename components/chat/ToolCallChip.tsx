@@ -18,6 +18,11 @@ const LABEL: Record<string, string> = {
   aggiungi_lista_spesa: "Aggiungo alla lista della spesa",
   crea_nota: "Sto scrivendo la nota",
   registra_spesa: "Registro la spesa",
+  registra_evento_salute: "Apro l'evento di salute",
+  registra_rifornimento_scorta: "Aggiorno la scorta",
+  spunta_lista_spesa: "Spunto dalla lista",
+  registra_manutenzione: "Registro la manutenzione",
+  marca_uovo_consumato: "Segno l'uovo come consumato",
 };
 
 interface Props {
