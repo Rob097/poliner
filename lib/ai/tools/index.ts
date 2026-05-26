@@ -1,6 +1,7 @@
 import type OpenAI from "openai";
 import type { ToolContext } from "./read-tools";
 import * as R from "./read-tools";
+import * as W from "./write-tools";
 
 type Handler = (
   args: Record<string, unknown>,
@@ -164,11 +165,130 @@ export const READ_TOOLS: Record<string, ToolRegistration> = {
 };
 
 // ── WRITE TOOLS ──────────────────────────────────────────
-// Placeholder. In v1 sono vuoti: l'assistente è read-only.
-// Quando vorremo attivare le azioni di scrittura (es. "registra
-// un uovo di Babet"), aggiungeremo qui le definizioni + handler
-// e cableremo un UI di conferma lato client.
-export const WRITE_TOOLS: Record<string, ToolRegistration> = {};
+// L'assistente può eseguire azioni nel pollaio. Ogni write tool
+// è autenticato come admin del pollaio attivo (via requireAdminPollaio
+// nel route handler) e protetto dalle RLS DB.
+export const WRITE_TOOLS: Record<string, ToolRegistration> = {
+  registra_uovo: tool(
+    "registra_uovo",
+    "Registra uno o più uova nel pollaio attivo. Usa quando l'utente dice cose come 'segna un uovo di Babet' o 'registra 2 uova oggi'. Se la gallina non è specificata, ometti il campo.",
+    {
+      type: "object",
+      properties: {
+        gallina_nome: {
+          type: "string",
+          description: "Nome esatto della gallina che ha deposto l'uovo. Omettere se non è chiaro o se l'utente non lo dice.",
+        },
+        nido_nome: {
+          type: "string",
+          description: "Nome del nido. Omettere se non specificato.",
+        },
+        data: {
+          type: "string",
+          description: "Data di deposizione in formato ISO YYYY-MM-DD. Default: oggi.",
+        },
+        quantita: {
+          type: "integer",
+          minimum: 1,
+          maximum: 12,
+          description: "Numero di uova da registrare (1 per default).",
+        },
+        note: { type: "string", description: "Eventuali note." },
+      },
+      additionalProperties: false,
+    },
+    (args, ctx) =>
+      W.registra_uovo(
+        args as {
+          gallina_nome?: string;
+          nido_nome?: string;
+          data?: string;
+          quantita?: number;
+          note?: string;
+        },
+        ctx,
+      ),
+  ),
+
+  aggiungi_lista_spesa: tool(
+    "aggiungi_lista_spesa",
+    "Aggiunge una voce alla lista della spesa del pollaio attivo. Usa quando l'utente dice cose tipo 'aggiungi il mangime alla lista' o 'ricordami di comprare la lettiera'.",
+    {
+      type: "object",
+      properties: {
+        testo: {
+          type: "string",
+          description: "Cosa comprare (es. 'Mangime per ovaiole').",
+        },
+        quantita: {
+          type: "string",
+          description: "Quantità testuale opzionale (es. '5 kg', '2 sacchi').",
+        },
+        categoria: { type: "string" },
+      },
+      required: ["testo"],
+      additionalProperties: false,
+    },
+    (args, ctx) =>
+      W.aggiungi_lista_spesa(
+        args as { testo?: string; quantita?: string; categoria?: string },
+        ctx,
+      ),
+  ),
+
+  crea_nota: tool(
+    "crea_nota",
+    "Crea una nota nel pollaio attivo. Usa quando l'utente dice 'annotami che…', 'segnati che…', 'prendi nota'. Il tag è opzionale tra 'osservazione', 'idea', 'promemoria'.",
+    {
+      type: "object",
+      properties: {
+        testo: { type: "string" },
+        tag: {
+          type: "string",
+          enum: ["osservazione", "idea", "promemoria"],
+        },
+      },
+      required: ["testo"],
+      additionalProperties: false,
+    },
+    (args, ctx) =>
+      W.crea_nota(
+        args as { testo?: string; tag?: "osservazione" | "idea" | "promemoria" },
+        ctx,
+      ),
+  ),
+
+  registra_spesa: tool(
+    "registra_spesa",
+    "Registra una spesa sostenuta per il pollaio. Usa quando l'utente dice 'ho speso X euro per…' o simili.",
+    {
+      type: "object",
+      properties: {
+        descrizione: { type: "string" },
+        importo_euro: { type: "number", exclusiveMinimum: 0 },
+        categoria: { type: "string" },
+        data: {
+          type: "string",
+          description: "Data della spesa in formato ISO YYYY-MM-DD. Default: oggi.",
+        },
+        note: { type: "string" },
+      },
+      required: ["descrizione", "importo_euro"],
+      additionalProperties: false,
+    },
+    (args, ctx) =>
+      W.registra_spesa(
+        args as {
+          descrizione?: string;
+          importo_euro?: number;
+          categoria?: string;
+          data?: string;
+          note?: string;
+        },
+        ctx,
+      ),
+  ),
+};
 
 // ── REGISTRY UNIFICATO ───────────────────────────────────
 export const ALL_TOOLS: Record<string, ToolRegistration> = {

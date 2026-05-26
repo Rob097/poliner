@@ -1,6 +1,7 @@
 "use client";
 
 const LABEL: Record<string, string> = {
+  // Read
   get_animali: "Controllo le galline",
   get_animale_dettaglio: "Apro la scheda della gallina",
   get_uova_recenti: "Conto le uova recenti",
@@ -12,6 +13,11 @@ const LABEL: Record<string, string> = {
   get_manutenzioni_aperte: "Verifico le manutenzioni",
   get_rubrica: "Apro la rubrica",
   get_impostazioni_app: "Cerco nella guida dell'app",
+  // Write
+  registra_uovo: "Registro l'uovo",
+  aggiungi_lista_spesa: "Aggiungo alla lista della spesa",
+  crea_nota: "Sto scrivendo la nota",
+  registra_spesa: "Registro la spesa",
 };
 
 interface Props {
