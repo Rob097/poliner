@@ -178,7 +178,11 @@ export default async function HomePage() {
           {dateStr}
         </div>
         {/* Widget meteo */}
-        {meteo ? <MeteoWidget meteo={meteo} /> : <MeteoMissing />}
+        {meteo ? (
+          <MeteoWidget meteo={meteo} />
+        ) : (
+          <MeteoMissing reason={hasCoords(pollaio) ? "fetch-failed" : "no-coords"} />
+        )}
 
         {/* Apertura/chiusura pollaio */}
         <div className="mt-3">
@@ -397,7 +401,23 @@ function MeteoWidget({ meteo }: { meteo: MeteoData }) {
   );
 }
 
-function MeteoMissing() {
+function MeteoMissing({ reason }: { reason: "no-coords" | "fetch-failed" }) {
+  if (reason === "fetch-failed") {
+    return (
+      <Card
+        className="mt-3 flex gap-3 items-start"
+        style={{ background: "#FFE07A22", border: "1px solid #FFE07A66" }}
+      >
+        <span className="text-2xl">🌫️</span>
+        <div className="flex-1">
+          <div className="font-semibold text-sm">Meteo non disponibile</div>
+          <div className="text-xs text-(--text-secondary) mt-0.5">
+            Non sono riuscita a recuperare le previsioni. Riprova tra poco.
+          </div>
+        </div>
+      </Card>
+    );
+  }
   return (
     <Card
       className="mt-3 flex gap-3 items-start"
