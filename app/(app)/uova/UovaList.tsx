@@ -41,7 +41,7 @@ export interface UovoDisplay {
   regalatoA: string | null;
 }
 
-type TabId = "scorte" | "storico";
+type TabId = "scorte" | "regalate" | "storico";
 
 interface Props {
   uova: UovoDisplay[];
@@ -65,6 +65,7 @@ export function UovaList({ uova, conservazioneSettings, isAdmin }: Props) {
         <SegmentedControl
           options={[
             { value: "scorte", label: "Scorte" },
+            { value: "regalate", label: "Regalate" },
             { value: "storico", label: "Storico" },
           ]}
           value={tab}
@@ -73,7 +74,7 @@ export function UovaList({ uova, conservazioneSettings, isAdmin }: Props) {
       </div>
 
       <div className="px-4 pt-3">
-        {tab === "scorte" ? (
+        {tab === "scorte" && (
           <Scorte
             disponibili={disponibili}
             consumate={consumate}
@@ -81,7 +82,11 @@ export function UovaList({ uova, conservazioneSettings, isAdmin }: Props) {
             settings={conservazioneSettings}
             isAdmin={isAdmin}
           />
-        ) : (
+        )}
+        {tab === "regalate" && (
+          <Regalate uova={regalate} settings={conservazioneSettings} isAdmin={isAdmin} />
+        )}
+        {tab === "storico" && (
           <Storico uova={uova} settings={conservazioneSettings} isAdmin={isAdmin} />
         )}
       </div>
@@ -258,6 +263,39 @@ function Scorte({
         </Link>
       )}
     </div>
+  );
+}
+
+// ── REGALATE TAB ────────────────────────────────────────
+function Regalate({
+  uova,
+  settings,
+  isAdmin,
+}: {
+  uova: UovoDisplay[];
+  settings: ConservazioneSettings;
+  isAdmin: boolean;
+}) {
+  const { visible, hasMore, remaining, loadMore } = usePagination(uova);
+
+  if (uova.length === 0) {
+    return (
+      <EmptyState
+        icon="🎁"
+        title="Nessun uovo ancora regalato"
+        subtitle="Quando regalerai delle uova a un contatto della rubrica, le ritroverai qui."
+      />
+    );
+  }
+  return (
+    <>
+      <div className="flex flex-col gap-1.5">
+        {visible.map((u) => (
+          <UovoRow key={u.id} u={u} settings={settings} variant="storico" isAdmin={isAdmin} />
+        ))}
+      </div>
+      {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
+    </>
   );
 }
 
