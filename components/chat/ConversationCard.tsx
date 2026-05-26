@@ -34,16 +34,14 @@ function formatRelativeIt(iso: string): string {
 export function ConversationCard({ item, onRename, onDelete }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  function stopAll(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
+  // Il pulsante ⋯ DEVE stare FUORI dal <Link>: il NavigationOverlay
+  // intercetta i click sui <a> in capture phase e farebbe partire
+  // l'overlay di caricamento anche con e.preventDefault() nel button.
   return (
-    <div className="relative">
+    <div className="relative flex items-stretch bg-white border border-(--border) rounded-2xl overflow-visible">
       <Link
         href={`/chat/${item.id}`}
-        className="flex items-center gap-3 bg-white border border-(--border) rounded-2xl px-4 py-3 hover:bg-(--surface-alt) transition-colors"
+        className="flex items-center gap-3 flex-1 min-w-0 px-4 py-3 rounded-2xl hover:bg-(--surface-alt) transition-colors"
       >
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"
@@ -60,35 +58,29 @@ export function ConversationCard({ item, onRename, onDelete }: Props) {
             {formatRelativeIt(item.ultimo_messaggio_at)}
           </div>
         </div>
-        <button
-          type="button"
-          aria-label="Menu conversazione"
-          onClick={(e) => {
-            stopAll(e);
-            setMenuOpen((v) => !v);
-          }}
-          className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:bg-(--surface-alt) shrink-0"
-        >
-          <span className="text-xl leading-none">⋯</span>
-        </button>
       </Link>
+
+      <button
+        type="button"
+        aria-label="Menu conversazione"
+        onClick={() => setMenuOpen((v) => !v)}
+        className="px-3 flex items-center justify-center text-text-secondary hover:bg-(--surface-alt) rounded-r-2xl shrink-0"
+      >
+        <span className="text-xl leading-none">⋯</span>
+      </button>
 
       {menuOpen && (
         <>
           <button
             type="button"
             className="fixed inset-0 z-20 cursor-default"
-            onClick={(e) => {
-              stopAll(e);
-              setMenuOpen(false);
-            }}
+            onClick={() => setMenuOpen(false)}
             aria-label="Chiudi menu"
           />
           <div className="absolute right-2 top-full mt-1 z-30 bg-white border border-(--border) rounded-xl shadow-lg overflow-hidden min-w-[180px]">
             <button
               type="button"
-              onClick={(e) => {
-                stopAll(e);
+              onClick={() => {
                 setMenuOpen(false);
                 onRename(item.id, item.titolo);
               }}
@@ -98,8 +90,7 @@ export function ConversationCard({ item, onRename, onDelete }: Props) {
             </button>
             <button
               type="button"
-              onClick={(e) => {
-                stopAll(e);
+              onClick={() => {
                 setMenuOpen(false);
                 onDelete(item.id);
               }}
