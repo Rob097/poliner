@@ -14,10 +14,7 @@ import {
 import { MODELS, CHAT_PARAMS, MAX_HISTORY_MESSAGES } from "@/lib/ai/config";
 import { generateTitleFor } from "@/lib/ai/title";
 
-// Edge runtime: necessario per Cloudflare Pages/Workers e perfetto
-// per lo streaming SSE. L'SDK openai v6 e il client Supabase usano
-// fetch sotto il cofano, quindi sono compatibili.
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 interface Allegato {
