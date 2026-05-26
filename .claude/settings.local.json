@@ -73,7 +73,8 @@
       "Bash(git -C /home/roberto/personal-projects/claude-code/poliner show --stat 6c23609)",
       "Bash(git -C /home/roberto/personal-projects/claude-code/poliner show --stat 141af1e)",
       "Bash(git -C /home/roberto/personal-projects/claude-code/poliner/ show 4645640 -- components/layout/AppShell.tsx app/globals.css)",
-      "Bash(git -C /home/roberto/personal-projects/claude-code/poliner/ show 6c23609)"
+      "Bash(git -C /home/roberto/personal-projects/claude-code/poliner/ show 6c23609)",
+      "Bash(git commit *)"
     ],
     "additionalDirectories": [
       "/tmp",

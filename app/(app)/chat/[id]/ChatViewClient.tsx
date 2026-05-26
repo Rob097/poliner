@@ -49,7 +49,7 @@ const SUGGERIMENTI: Array<{ icon: string; testo: string }> = [
   { icon: "🐔", testo: "Dammi una panoramica del pollaio" },
   { icon: "🥚", testo: "Quante uova ho raccolto questa settimana?" },
   { icon: "🌿", testo: "Cosa c'è di urgente da fare?" },
-  { icon: "⚙️", testo: "Come funziona qualcosa nell'app?" },
+  { icon: "⚙️", testo: "Come funziona qualcosa in Poliner?" },
 ];
 
 export function ChatViewClient({ conversation, initialMessages, userId, initialQuota }: Props) {
