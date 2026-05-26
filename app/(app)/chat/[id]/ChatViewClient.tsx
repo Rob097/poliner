@@ -21,6 +21,23 @@ interface Props {
   conversation: ConversationSummary;
   initialMessages: ChatMessage[];
   userId: string;
+  initialQuota: { used: number; limit: number };
+}
+
+function QuotaIndicator({ used, limit }: { used: number; limit: number }) {
+  const ratio = limit > 0 ? used / limit : 0;
+  const reached = used >= limit;
+  const warning = !reached && ratio >= 0.8;
+  const color = reached
+    ? "#C0392B"
+    : warning
+      ? "#A37500"
+      : "var(--text-secondary)";
+  return (
+    <span style={{ color }} className="text-[12px]">
+      {used}/{limit} messaggi oggi
+    </span>
+  );
 }
 
 interface PendingAssistant {
@@ -28,7 +45,7 @@ interface PendingAssistant {
   toolCall: string | null;
 }
 
-export function ChatViewClient({ conversation, initialMessages, userId }: Props) {
+export function ChatViewClient({ conversation, initialMessages, userId, initialQuota }: Props) {
   const router = useRouter();
   const { show } = useToast();
   const [, startTransition] = useTransition();
@@ -46,6 +63,7 @@ export function ChatViewClient({ conversation, initialMessages, userId }: Props)
   const [pending, setPending] = useState<PendingAssistant | null>(null);
   const [errore, setErrore] = useState<string | null>(null);
   const [titolo, setTitolo] = useState(conversation.titolo);
+  const [quota, setQuota] = useState(initialQuota);
   const [showMenu, setShowMenu] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
   const [renameValue, setRenameValue] = useState(titolo);
@@ -86,6 +104,7 @@ export function ChatViewClient({ conversation, initialMessages, userId }: Props)
         setPending(null);
         const body = await res.json().catch(() => null);
         setErrore(body?.error ?? "Hai raggiunto il limite di messaggi di oggi.");
+        setQuota((q) => ({ ...q, used: q.limit }));
         return;
       }
       if (!res.ok || !res.body) {
@@ -124,6 +143,8 @@ export function ChatViewClient({ conversation, initialMessages, userId }: Props)
                 setPending((p) => ({ text: p?.text ?? finalText, toolCall: evt.name as string }));
               } else if (t === "title" && typeof evt.titolo === "string") {
                 nuovoTitolo = evt.titolo;
+              } else if (t === "quota" && typeof evt.used === "number" && typeof evt.limit === "number") {
+                setQuota({ used: evt.used as number, limit: evt.limit as number });
               } else if (t === "error") {
                 streamError = (evt.message as string) ?? "Errore inatteso.";
               }
@@ -191,6 +212,7 @@ export function ChatViewClient({ conversation, initialMessages, userId }: Props)
     >
       <Header
         title={titolo}
+        subtitle={<QuotaIndicator used={quota.used} limit={quota.limit} />}
         onBack={() => router.push("/chat")}
         right={
           <div className="relative">
@@ -278,7 +300,7 @@ export function ChatViewClient({ conversation, initialMessages, userId }: Props)
       <Composer
         conversationId={conversation.id}
         userId={userId}
-        disabled={pending !== null}
+        disabled={pending !== null || quota.used >= quota.limit}
         onSend={inviaMessaggio}
       />
 

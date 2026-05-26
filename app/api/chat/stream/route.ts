@@ -181,6 +181,9 @@ export async function POST(req: NextRequest) {
       };
 
       try {
+        // Comunica subito il nuovo conteggio quota al client
+        send({ type: "quota", used: quota.used, limit: quota.limit });
+
         const openai = getOpenAI();
         let finalAssistantText = "";
         let totalTokenInput = 0;

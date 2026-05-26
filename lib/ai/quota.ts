@@ -21,6 +21,23 @@ function oggiUTC(): string {
  * millisecondo possono entrambe leggere il vecchio count e venire allowed,
  * sforando di 1 il limite. Accettato (app single-user in pratica).
  */
+/**
+ * Lettura sola dell'uso giornaliero (non incrementa). Per UI/indicatori.
+ */
+export async function getQuotaUsage(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+): Promise<{ used: number; limit: number }> {
+  const data = oggiUTC();
+  const { data: row } = await supabase
+    .from("chat_quota_uso")
+    .select("count")
+    .eq("user_id", userId)
+    .eq("data", data)
+    .maybeSingle();
+  return { used: row?.count ?? 0, limit: QUOTA_DAILY_LIMIT };
+}
+
 export async function checkAndIncrementQuota(
   supabase: SupabaseClient<Database>,
   userId: string,
