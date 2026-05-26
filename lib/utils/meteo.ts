@@ -122,9 +122,18 @@ export async function fetchMeteo(
   url.searchParams.set("timezone", "auto");
   url.searchParams.set("wind_speed_unit", "kmh");
 
-  const res = await fetch(url.toString(), {
-    next: { revalidate: 3600 },
-  });
+  // Timeout esplicito: su Cloudflare Workers Open-Meteo a volte tarda
+  // o si blocca; senza un abort la home si congela. Niente
+  // next.revalidate: con OpenNext senza KV la direttiva fa più male
+  // che bene.
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 6000);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), { signal: ac.signal });
+  } finally {
+    clearTimeout(timer);
+  }
   if (!res.ok) throw new Error(`Open-Meteo error ${res.status}`);
   const json = await res.json();
 
@@ -298,8 +307,10 @@ export async function getAlbaTramonto(
   url.searchParams.set("end_date", day);
   url.searchParams.set("timezone", "auto");
 
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 6000);
   try {
-    const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
+    const res = await fetch(url.toString(), { signal: ac.signal });
     if (!res.ok) return { alba: null, tramonto: null };
     const json = await res.json();
     const sunrise = json.daily?.sunrise?.[0] as string | undefined;
@@ -310,5 +321,7 @@ export async function getAlbaTramonto(
     };
   } catch {
     return { alba: null, tramonto: null };
+  } finally {
+    clearTimeout(timer);
   }
 }
