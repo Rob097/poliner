@@ -45,6 +45,13 @@ interface PendingAssistant {
   toolCall: string | null;
 }
 
+const SUGGERIMENTI: Array<{ icon: string; testo: string }> = [
+  { icon: "🐔", testo: "Dammi una panoramica del pollaio" },
+  { icon: "🥚", testo: "Quante uova ho raccolto questa settimana?" },
+  { icon: "🌿", testo: "Cosa c'è di urgente da fare?" },
+  { icon: "⚙️", testo: "Come funziona qualcosa nell'app?" },
+];
+
 export function ChatViewClient({ conversation, initialMessages, userId, initialQuota }: Props) {
   const router = useRouter();
   const { show } = useToast();
@@ -258,9 +265,26 @@ export function ChatViewClient({ conversation, initialMessages, userId, initialQ
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3">
         {messages.length === 0 && !pending && (
-          <div className="text-center text-[14px] text-(--text-secondary) py-8">
-            Scrivi un messaggio per iniziare. Posso aiutarti con il tuo pollaio,
-            domande sulle galline e sulle funzioni dell'app.
+          <div className="flex flex-col gap-3 py-6">
+            <div className="text-center text-[14px] text-(--text-secondary) px-2">
+              Scegli uno dei suggerimenti o scrivi una domanda 👇
+            </div>
+            <div className="flex flex-col gap-2">
+              {SUGGERIMENTI.map((s) => (
+                <button
+                  key={s.testo}
+                  type="button"
+                  disabled={quota.used >= quota.limit}
+                  onClick={() => inviaMessaggio(s.testo, [])}
+                  className="flex items-center gap-3 bg-white border border-(--border) rounded-2xl px-4 py-3 text-left hover:bg-(--surface-alt) transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="text-xl shrink-0" aria-hidden>
+                    {s.icon}
+                  </span>
+                  <span className="text-[14px] text-text">{s.testo}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {messages.map((m) => (
