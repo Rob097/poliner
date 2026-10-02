@@ -79,7 +79,7 @@ export interface NuovoUovoInput {
 
 export async function createUovo(
   input: NuovoUovoInput,
-): Promise<ActionResult & { primeUova?: PrimoUovo[] }> {
+): Promise<ActionResult & { primeUova?: PrimoUovo[]; nonCommestibile?: boolean }> {
   const { supabase, pollaio } = await requireAdminPollaio();
 
   // Detection PRE-insert: se la gallina è specificata e non ha uova,
@@ -93,16 +93,22 @@ export async function createUovo(
     isPrimo = (count ?? 0) === 0;
   }
 
-  const { error } = await supabase.from("uova").insert({
-    id: input.id,
-    pollaio_id: pollaio.id,
-    animale_id: input.animaleId,
-    nido_id: input.nidoId,
-    data_deposizione: input.dataDeposizione,
-    conservazione: input.conservazione,
-    note: input.note?.trim() || null,
-    foto_url: input.fotoUrl,
-  });
+  // Lo stato lo decide il trigger del DB: 'non_commestibile' se l'uovo cade
+  // in una sospensione (farmaci) attiva per quella gallina.
+  const { data: inserito, error } = await supabase
+    .from("uova")
+    .insert({
+      id: input.id,
+      pollaio_id: pollaio.id,
+      animale_id: input.animaleId,
+      nido_id: input.nidoId,
+      data_deposizione: input.dataDeposizione,
+      conservazione: input.conservazione,
+      note: input.note?.trim() || null,
+      foto_url: input.fotoUrl,
+    })
+    .select("stato")
+    .single();
   if (error) return { ok: false, error: "Ops, non sono riuscita a registrare l'uovo." };
 
   let primeUova: PrimoUovo[] | undefined;
@@ -125,7 +131,12 @@ export async function createUovo(
 
   revalidatePath("/uova");
   revalidatePath("/");
-  return { ok: true, id: input.id, primeUova };
+  return {
+    ok: true,
+    id: input.id,
+    primeUova,
+    nonCommestibile: inserito?.stato === "non_commestibile",
+  };
 }
 
 /**
@@ -148,7 +159,9 @@ export interface CreaUovaBulkInput {
 
 export async function createUovaBulk(
   input: CreaUovaBulkInput,
-): Promise<ActionResult & { creati?: number; primeUova?: PrimoUovo[] }> {
+): Promise<
+  ActionResult & { creati?: number; nonCommestibili?: number; primeUova?: PrimoUovo[] }
+> {
   const { supabase, pollaio } = await requireAdminPollaio();
 
   const note = input.noteGlobali?.trim() || null;
@@ -201,10 +214,11 @@ export async function createUovaBulk(
   }
   const animaliPrime = animaleIdsDistinct.filter((id) => !animaliConUova.has(id));
 
-  const { error } = await supabase.from("uova").insert(rows);
+  const { data: inserite, error } = await supabase.from("uova").insert(rows).select("stato");
   if (error) {
     return { ok: false, error: "Ops, non sono riuscita a registrare le uova." };
   }
+  const nonCommestibili = (inserite ?? []).filter((u) => u.stato === "non_commestibile").length;
 
   let primeUova: PrimoUovo[] | undefined;
   if (animaliPrime.length > 0) {
@@ -221,7 +235,7 @@ export async function createUovaBulk(
 
   revalidatePath("/uova");
   revalidatePath("/");
-  return { ok: true, creati: rows.length, primeUova };
+  return { ok: true, creati: rows.length, nonCommestibili, primeUova };
 }
 
 export async function deleteUovo(id: string): Promise<ActionResult> {
@@ -235,33 +249,76 @@ export async function deleteUovo(id: string): Promise<ActionResult> {
 
 export async function consumaUovo(id: string): Promise<ActionResult> {
   const { supabase } = await requireAdminPollaio();
-  const { error } = await supabase
+  // Solo uova disponibili: un uovo in sospensione non si mangia.
+  const { data, error } = await supabase
     .from("uova")
     .update({
       stato: "consumato",
       data_consumato: new Date().toISOString(),
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("stato", "disponibile")
+    .select("id");
   if (error) return { ok: false, error: "Ops, riprova!" };
+  if (!data || data.length === 0) {
+    return { ok: false, error: "Quest'uovo non è disponibile." };
+  }
   revalidatePath("/uova");
   revalidatePath("/");
   return { ok: true };
 }
 
-export async function ripristinaUovo(id: string): Promise<ActionResult> {
+/** Butta via un uovo (tipicamente uno non commestibile per sospensione). */
+export async function scartaUovo(id: string): Promise<ActionResult> {
   const { supabase } = await requireAdminPollaio();
   const { error } = await supabase
+    .from("uova")
+    .update({ stato: "scartato" })
+    .eq("id", id)
+    .in("stato", ["disponibile", "non_commestibile"]);
+  if (error) return { ok: false, error: "Ops, riprova!" };
+  revalidatePath("/uova");
+  revalidatePath("/uova/sospensioni");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+/** Segna come scartate tutte le uova non commestibili del pollaio. */
+export async function scartaUovaNonCommestibili(): Promise<ActionResult & { scartate?: number }> {
+  const { supabase, pollaio } = await requireAdminPollaio();
+  const { data, error } = await supabase
+    .from("uova")
+    .update({ stato: "scartato" })
+    .eq("pollaio_id", pollaio.id)
+    .eq("stato", "non_commestibile")
+    .select("id");
+  if (error) return { ok: false, error: "Ops, riprova!" };
+  revalidatePath("/uova");
+  revalidatePath("/uova/sospensioni");
+  revalidatePath("/");
+  return { ok: true, scartate: data?.length ?? 0 };
+}
+
+export async function ripristinaUovo(
+  id: string,
+): Promise<ActionResult & { nonCommestibile?: boolean }> {
+  const { supabase } = await requireAdminPollaio();
+  // Se l'uovo cade in una sospensione, il trigger del DB lo riporta a
+  // 'non_commestibile' invece che a 'disponibile'.
+  const { data, error } = await supabase
     .from("uova")
     .update({
       stato: "disponibile",
       data_consumato: null,
       regalo_id: null,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .select("stato")
+    .single();
   if (error) return { ok: false, error: "Ops, riprova!" };
   revalidatePath("/uova");
   revalidatePath("/");
-  return { ok: true };
+  return { ok: true, nonCommestibile: data?.stato === "non_commestibile" };
 }
 
 export async function aggiornaConservazione(
@@ -322,17 +379,26 @@ export async function regalaUova(input: RegaloInput): Promise<ActionResult> {
 
   if (rErr) return { ok: false, error: "Ops, non sono riuscita a registrare il regalo." };
 
-  // 3. Marca le uova come regalate puntando al regalo appena creato
+  // 3. Marca le uova come regalate puntando al regalo appena creato.
+  // Il filtro sullo stato ripete il controllo: un uovo bloccato da una
+  // sospensione registrata nel frattempo non deve partire.
   const ids = candidate.map((u) => u.id);
-  const { error: uErr } = await supabase
+  const { data: regalate, error: uErr } = await supabase
     .from("uova")
     .update({ stato: "regalato", regalo_id: regalo.id })
-    .in("id", ids);
+    .in("id", ids)
+    .eq("stato", "disponibile")
+    .select("id");
 
-  if (uErr) {
-    // Rollback: elimina il regalo se l'aggiornamento delle uova fallisce
+  if (uErr || (regalate?.length ?? 0) < ids.length) {
+    // Rollback: rimette in scorta le uova eventualmente segnate (il trigger
+    // ricalcola lo stato) ed elimina il regalo.
+    await supabase
+      .from("uova")
+      .update({ stato: "disponibile", regalo_id: null })
+      .eq("regalo_id", regalo.id);
     await supabase.from("regali").delete().eq("id", regalo.id);
-    return { ok: false, error: "Ops, riprova!" };
+    return { ok: false, error: "Le scorte sono cambiate nel frattempo, riprova!" };
   }
 
   revalidatePath("/uova");

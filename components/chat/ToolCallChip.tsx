@@ -25,6 +25,7 @@ const LABEL: Record<string, string> = {
   marca_uovo_consumato: "Segno l'uovo come consumato",
   aggiungi_gallina: "Aggiungo la nuova arrivata",
   registra_trattamento: "Registro il trattamento",
+  registra_sospensione_uova: "Registro la sospensione delle uova",
   registra_uscita: "Registro l'uscita",
   registra_regalo_uova: "Registro il regalo",
   aggiungi_contatto: "Aggiungo il contatto",

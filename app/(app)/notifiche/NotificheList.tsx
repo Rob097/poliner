@@ -49,6 +49,12 @@ const META: Record<string, CategoriaMeta> = {
     color: "#FFD6E0",
     hrefFn: () => "/galline",
   },
+  sospensione_uova: {
+    label: "Uova di nuovo commestibili",
+    icona: "✅",
+    color: "#B5D4B5",
+    hrefFn: () => "/uova/sospensioni",
+  },
   scorte: {
     label: "Scorte basse",
     icona: "📦",

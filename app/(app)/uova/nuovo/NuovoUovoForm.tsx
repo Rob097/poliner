@@ -21,6 +21,12 @@ import {
   showLoadingOverlay,
 } from "@/components/layout/NavigationOverlay";
 import { PrimoUovoModal } from "@/components/uova/PrimoUovoModal";
+import {
+  alGiorno,
+  nomiGalline,
+  sospensionePerUovo,
+  type SospensioneUova,
+} from "@/lib/utils/sospensioni";
 import { createUovo, type PrimoUovo } from "../actions";
 
 export interface Gallina {
@@ -37,11 +43,12 @@ export interface Nido {
 interface Props {
   galline: Gallina[];
   nidi: Nido[];
+  sospensioni: SospensioneUova[];
 }
 
 const NON_SO = "__non-so__";
 
-export function NuovoUovoForm({ galline, nidi }: Props) {
+export function NuovoUovoForm({ galline, nidi, sospensioni }: Props) {
   const router = useRouter();
   const { show } = useToast();
 
@@ -61,6 +68,13 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [primeUova, setPrimeUova] = useState<PrimoUovo[] | null>(null);
+
+  // Il trigger del DB decide lo stato; qui lo anticipiamo per avvisare.
+  const giorno = data.slice(0, 10);
+  const nomi = useMemo(() => new Map(galline.map((g) => [g.id, g.nome])), [galline]);
+  const sospensioneScelta = gallinaId
+    ? sospensionePerUovo(sospensioni, gallinaId === NON_SO ? null : gallinaId, giorno)
+    : undefined;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -85,11 +99,12 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
         setError(res.error ?? "Ops, riprova!");
         return;
       }
+      if (res.nonCommestibile) show("🚫 Uovo registrato come non commestibile");
       if (res.primeUova && res.primeUova.length > 0) {
         setPrimeUova(res.primeUova);
         return;
       }
-      show("✓ Ottimo! Uovo registrato 🥚");
+      if (!res.nonCommestibile) show("✓ Ottimo! Uovo registrato 🥚");
       router.push("/uova");
       router.refresh();
     } catch (e) {
@@ -155,6 +170,11 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
                       <div className="text-2xl">{defaultEmojiFor("gallina")}</div>
                     )}
                     <div className="text-[13px] font-semibold mt-1">{g.nome}</div>
+                    {sospensionePerUovo(sospensioni, g.id, giorno) && (
+                      <div className="text-[10px] font-semibold text-[#c0435a] mt-0.5">
+                        🚫 in sospensione
+                      </div>
+                    )}
                   </SelectableChip>
                 ))}
                 <SelectableChip
@@ -164,6 +184,27 @@ export function NuovoUovoForm({ galline, nidi }: Props) {
                   <div className="text-2xl">❓</div>
                   <div className="text-[13px] font-semibold mt-1">Non so</div>
                 </SelectableChip>
+              </div>
+            )}
+            {sospensioneScelta && (
+              <div
+                className="mt-2.5 rounded-(--radius) px-3 py-2.5 text-[13px] leading-relaxed"
+                style={{ background: "#FFD6E055", border: "1px solid #c0435a33" }}
+              >
+                {gallinaId === NON_SO ? (
+                  <>
+                    🚫 È in corso una sospensione per{" "}
+                    <strong>{nomiGalline(sospensioneScelta, nomi)}</strong>: senza sapere chi
+                    l&apos;ha deposto, l&apos;uovo verrà segnato come{" "}
+                    <strong>non commestibile</strong> per prudenza.
+                  </>
+                ) : (
+                  <>
+                    🚫 <strong>{nomi.get(gallinaId ?? "")}</strong> è in sospensione (
+                    {sospensioneScelta.motivo}) fino {alGiorno(sospensioneScelta.dataFine)}:
+                    l&apos;uovo verrà segnato come <strong>non commestibile</strong>.
+                  </>
+                )}
               </div>
             )}
           </FormField>

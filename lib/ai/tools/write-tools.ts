@@ -1,5 +1,18 @@
 import type { ToolContext } from "./read-tools";
 import { RAZZE } from "@/lib/data/razze";
+import { dateIsoInTimeZone } from "@/lib/utils/date";
+import { riepilogoUovaSospensione } from "@/lib/queries/sospensioni";
+import {
+  SOSPENSIONE_SELECT,
+  commestibiliDal,
+  dalGiorno,
+  dataFineDaDurata,
+  daRigaSospensione,
+  formatPeriodo,
+  isDataValida,
+  rigaSospensione,
+  validaSospensione,
+} from "@/lib/utils/sospensioni";
 
 // ╔══════════════════════════════════════════════════════════╗
 // ║ Write tools dell'assistente AI                           ║
@@ -147,7 +160,7 @@ export async function registra_uovo(
   const { data: inserite, error } = await ctx.supabase
     .from("uova")
     .insert(righe)
-    .select("id");
+    .select("id, stato");
   if (error) {
     console.error("[write] registra_uovo", error);
     return { ok: false, errore: "Non sono riuscita a registrare le uova." };
@@ -155,6 +168,8 @@ export async function registra_uovo(
   return {
     ok: true,
     registrate: inserite?.length ?? 0,
+    // Uova cadute in una sospensione per farmaci (stato deciso dal DB).
+    non_commestibili: (inserite ?? []).filter((u) => u.stato === "non_commestibile").length,
     gallina: gallinaNomeRiconosciuta,
     data,
   };
@@ -440,17 +455,21 @@ export async function marca_uovo_consumato(
     };
   }
   const ids = rows.map((r) => r.id);
-  const { error: uErr } = await ctx.supabase
+  // Ricontrolla lo stato: un uovo bloccato da una sospensione nel frattempo
+  // non va segnato come mangiato.
+  const { data: consumate, error: uErr } = await ctx.supabase
     .from("uova")
     .update({ stato: "consumato", data_consumato: oggiISO() })
-    .in("id", ids);
+    .in("id", ids)
+    .eq("stato", "disponibile")
+    .select("id");
   if (uErr) {
     console.error("[write] marca_uovo_consumato update", uErr);
     return { ok: false, errore: "Non sono riuscita a marcare le uova." };
   }
   return {
     ok: true,
-    marcate: rows.length,
+    marcate: consumate?.length ?? 0,
     quantita_richiesta: quantita,
     gallina: gallinaNome,
   };
@@ -582,6 +601,85 @@ export async function registra_trattamento(
   };
 }
 
+// ── registra_sospensione_uova ─────────────────────────────
+// Le uova del periodo vengono marcate dal trigger del DB.
+export async function registra_sospensione_uova(
+  args: {
+    motivo?: string;
+    galline_nomi?: string[];
+    giorni?: number;
+    data_inizio?: string;
+    data_fine?: string;
+    prodotto?: string;
+    note?: string;
+  },
+  ctx: ToolContext,
+) {
+  const motivo = args.motivo?.trim();
+  if (!motivo) return { ok: false, errore: "Per quale farmaco o motivo?" };
+
+  const dataInizio = args.data_inizio?.trim() || dateIsoInTimeZone();
+  if (!isDataValida(dataInizio)) {
+    return { ok: false, errore: "La data di inizio deve essere nel formato YYYY-MM-DD." };
+  }
+  let dataFine = args.data_fine?.trim();
+  if (!dataFine) {
+    if (typeof args.giorni !== "number" || args.giorni < 1) {
+      return {
+        ok: false,
+        errore: "Per quanti giorni le uova non sono commestibili (o fino a che giorno)?",
+      };
+    }
+    dataFine = dataFineDaDurata(dataInizio, Math.floor(args.giorni));
+  }
+
+  const animaleIds: string[] = [];
+  const nomiRiconosciuti: string[] = [];
+  for (const nome of (args.galline_nomi ?? []).map((n) => n.trim()).filter(Boolean)) {
+    const a = await trovaAnimale(ctx, nome);
+    if (!a) {
+      return { ok: false, errore: `Nessuna gallina di nome "${nome}" tra quelle attive.` };
+    }
+    animaleIds.push(a.id);
+    nomiRiconosciuti.push(a.nome);
+  }
+
+  const input = {
+    dataInizio,
+    dataFine,
+    tutte: animaleIds.length === 0,
+    animaleIds,
+    motivo,
+    prodotto: args.prodotto,
+    note: args.note,
+  };
+  const errore = validaSospensione(input);
+  if (errore) return { ok: false, errore };
+
+  const { data, error } = await ctx.supabase
+    .from("sospensioni_uova")
+    .insert(rigaSospensione(ctx.pollaioId, input))
+    .select(SOSPENSIONE_SELECT)
+    .single();
+  if (error || !data) {
+    console.error("[write] registra_sospensione_uova", error);
+    return { ok: false, errore: "Non sono riuscita a registrare la sospensione." };
+  }
+
+  const s = daRigaSospensione(data);
+  const riepilogo = await riepilogoUovaSospensione(ctx.supabase, ctx.pollaioId, s);
+  return {
+    ok: true,
+    motivo,
+    galline: nomiRiconosciuti,
+    a_tutte: input.tutte,
+    periodo_non_commestibili: formatPeriodo(s),
+    di_nuovo_commestibili: dalGiorno(commestibiliDal(s)),
+    uova_gia_raccolte_bloccate: riepilogo.marcate,
+    uova_del_periodo_gia_consumate_o_regalate: riepilogo.giaUsate,
+  };
+}
+
 // ── registra_uscita ───────────────────────────────────────
 export async function registra_uscita(
   args: {
@@ -665,15 +763,22 @@ export async function registra_regalo_uova(
     return { ok: false, errore: "Non sono riuscita a registrare il regalo." };
   }
 
-  const { error: uErr } = await ctx.supabase
+  const { data: regalate, error: uErr } = await ctx.supabase
     .from("uova")
     .update({ stato: "regalato", regalo_id: regalo.id })
     .in(
       "id",
       rows.map((r) => r.id),
-    );
-  if (uErr) {
-    // Rollback regalo
+    )
+    .eq("stato", "disponibile")
+    .select("id");
+  if (uErr || (regalate?.length ?? 0) < rows.length) {
+    // Rollback: rimette in scorta le uova già segnate (il trigger ricalcola
+    // lo stato, es. se nel frattempo è partita una sospensione) e il regalo.
+    await ctx.supabase
+      .from("uova")
+      .update({ stato: "disponibile", regalo_id: null })
+      .eq("regalo_id", regalo.id);
     await ctx.supabase.from("regali").delete().eq("id", regalo.id);
     console.error("[write] regalo update uova", uErr);
     return {

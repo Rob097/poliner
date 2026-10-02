@@ -12,8 +12,17 @@ export type Tipo = "gallina" | "gallo";
 /** Ruoli per membri di un pollaio. */
 export type RuoloPollaio = "admin" | "guest";
 
-/** Stati di un uovo nel ciclo di vita. */
-export type StatoUovo = "disponibile" | "consumato" | "regalato";
+/**
+ * Stati di un uovo nel ciclo di vita.
+ * `non_commestibile` è assegnato dal DB alle uova deposte durante una
+ * sospensione (farmaci); `scartato` è la fine di un uovo buttato via.
+ */
+export type StatoUovo =
+  | "disponibile"
+  | "non_commestibile"
+  | "scartato"
+  | "consumato"
+  | "regalato";
 
 /** Modalità di conservazione degli uova. */
 export type Conservazione = "ambiente" | "frigo";

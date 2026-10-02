@@ -7,12 +7,15 @@ import type {
 import { calcolaStatiManutenzione } from "@/lib/utils/manutenzione";
 import { calcolaScadenza } from "@/lib/utils/uova";
 import { dateIsoInTimeZone, startOfTodayIso } from "@/lib/utils/date";
+import { aggiungiGiorni, type SospensioneUova } from "@/lib/utils/sospensioni";
+import { caricaNomiAnimali, caricaSospensioni } from "@/lib/queries/sospensioni";
 import type { Conservazione } from "@/lib/types";
 
 type Supa = SupabaseClient<Database>;
 
 export interface HomeCounters {
   uovaDisponibili: number;
+  uovaNonCommestibili: number;
   uovaOggi: number;
   galline: number;
   galli: number;
@@ -68,6 +71,9 @@ export interface HomeData {
   scorteBasse: ScortaBassa[];
   promemoriaImminenti: PromemoriaImminente[];
   avvisiLetti: Set<string>;
+  /** Sospensioni uova in corso, future o finite da pochi giorni. */
+  sospensioni: SospensioneUova[];
+  nomiAnimali: Map<string, string>;
 }
 
 /**
@@ -100,6 +106,8 @@ export async function loadHomeData(
     notificheNonLetteRes,
     homeHospitalRes,
     avvisiLettiRes,
+    uovaNonCommestibiliRes,
+    sospensioni,
   ] = await Promise.all([
     supabase
       .from("uova")
@@ -180,6 +188,13 @@ export async function loadHomeData(
       .select("avviso_key")
       .eq("user_id", userId)
       .eq("pollaio_id", pollaioId),
+    supabase
+      .from("uova")
+      .select("id", { count: "exact", head: true })
+      .eq("pollaio_id", pollaioId)
+      .eq("stato", "non_commestibile"),
+    // Finite da max 3 giorni: servono per l'avviso "di nuovo commestibili".
+    caricaSospensioni(supabase, pollaioId, { daFine: aggiungiGiorni(oggiIso, -3) }),
   ]);
 
   logQueryErrors("home", {
@@ -197,7 +212,12 @@ export async function loadHomeData(
     notificheNonLette: notificheNonLetteRes.error,
     homeHospital: homeHospitalRes.error,
     avvisiLetti: avvisiLettiRes.error,
+    uovaNonCommestibili: uovaNonCommestibiliRes.error,
   });
+
+  const nomiAnimali = sospensioni.some((s) => !s.tutte)
+    ? await caricaNomiAnimali(supabase, pollaioId)
+    : new Map<string, string>();
 
   type VoceRow = {
     id: string;
@@ -340,6 +360,7 @@ export async function loadHomeData(
   return {
     counters: {
       uovaDisponibili: uovaDispRes.count ?? 0,
+      uovaNonCommestibili: uovaNonCommestibiliRes.count ?? 0,
       uovaOggi: uovaOggiRes.count ?? 0,
       galline: gallineCountRes.count ?? 0,
       galli: galloCountRes.count ?? 0,
@@ -353,6 +374,8 @@ export async function loadHomeData(
     scorteBasse,
     promemoriaImminenti,
     avvisiLetti,
+    sospensioni,
+    nomiAnimali,
   };
 }
 

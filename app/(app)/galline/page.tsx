@@ -1,6 +1,8 @@
 import { requirePollaio } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
+import { caricaSospensioni } from "@/lib/queries/sospensioni";
+import { coinvolgeGallina, oggiSospensioni } from "@/lib/utils/sospensioni";
 import { GallineListClient, type GallinaDisplay } from "./GallineListClient";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +39,8 @@ export default async function GallinePage() {
   }
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const [uovaRes, mutaRes, saluteRes, hhRes, insAllRes, insCompletatiRes] =
+  const oggi = oggiSospensioni();
+  const [uovaRes, mutaRes, saluteRes, hhRes, insAllRes, insCompletatiRes, sospensioni] =
     await Promise.all([
       supabase
         .from("uova")
@@ -69,7 +72,9 @@ export default async function GallinePage() {
         .select("animale_id")
         .in("animale_id", aIds)
         .eq("tipo", "completato"),
+      caricaSospensioni(supabase, pollaio.id, { daFine: oggi }),
     ]);
+  const sospensioniInCorso = sospensioni.filter((s) => s.dataInizio <= oggi);
 
   const uovaCount = new Map<string, number>();
   for (const u of uovaRes.data ?? []) {
@@ -113,6 +118,8 @@ export default async function GallinePage() {
     problemaAttivo: saluteMap.get(a.id) ?? null,
     inHomeHospital: hhSet.has(a.id),
     inInserimento: inInserimentoSet.has(a.id),
+    uovaSospese:
+      a.tipo === "gallina" && sospensioniInCorso.some((s) => coinvolgeGallina(s, a.id)),
     uovaUltimaSettimana: uovaCount.get(a.id) ?? 0,
   }));
 

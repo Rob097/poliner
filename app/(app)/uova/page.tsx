@@ -3,7 +3,15 @@ import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { RichiesteSection, type RichiestaRow } from "@/components/uova/RichiesteSection";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { UovaList, type UovoDisplay } from "./UovaList";
+import { caricaSospensioni } from "@/lib/queries/sospensioni";
+import {
+  alGiorno,
+  commestibiliDal,
+  dalGiorno,
+  faseSospensione,
+  nomiGalline,
+} from "@/lib/utils/sospensioni";
+import { UovaList, type SospensioneBanner, type UovoDisplay } from "./UovaList";
 
 export const dynamic = "force-dynamic";
 
@@ -19,12 +27,12 @@ export default async function UovaPage({
   // Fetch uova: tutte (per scorte + storico)
   const { data: uova } = await supabase
     .from("uova")
-    .select("id, data_deposizione, stato, conservazione, foto_url, note, animale_id, nido_id, regalo_id")
+    .select("id, data_deposizione, stato, conservazione, foto_url, note, animale_id, nido_id, regalo_id, sospensione_id")
     .eq("pollaio_id", pollaio.id)
     .order("data_deposizione", { ascending: false });
 
   // Animali e nidi per lookup
-  const [animaliRes, nidiRes, regaliRes] = await Promise.all([
+  const [animaliRes, nidiRes, regaliRes, sospensioni] = await Promise.all([
     supabase
       .from("animali")
       .select("id, nome, foto_url, tipo")
@@ -37,6 +45,7 @@ export default async function UovaPage({
       .from("regali")
       .select("id, contatto_id, quantita, data, contatti(nome)")
       .eq("pollaio_id", pollaio.id),
+    caricaSospensioni(supabase, pollaio.id),
   ]);
 
   const animaleMap = new Map<string, { nome: string; foto_url: string | null }>();
@@ -61,6 +70,18 @@ export default async function UovaPage({
     regaloMap.set(r.id, nome ?? "—");
   }
 
+  const motivoSospensione = new Map(sospensioni.map((s) => [s.id, s.motivo]));
+  const nomiAnimali = new Map(Array.from(animaleMap, ([id, a]) => [id, a.nome]));
+  const sospensioniInCorso: SospensioneBanner[] = sospensioni
+    .filter((s) => faseSospensione(s) === "in_corso")
+    .sort((a, b) => a.dataFine.localeCompare(b.dataFine))
+    .map((s) => ({
+      id: s.id,
+      galline: nomiGalline(s, nomiAnimali),
+      fino: alGiorno(s.dataFine),
+      ritorno: dalGiorno(commestibiliDal(s)),
+    }));
+
   const uovaDisplay: UovoDisplay[] = (uova ?? []).map((u) => ({
     id: u.id,
     dataDeposizione: u.data_deposizione,
@@ -74,9 +95,13 @@ export default async function UovaPage({
       : null,
     nidoNome: u.nido_id ? nidoMap.get(u.nido_id) ?? null : null,
     regalatoA: u.regalo_id ? regaloMap.get(u.regalo_id) ?? null : null,
+    sospensioneMotivo: u.sospensione_id
+      ? motivoSospensione.get(u.sospensione_id) ?? null
+      : null,
   }));
 
   const uovaDisponibili = uovaDisplay.filter((u) => u.stato === "disponibile").length;
+  const uovaNonCommestibili = uovaDisplay.filter((u) => u.stato === "non_commestibile").length;
 
   // ── Richieste pending (FIFO) ─────────────────────────────
   type RichRow = {
@@ -126,7 +151,11 @@ export default async function UovaPage({
       header={(
         <Header
           title="Le tue uova"
-          subtitle={`${uovaDisponibili} disponibili`}
+          subtitle={
+            uovaNonCommestibili > 0
+              ? `${uovaDisponibili} disponibili · ${uovaNonCommestibili} non commestibili`
+              : `${uovaDisponibili} disponibili`
+          }
         />
       )}
       pad={false}
@@ -140,6 +169,7 @@ export default async function UovaPage({
         <div className="mt-5">
           <UovaList
             uova={uovaDisplay}
+            sospensioniInCorso={sospensioniInCorso}
             conservazioneSettings={{
               ambiente: pollaio.conservazione_ambiente_giorni,
               frigo: pollaio.conservazione_frigo_giorni,

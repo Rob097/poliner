@@ -15,6 +15,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Modal } from "@/components/ui/Modal";
 import { Input, Textarea, Select } from "@/components/ui/Input";
 import { FormField } from "@/components/ui/FormField";
+import Link from "next/link";
 import { IconEdit, IconPlus } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/Toast";
 import { usePagination } from "@/lib/hooks/usePagination";
@@ -24,6 +25,22 @@ import { statoMutaCorrente } from "@/lib/utils/muta";
 import { trovaRazza, uovaAnnoLabel } from "@/lib/data/razze";
 import { avatarBgFor, defaultEmojiFor } from "@/lib/utils/avatar";
 import { formatData, formatDataLunga, todayIso } from "@/lib/utils/date";
+import { statoUovoColors, statoUovoLabel, type StatoUovo } from "@/lib/utils/uova";
+import {
+  alGiorno,
+  commestibiliDal,
+  dalGiorno,
+  dataFineDaDurata,
+  DURATA_MAX_GIORNI,
+  faseSospensione,
+  formatPeriodo,
+  oggiSospensioni,
+  type SospensioneUova,
+} from "@/lib/utils/sospensioni";
+import {
+  SospensioneSheet,
+  type GallinaOpzione,
+} from "@/components/uova/SospensioneSheet";
 import {
   aggiornaHomeHospital,
   aggiungiEventoSalute,
@@ -112,6 +129,9 @@ export interface ChickenData {
     totali: number;
     regalate: number;
   };
+  /** Sospensioni uova che coinvolgono questa gallina (o tutto il pollaio). */
+  sospensioni: SospensioneUova[];
+  gallineOpzioni: GallinaOpzione[];
 }
 
 type TabId = "info" | "uova" | "salute" | "inserimento";
@@ -136,7 +156,17 @@ const SUGGERIMENTI_TRATTAMENTO = [
 
 export function ChickenDetail({ data, ruolo }: { data: ChickenData; ruolo: RuoloPollaio }) {
   const router = useRouter();
-  const { animale, uova, trattamenti, periodiMuta, eventiSalute, eventiInserimento, statsUova } = data;
+  const {
+    animale,
+    uova,
+    trattamenti,
+    periodiMuta,
+    eventiSalute,
+    eventiInserimento,
+    statsUova,
+    sospensioni,
+    gallineOpzioni,
+  } = data;
   const isAdmin = ruolo === "admin";
   const inInserimento =
     eventiInserimento.length > 0 &&
@@ -149,6 +179,9 @@ export function ChickenDetail({ data, ruolo }: { data: ChickenData; ruolo: Ruolo
   const [showDefunta, setShowDefunta] = useState(false);
   const [showEmpatico, setShowEmpatico] = useState(false);
   const [editingHHEvento, setEditingHHEvento] = useState<EventoSalute | null>(null);
+  const [sospensioneSheet, setSospensioneSheet] = useState<
+    { iniziale?: SospensioneUova } | null
+  >(null);
 
   const isDefunta = !!animale.defunta_il;
   const eta = animale.data_nascita ? calcolaEta(animale.data_nascita) : null;
@@ -161,6 +194,10 @@ export function ChickenDetail({ data, ruolo }: { data: ChickenData; ruolo: Ruolo
   const razzaNome = razza?.nome ?? animale.razza_custom ?? "Razza non specificata";
   const muta = statoMutaCorrente(periodiMuta);
   const problemaAttivo = eventiSalute.find((e) => e.stato === "in_corso");
+  const oggi = oggiSospensioni();
+  const sospensioneInCorso = sospensioni
+    .filter((s) => faseSospensione(s, oggi) === "in_corso")
+    .sort((a, b) => b.dataFine.localeCompare(a.dataFine))[0];
   const bg = avatarBgFor(animale.id);
   const emoji = defaultEmojiFor(tipo);
 
@@ -244,6 +281,11 @@ export function ChickenDetail({ data, ruolo }: { data: ChickenData; ruolo: Ruolo
                 ❤️‍🩹 Problema salute
               </Badge>
             )}
+            {!isDefunta && tipo === "gallina" && sospensioneInCorso && (
+              <Badge bg="#FFD6E0" color="#c0435a">
+                🚫 Uova non commestibili fino {alGiorno(sospensioneInCorso.dataFine)}
+              </Badge>
+            )}
             {isAdmin && !isDefunta && muta.inMuta && (
               <Badge bg="#E8DAFF" color="#7b5ea7">
                 🪶 In muta da {muta.giorni} {muta.giorni === 1 ? "giorno" : "giorni"}
@@ -297,6 +339,10 @@ export function ChickenDetail({ data, ruolo }: { data: ChickenData; ruolo: Ruolo
         {activeTab === "salute" && (
           <SaluteTab
             animaleId={animale.id}
+            isGallina={tipo === "gallina"}
+            sospensioni={sospensioni}
+            onAddSospensione={() => setSospensioneSheet({})}
+            onEditSospensione={(s) => setSospensioneSheet({ iniziale: s })}
             trattamenti={trattamenti}
             periodiMuta={periodiMuta}
             eventiSalute={eventiSalute}
@@ -320,7 +366,16 @@ export function ChickenDetail({ data, ruolo }: { data: ChickenData; ruolo: Ruolo
       {showTrattamento && (
         <AggiungiTrattamentoSheet
           animaleId={animale.id}
+          tipoAnimale={tipo}
           onClose={() => setShowTrattamento(false)}
+        />
+      )}
+      {sospensioneSheet && (
+        <SospensioneSheet
+          galline={gallineOpzioni}
+          iniziale={sospensioneSheet.iniziale}
+          preselezionata={animale.id}
+          onClose={() => setSospensioneSheet(null)}
         />
       )}
       {showProblema && (
@@ -553,8 +608,12 @@ function UovaTab({
                   </div>
                 )}
               </div>
-              <Badge small bg={statoUovoColor(u.stato).bg} color={statoUovoColor(u.stato).color}>
-                {statoUovoLabel(u.stato)}
+              <Badge
+                small
+                bg={statoUovoColors(u.stato as StatoUovo).bg}
+                color={statoUovoColors(u.stato as StatoUovo).color}
+              >
+                {statoUovoLabel(u.stato as StatoUovo)}
               </Badge>
             </Card>
           ))}
@@ -564,21 +623,13 @@ function UovaTab({
   );
 }
 
-function statoUovoLabel(stato: string): string {
-  if (stato === "disponibile") return "Disponibile";
-  if (stato === "consumato") return "Consumato";
-  if (stato === "regalato") return "Regalato";
-  return stato;
-}
-function statoUovoColor(stato: string): { bg: string; color: string } {
-  if (stato === "disponibile") return { bg: "#B5D4B533", color: "#3d6b3d" };
-  if (stato === "consumato") return { bg: "#F0EDE8", color: "var(--text-secondary)" };
-  return { bg: "#FFE4D044", color: "#b87333" };
-}
-
 // ─── SALUTE TAB ────────────────────────────────────────
 function SaluteTab({
   animaleId,
+  isGallina,
+  sospensioni,
+  onAddSospensione,
+  onEditSospensione,
   trattamenti,
   periodiMuta,
   eventiSalute,
@@ -589,6 +640,10 @@ function SaluteTab({
   onEditHH,
 }: {
   animaleId: string;
+  isGallina: boolean;
+  sospensioni: SospensioneUova[];
+  onAddSospensione: () => void;
+  onEditSospensione: (s: SospensioneUova) => void;
   trattamenti: Trattamento[];
   periodiMuta: PeriodoMuta[];
   eventiSalute: EventoSalute[];
@@ -614,6 +669,12 @@ function SaluteTab({
     remaining: eventiRemaining,
     loadMore: eventiLoadMore,
   } = usePagination(eventiSalute);
+
+  const sospensionePerTrattamento = new Map(
+    sospensioni
+      .filter((s) => s.trattamentoId)
+      .map((s) => [s.trattamentoId as string, s]),
+  );
 
   const {
     visible: trattamentiVisible,
@@ -792,6 +853,16 @@ function SaluteTab({
         </>
       )}
 
+      {/* Sospensione uova */}
+      {isGallina && (
+        <SospensioniGallina
+          sospensioni={sospensioni}
+          readOnly={readOnly}
+          onAdd={onAddSospensione}
+          onEdit={onEditSospensione}
+        />
+      )}
+
       {/* Trattamenti */}
       <SectionTitle
         right={
@@ -845,6 +916,15 @@ function SaluteTab({
                     📅 Prossimo trattamento: {formatData(t.prossima_data)}
                   </div>
                 )}
+                {sospensionePerTrattamento.get(t.id) && (
+                  <div
+                    className="mt-2 px-2.5 py-1.5 rounded-lg text-xs"
+                    style={{ background: "#FFD6E044" }}
+                  >
+                    🚫 Uova non commestibili{" "}
+                    {formatPeriodo(sospensionePerTrattamento.get(t.id)!)}
+                  </div>
+                )}
                 {/* Eliminazione possibile solo se è del singolo animale */}
                 {!t.applica_a_tutti && !readOnly && (
                   <button
@@ -873,15 +953,116 @@ function tipoEventoLabel(t: string): string {
   return found?.label ?? t;
 }
 
+function SospensioniGallina({
+  sospensioni,
+  readOnly,
+  onAdd,
+  onEdit,
+}: {
+  sospensioni: SospensioneUova[];
+  readOnly: boolean;
+  onAdd: () => void;
+  onEdit: (s: SospensioneUova) => void;
+}) {
+  const oggi = oggiSospensioni();
+  const { visible, hasMore, remaining, loadMore } = usePagination(sospensioni, 5);
+
+  return (
+    <>
+      <SectionTitle
+        right={
+          readOnly ? undefined : (
+            <button
+              type="button"
+              onClick={onAdd}
+              className="text-xs text-(--primary) font-semibold flex items-center gap-1"
+            >
+              <IconPlus size={14} /> Registra
+            </button>
+          )
+        }
+      >
+        Sospensione uova
+      </SectionTitle>
+      {sospensioni.length === 0 ? (
+        <Card>
+          <p className="text-sm text-(--text-secondary) text-center py-2 m-0">
+            Nessuna sospensione: le sue uova sono commestibili ✓
+          </p>
+        </Card>
+      ) : (
+        <>
+          <div className="flex flex-col gap-2">
+            {visible.map((s) => {
+              const fase = faseSospensione(s, oggi);
+              return (
+                <Card
+                  key={s.id}
+                  style={fase === "in_corso" ? { borderLeft: "4px solid #c0435a" } : undefined}
+                >
+                  <div className="flex justify-between items-start gap-2 mb-1">
+                    <div className="font-semibold text-sm">
+                      🚫 {s.motivo}
+                      {s.prodotto && (
+                        <span className="font-normal text-(--text-secondary)">
+                          {" "}· {s.prodotto}
+                        </span>
+                      )}
+                    </div>
+                    <Badge
+                      small
+                      bg={fase === "in_corso" ? "#FFD6E0" : fase === "programmata" ? "#FFE07A55" : "#B5D4B533"}
+                      color={fase === "in_corso" ? "#c0435a" : fase === "programmata" ? "#7a5d1a" : "#3d6b3d"}
+                    >
+                      {fase === "in_corso" ? "In corso" : fase === "programmata" ? "Programmata" : "Conclusa"}
+                    </Badge>
+                  </div>
+                  <div className="text-xs text-(--text-secondary) leading-relaxed">
+                    {s.tutte && (
+                      <Badge small bg="#A8D1FF44" color="#3a5a7a" className="mr-1.5">
+                        Tutto il pollaio
+                      </Badge>
+                    )}
+                    {formatPeriodo(s)} · buone {dalGiorno(commestibiliDal(s))}
+                  </div>
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      onClick={() => onEdit(s)}
+                      className="mt-2 text-xs text-(--primary) font-semibold"
+                    >
+                      Modifica
+                    </button>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
+          {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
+        </>
+      )}
+      <Link
+        href="/uova/sospensioni"
+        className="block text-right mt-2 text-xs text-(--primary) font-semibold"
+      >
+        Tutte le sospensioni →
+      </Link>
+    </>
+  );
+}
+
 // ─── SHEETS ────────────────────────────────────────────
 
 function AggiungiTrattamentoSheet({
   animaleId,
+  tipoAnimale,
   onClose,
 }: {
   animaleId: string;
+  tipoAnimale: Tipo;
   onClose: () => void;
 }) {
+  const router = useRouter();
   const { show } = useToast();
   const [tipo, setTipo] = useState("");
   const [prodotto, setProdotto] = useState("");
@@ -889,7 +1070,19 @@ function AggiungiTrattamentoSheet({
   const [note, setNote] = useState("");
   const [applicaATutti, setApplicaATutti] = useState(false);
   const [prossimaData, setProssimaData] = useState("");
+  const [sospensione, setSospensione] = useState(false);
+  const [giorniSospensione, setGiorniSospensione] = useState("");
   const [pending, startTransition] = useTransition();
+
+  // Un gallo da solo non depone: la sospensione ha senso per una gallina o
+  // per un trattamento a tutto il pollaio.
+  const puoSospendere = tipoAnimale === "gallina" || applicaATutti;
+  const conSospensione = puoSospendere && sospensione;
+  const nGiorni = Number(giorniSospensione);
+  const giorniValidi =
+    Number.isInteger(nGiorni) && nGiorni >= 1 && nGiorni <= DURATA_MAX_GIORNI;
+  const oggi = oggiSospensioni();
+  const fineSospensione = giorniValidi ? dataFineDaDurata(oggi, nGiorni) : null;
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -904,9 +1097,12 @@ function AggiungiTrattamentoSheet({
         dose: dose || null,
         note: note || null,
         prossimaData: prossimaData ? new Date(prossimaData).toISOString() : null,
+        sospensioneGiorni: conSospensione ? nGiorni : null,
       });
       if (res.ok) {
-        show("✓ Trattamento registrato!");
+        if (res.avviso) show(res.avviso);
+        else show(conSospensione ? "✓ Trattamento e sospensione salvati" : "✓ Trattamento registrato!");
+        if (conSospensione) router.refresh();
         onClose();
       } else {
         show("Ops, riprova!");
@@ -945,6 +1141,50 @@ function AggiungiTrattamentoSheet({
           />
         </FormField>
 
+        {puoSospendere && (
+          <div className="mb-4 rounded-(--radius) border border-(--border) p-3">
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={sospensione}
+                onChange={(ev) => setSospensione(ev.target.checked)}
+                className="mt-1"
+              />
+              <div className="flex-1">
+                <div className="text-sm font-semibold">
+                  🚫 Uova non commestibili per un periodo
+                </div>
+                <div className="text-xs text-(--text-secondary) mt-0.5">
+                  Tempo di sospensione del farmaco: le uova di quei giorni verranno segnate
+                  come non commestibili.
+                </div>
+              </div>
+            </label>
+
+            {sospensione && (
+              <div className="mt-3">
+                <FormField label="Per quanti giorni, a partire da oggi?" className="mb-2">
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={DURATA_MAX_GIORNI}
+                    value={giorniSospensione}
+                    onChange={(ev) => setGiorniSospensione(ev.target.value)}
+                    placeholder="Es. 7"
+                  />
+                </FormField>
+                {fineSospensione && (
+                  <div className="text-xs text-(--text-secondary) leading-relaxed">
+                    🚫 Non commestibili {formatPeriodo({ dataInizio: oggi, dataFine: fineSospensione })}{" "}
+                    · ✅ buone {dalGiorno(commestibiliDal({ dataFine: fineSospensione }))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         <FormField label="Prodotto usato (opzionale)">
           <Input
             value={prodotto}
@@ -982,7 +1222,7 @@ function AggiungiTrattamentoSheet({
           type="submit"
           size="lg"
           fullWidth
-          disabled={!tipo.trim() || pending}
+          disabled={!tipo.trim() || pending || (conSospensione && !giorniValidi)}
           className="mt-2"
         >
           {pending ? "Sto registrando..." : "Registra trattamento"}

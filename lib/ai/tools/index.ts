@@ -489,6 +489,48 @@ export const WRITE_TOOLS: Record<string, ToolRegistration> = {
       ),
   ),
 
+  registra_sospensione_uova: tool(
+    "registra_sospensione_uova",
+    "Registra un periodo di sospensione (tempo di attesa) dopo un farmaco: le uova deposte nel periodo dalle galline indicate diventano non commestibili, anche quelle già raccolte. Serve 'giorni' oppure 'data_fine'. Senza galline_nomi vale per tutto il pollaio.",
+    {
+      type: "object",
+      properties: {
+        motivo: { type: "string", description: "Breve: 'Antibiotico', 'Antiparassitario', ..." },
+        galline_nomi: {
+          type: "array",
+          items: { type: "string" },
+          description: "Galline coinvolte. Omettere per tutto il pollaio (es. farmaco nell'acqua).",
+        },
+        giorni: {
+          type: "number",
+          description: "Durata in giorni, contando anche il giorno di inizio.",
+        },
+        data_inizio: { type: "string", description: "ISO YYYY-MM-DD. Default: oggi." },
+        data_fine: {
+          type: "string",
+          description: "ISO YYYY-MM-DD, ultimo giorno incluso. Alternativa a 'giorni'.",
+        },
+        prodotto: { type: "string", description: "Nome del farmaco, se detto." },
+        note: { type: "string" },
+      },
+      required: ["motivo"],
+      additionalProperties: false,
+    },
+    (args, ctx) =>
+      W.registra_sospensione_uova(
+        args as {
+          motivo?: string;
+          galline_nomi?: string[];
+          giorni?: number;
+          data_inizio?: string;
+          data_fine?: string;
+          prodotto?: string;
+          note?: string;
+        },
+        ctx,
+      ),
+  ),
+
   registra_uscita: tool(
     "registra_uscita",
     "Registra la giornata di uscita/rientro delle galline. Serve almeno una tra ora_uscita e ora_rientro (formato 'HH:MM' o 'HH:MM:SS').",

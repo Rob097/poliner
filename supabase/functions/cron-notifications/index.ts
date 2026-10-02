@@ -1,5 +1,6 @@
 // Cron Edge Function: scansiona promemoria, meteo, tramonto, uova in scadenza,
-// manutenzione, trattamenti, scorte basse — invia notifiche push e/o email secondo le preferenze.
+// manutenzione, trattamenti, scorte basse, fine sospensione uova — invia
+// notifiche push e/o email secondo le preferenze.
 // Schedulare via pg_cron (vedi migration 0005_pg_cron).
 //
 // Multi-tenancy: per ogni pollaio recupera tutti gli admin via
@@ -26,6 +27,11 @@ const ITALY_TIME_ZONE = "Europe/Rome";
 const HOURLY_SWEEP_MINUTE = "05";
 const FINE_PRODUZIONE_WARNING_DAYS = 30;
 const MUTA_LUNGA_GIORNI = 70;
+// L'avviso "uova di nuovo commestibili" parte al primo sweep orario da quest'ora
+// in poi, non a mezzanotte.
+const SOSPENSIONE_NOTIFICA_DALLE = "08:00";
+// Se il cron salta qualche giro, recuperiamo l'avviso per qualche giorno.
+const SOSPENSIONE_RECUPERO_GIORNI = 3;
 const PUSH_REQUEST_OPTIONS = {
   TTL: 60 * 60,
   urgency: "high" as const,
@@ -145,6 +151,18 @@ function daysBetweenDateOnly(startDate: string, endDate: string): number {
   const startUtc = Date.UTC(start.year, start.month - 1, start.day);
   const endUtc = Date.UTC(end.year, end.month - 1, end.day);
   return Math.floor((endUtc - startUtc) / 86400000);
+}
+
+function addDaysToDateOnly(dateValue: string, days: number): string {
+  const base = parseDateOnly(dateValue);
+  return new Date(Date.UTC(base.year, base.month - 1, base.day + days, 12))
+    .toISOString()
+    .slice(0, 10);
+}
+
+function elencoNomi(nomi: string[]): string {
+  if (nomi.length <= 1) return nomi[0] ?? "una gallina";
+  return `${nomi.slice(0, -1).join(", ")} e ${nomi[nomi.length - 1]}`;
 }
 
 function addMonthsToDateOnly(dateValue: string, months: number): string {
@@ -454,6 +472,7 @@ Deno.serve(async (req: Request) => {
     scorte: 0,
     fine_produzione: 0,
     muta_lunga: 0,
+    sospensione_uova: 0,
   };
 
   for (const p of pollai) {
@@ -869,6 +888,71 @@ Deno.serve(async (req: Request) => {
           emailBody: `${nomeAnimale} e in muta da ${giorniInMuta} giorni. Controlla la sua scheda nell'app.`,
         });
         if (push || email) stats.muta_lunga++;
+      }
+    }
+
+    // ─── SOSPENSIONE UOVA TERMINATA ───
+    // data_fine è l'ultimo giorno di sospensione: le uova tornano buone il
+    // giorno dopo. Una notifica per sospensione (dedup su id + data_fine, così
+    // se le date cambiano l'avviso riparte). Le galline ancora coperte da
+    // un'altra sospensione in corso vengono escluse dall'avviso (stessa
+    // regola di `gallineTornateLibere` in lib/utils/sospensioni.ts).
+    if (currentTime >= SOSPENSIONE_NOTIFICA_DALLE) {
+      const [{ data: sospensioniFinite }, { data: sospensioniAttive }] = await Promise.all([
+        supabase
+          .from("sospensioni_uova")
+          .select("id, data_fine, tutte, animale_ids")
+          .eq("pollaio_id", p.id)
+          .gte("data_fine", addDaysToDateOnly(today, -SOSPENSIONE_RECUPERO_GIORNI))
+          .lt("data_fine", today),
+        supabase
+          .from("sospensioni_uova")
+          .select("tutte, animale_ids")
+          .eq("pollaio_id", p.id)
+          .lte("data_inizio", today)
+          .gte("data_fine", today),
+      ]);
+      const tuttoAncoraSospeso = (sospensioniAttive ?? []).some((a) => a.tutte);
+      const ancoraSospese = new Set<string>(
+        (sospensioniAttive ?? []).flatMap((a) => (a.animale_ids ?? []) as string[]),
+      );
+      const nomeDi = (id: string) => animaleNomeMap.get(id) ?? "una gallina";
+
+      for (const s of sospensioniFinite ?? []) {
+        if (tuttoAncoraSospeso) continue;
+        let chi: string;
+        if (s.tutte) {
+          chi = ancoraSospese.size > 0
+            ? `delle tue galline (tranne ${elencoNomi(Array.from(ancoraSospese, nomeDi))})`
+            : "delle tue galline";
+        } else {
+          const libere = ((s.animale_ids ?? []) as string[]).filter(
+            (id) => !ancoraSospese.has(id),
+          );
+          if (libere.length === 0) continue;
+          chi = `di ${elencoNomi(libere.map(nomeDi))}`;
+        }
+        const daOggi = addDaysToDateOnly(s.data_fine, 1) === today;
+        const body = daOggi
+          ? `Da oggi puoi di nuovo mangiare le uova ${chi}. Quelle raccolte durante la sospensione restano da buttare.`
+          : `Le uova ${chi} sono di nuovo commestibili. Quelle raccolte durante la sospensione restano da buttare.`;
+
+        for (const ub of adminBases) {
+          const { push, email } = await dispatchNotifica(supabase, {
+            ...ub,
+            category: "sospensione_uova",
+            riferimentoId: `${s.id}-${s.data_fine}`,
+            push: {
+              title: "✅ Uova di nuovo commestibili",
+              body,
+              url: "/uova/sospensioni",
+              tag: `sosp-${s.id}`,
+            },
+            emailSubject: "✅ Uova di nuovo commestibili · Poliner",
+            emailBody: `${body}\n\nPollaio "${p.nome}".`,
+          });
+          if (push || email) stats.sospensione_uova++;
+        }
       }
     }
   }

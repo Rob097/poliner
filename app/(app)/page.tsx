@@ -11,6 +11,19 @@ import { consiglioStagionale } from "@/lib/utils/stagione";
 import { formatDataCompleta } from "@/lib/utils/date";
 import { AperturaChiusuraCard } from "@/components/home/AperturaChiusuraCard";
 import { loadHomeData } from "@/lib/queries/home";
+import {
+  alGiorno,
+  commestibiliDal,
+  dalGiorno,
+  diGalline,
+  etichettaRitorno,
+  faseSospensione,
+  gallineTornateLibere,
+  giorniAlRitorno,
+  giorniTra,
+  nomiGalline,
+  oggiSospensioni,
+} from "@/lib/utils/sospensioni";
 
 export const dynamic = "force-dynamic";
 
@@ -80,6 +93,31 @@ export default async function HomePage() {
       avvisoKey: `salute:${e.id}`,
     });
   }
+  // Sospensioni uova finite da poco: le uova tornano commestibili, ma solo
+  // per le galline che non sono coperte da un'altra sospensione in corso.
+  const oggiData = oggiSospensioni();
+  const sospensioniAttive = data.sospensioni.filter(
+    (s) => faseSospensione(s, oggiData) === "in_corso",
+  );
+  for (const s of data.sospensioni) {
+    const ritorno = commestibiliDal(s);
+    const giorniDa = giorniTra(ritorno, oggiData);
+    if (giorniDa < 0 || giorniDa > 2) continue;
+    const libere = gallineTornateLibere(s, sospensioniAttive);
+    if (!libere) continue;
+    const eccetto =
+      libere.eccetto.length > 0
+        ? ` (tranne ${nomiGalline({ tutte: false, animaleIds: libere.eccetto }, data.nomiAnimali)})`
+        : "";
+    alerts.push({
+      icon: "✅",
+      title: `Le uova ${diGalline(libere, data.nomiAnimali)} sono di nuovo buone${eccetto}`,
+      subtitle: `Sospensione finita: commestibili ${dalGiorno(ritorno)}`,
+      color: "#B5D4B5",
+      href: "/uova/sospensioni",
+      avvisoKey: `sospensione_fine:${s.id}:${s.dataFine}`,
+    });
+  }
   // Uova in scadenza
   if (data.uovaInScadenzaIds.length > 0) {
     const hashIds = djb2([...data.uovaInScadenzaIds].sort().join(","));
@@ -145,6 +183,9 @@ export default async function HomePage() {
   const consiglio = consiglioStagionale();
   const dateStr = formatDataCompleta(new Date());
   const { counters, uscitaOggi, hhList } = data;
+  const sospensioniInCorso = [...sospensioniAttive].sort((a, b) =>
+    a.dataFine.localeCompare(b.dataFine),
+  );
 
   return (
     <ScreenContainer
@@ -216,6 +257,11 @@ export default async function HomePage() {
               <div className="text-[11px] text-(--text-secondary) mt-1">
                 +{counters.uovaOggi} oggi
               </div>
+              {counters.uovaNonCommestibili > 0 && (
+                <div className="text-[11px] font-semibold text-[#c0435a] mt-0.5">
+                  🚫 {counters.uovaNonCommestibili} non commestibili
+                </div>
+              )}
             </Card>
           </Link>
           <Link href="/galline">
@@ -272,6 +318,44 @@ export default async function HomePage() {
                 {hhList.length > 3 && (
                   <div className="text-[11px] text-(--text-secondary) text-right mt-0.5">
                     +{hhList.length - 3} altre →
+                  </div>
+                )}
+              </div>
+            </Card>
+          </Link>
+        )}
+
+        {/* Sospensioni uova in corso (farmaci): visibili a tutti i membri */}
+        {sospensioniInCorso.length > 0 && (
+          <Link href="/uova/sospensioni" className="block mt-3">
+            <Card
+              clickable
+              style={{ background: "#FFD6E044", border: "1px solid #c0435a44" }}
+            >
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="font-semibold text-sm flex items-center gap-1.5">
+                  <span aria-hidden>🚫</span> Uova non commestibili
+                </div>
+                <span className="text-xs font-bold text-[#c0435a]">
+                  {sospensioniInCorso.length}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {sospensioniInCorso.slice(0, 3).map((s) => (
+                  <div key={s.id} className="flex items-center gap-2.5 text-xs">
+                    <span className="text-base" aria-hidden>💊</span>
+                    <span className="font-semibold text-text flex-1 truncate">
+                      {nomiGalline(s, data.nomiAnimali)}
+                    </span>
+                    <span className="text-(--text-secondary) whitespace-nowrap">
+                      fino {alGiorno(s.dataFine)} · buone{" "}
+                      {etichettaRitorno(giorniAlRitorno(s, oggiData))}
+                    </span>
+                  </div>
+                ))}
+                {sospensioniInCorso.length > 3 && (
+                  <div className="text-[11px] text-(--text-secondary) text-right mt-0.5">
+                    +{sospensioniInCorso.length - 3} altre →
                   </div>
                 )}
               </div>

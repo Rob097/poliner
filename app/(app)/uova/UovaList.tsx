@@ -26,6 +26,8 @@ import {
   consumaUovo,
   deleteUovo,
   ripristinaUovo,
+  scartaUovaNonCommestibili,
+  scartaUovo,
 } from "./actions";
 
 export interface UovoDisplay {
@@ -39,21 +41,36 @@ export interface UovoDisplay {
   gallinaFotoUrl: string | null;
   nidoNome: string | null;
   regalatoA: string | null;
+  /** Motivo della sospensione che ha reso l'uovo non commestibile. */
+  sospensioneMotivo: string | null;
+}
+
+/** Sospensione in corso, già formattata per il banner delle scorte. */
+export interface SospensioneBanner {
+  id: string;
+  galline: string;
+  fino: string;
+  ritorno: string;
 }
 
 type TabId = "scorte" | "regalate" | "storico";
 
 interface Props {
   uova: UovoDisplay[];
+  sospensioniInCorso: SospensioneBanner[];
   conservazioneSettings: ConservazioneSettings;
   isAdmin: boolean;
 }
 
-export function UovaList({ uova, conservazioneSettings, isAdmin }: Props) {
+export function UovaList({ uova, sospensioniInCorso, conservazioneSettings, isAdmin }: Props) {
   const [tab, setTab] = useState<TabId>("scorte");
 
   const disponibili = useMemo(
     () => uova.filter((u) => u.stato === "disponibile"),
+    [uova],
+  );
+  const nonCommestibili = useMemo(
+    () => uova.filter((u) => u.stato === "non_commestibile"),
     [uova],
   );
   const consumate = useMemo(() => uova.filter((u) => u.stato === "consumato"), [uova]);
@@ -77,6 +94,8 @@ export function UovaList({ uova, conservazioneSettings, isAdmin }: Props) {
         {tab === "scorte" && (
           <Scorte
             disponibili={disponibili}
+            nonCommestibili={nonCommestibili}
+            sospensioniInCorso={sospensioniInCorso}
             consumate={consumate}
             regalate={regalate}
             settings={conservazioneSettings}
@@ -97,12 +116,16 @@ export function UovaList({ uova, conservazioneSettings, isAdmin }: Props) {
 // ── SCORTE TAB ──────────────────────────────────────────
 function Scorte({
   disponibili,
+  nonCommestibili,
+  sospensioniInCorso,
   consumate,
   regalate,
   settings,
   isAdmin,
 }: {
   disponibili: UovoDisplay[];
+  nonCommestibili: UovoDisplay[];
+  sospensioniInCorso: SospensioneBanner[];
   consumate: UovoDisplay[];
   regalate: UovoDisplay[];
   settings: ConservazioneSettings;
@@ -168,6 +191,31 @@ function Scorte({
         />
       </div>
 
+      {/* Sospensioni in corso: le uova nuove di queste galline non si mangiano */}
+      {sospensioniInCorso.length > 0 && (
+        <Link href="/uova/sospensioni" className="block mb-3">
+          <Card
+            clickable
+            style={{ background: "#FFD6E044", border: "1px solid #c0435a44" }}
+          >
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+              <div className="font-semibold text-sm flex items-center gap-1.5">
+                <span aria-hidden>🚫</span> Sospensione in corso
+              </div>
+              <span className="text-xs font-semibold text-(--primary)">Dettagli →</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              {sospensioniInCorso.map((s) => (
+                <div key={s.id} className="text-[13px] text-text leading-snug">
+                  <strong>{s.galline}</strong>: uova non commestibili fino {s.fino}
+                  <span className="text-(--text-secondary)"> · buone {s.ritorno}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </Link>
+      )}
+
       {/* Scaduti */}
       {scaduti.length > 0 && (
         <Card
@@ -222,6 +270,11 @@ function Scorte({
         </div>
       )}
 
+      {/* Non commestibili (raccolte durante una sospensione) */}
+      {nonCommestibili.length > 0 && (
+        <NonCommestibili uova={nonCommestibili} settings={settings} isAdmin={isAdmin} />
+      )}
+
       {/* Empty */}
       {disponibili.length === 0 ? (
         <EmptyState
@@ -262,6 +315,74 @@ function Scorte({
           Gestisci nidi →
         </Link>
       )}
+      <Link
+        href="/uova/sospensioni"
+        className="block text-center mt-3 text-sm text-(--primary) font-semibold"
+      >
+        💊 Sospensione uova (farmaci) →
+      </Link>
+    </div>
+  );
+}
+
+// ── NON COMMESTIBILI ────────────────────────────────────
+function NonCommestibili({
+  uova,
+  settings,
+  isAdmin,
+}: {
+  uova: UovoDisplay[];
+  settings: ConservazioneSettings;
+  isAdmin: boolean;
+}) {
+  const { show } = useToast();
+  const [pending, startTransition] = useTransition();
+  const { visible, hasMore, remaining, loadMore } = usePagination(uova);
+
+  function onScartaTutte() {
+    const ok = window.confirm(
+      `Segnare come scartate tutte le ${uova.length} uova non commestibili?`,
+    );
+    if (!ok) return;
+    startTransition(async () => {
+      const res = await scartaUovaNonCommestibili();
+      if (res.ok) show(`✓ ${res.scartate ?? 0} uova scartate`);
+      else show(res.error ?? "Ops, riprova!");
+    });
+  }
+
+  return (
+    <div className="mb-4">
+      <Card
+        className="mb-2"
+        style={{ background: "#FFD6E044", border: "1px solid #c0435a44" }}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <div className="font-semibold text-sm">
+            🚫 {uova.length} {uova.length === 1 ? "uovo non commestibile" : "uova non commestibili"}
+          </div>
+          {isAdmin && (
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={onScartaTutte}
+              disabled={pending}
+              className="text-xs px-3 py-2 whitespace-nowrap"
+            >
+              🗑️ Scarta tutte
+            </Button>
+          )}
+        </div>
+        <div className="text-xs text-(--text-secondary) mt-1 leading-relaxed">
+          Raccolte durante una sospensione per farmaci: non mangiarle e non regalarle.
+        </div>
+      </Card>
+      <div className="flex flex-col gap-1.5">
+        {visible.map((u) => (
+          <UovoRow key={u.id} u={u} settings={settings} variant="storico" isAdmin={isAdmin} />
+        ))}
+      </div>
+      {hasMore && <LoadMoreButton onClick={loadMore} remaining={remaining} />}
     </div>
   );
 }
@@ -388,13 +509,20 @@ function UovoRow({
     startTransition(async () => {
       const res = await consumaUovo(u.id);
       if (res.ok) show("✓ Segnato come consumato");
+      else show(res.error ?? "Ops, riprova!");
+    });
+  }
+  function onScarta() {
+    startTransition(async () => {
+      const res = await scartaUovo(u.id);
+      if (res.ok) show("✓ Segnato come scartato");
       else show("Ops, riprova!");
     });
   }
   function onRipristina() {
     startTransition(async () => {
       const res = await ripristinaUovo(u.id);
-      if (res.ok) show("✓ Tornato disponibile");
+      if (res.ok) show(res.nonCommestibile ? "🚫 Ripristinato: non commestibile" : "✓ Tornato disponibile");
       else show("Ops, riprova!");
     });
   }
@@ -457,6 +585,9 @@ function UovoRow({
           </div>
           <div className="text-xs text-(--text-secondary) truncate">
             {[
+              u.stato === "non_commestibile" && u.sospensioneMotivo
+                ? `🚫 ${u.sospensioneMotivo}`
+                : null,
               u.nidoNome,
               u.conservazione === "frigo" ? "❄️ frigo" : "🌤️ ambiente",
               u.regalatoA ? `→ ${u.regalatoA}` : null,
@@ -505,7 +636,20 @@ function UovoRow({
               </Button>
             </>
           )}
-          {(u.stato === "consumato" || (u.stato === "regalato" && !u.regalatoA)) && (
+          {u.stato === "non_commestibile" && (
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={onScarta}
+              disabled={pending}
+              className="text-xs px-3 py-2"
+            >
+              🗑️ Scartato
+            </Button>
+          )}
+          {(u.stato === "consumato" ||
+            u.stato === "scartato" ||
+            (u.stato === "regalato" && !u.regalatoA)) && (
             <Button
               variant="secondary"
               size="md"

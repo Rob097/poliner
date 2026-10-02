@@ -19,6 +19,11 @@ import {
   showLoadingOverlay,
 } from "@/components/layout/NavigationOverlay";
 import { PrimoUovoModal } from "@/components/uova/PrimoUovoModal";
+import {
+  nomiGalline,
+  sospensionePerUovo,
+  type SospensioneUova,
+} from "@/lib/utils/sospensioni";
 import { createUovaBulk, type PrimoUovo } from "../actions";
 
 export interface BatchGallina {
@@ -37,9 +42,10 @@ const NON_SO_ID = "__non-so__";
 interface Props {
   galline: BatchGallina[];
   nidi: BatchNido[];
+  sospensioni: SospensioneUova[];
 }
 
-export function BatchUovaForm({ galline, nidi }: Props) {
+export function BatchUovaForm({ galline, nidi, sospensioni }: Props) {
   const router = useRouter();
   const { show } = useToast();
   const [pending, startTransition] = useTransition();
@@ -101,6 +107,15 @@ export function BatchUovaForm({ galline, nidi }: Props) {
   const [note, setNote] = useState("");
   const [primeUova, setPrimeUova] = useState<PrimoUovo[] | null>(null);
 
+  // Sospensioni che coprono il giorno scelto: le uova di quelle galline (e
+  // quelle "Non so") verranno segnate come non commestibili dal DB.
+  const giorno = data.slice(0, 10);
+  const nomi = useMemo(() => new Map(galline.map((g) => [g.id, g.nome])), [galline]);
+  const sospensioniDelGiorno = useMemo(
+    () => sospensioni.filter((s) => giorno >= s.dataInizio && giorno <= s.dataFine),
+    [sospensioni, giorno],
+  );
+
   // Nido attivo: se l'utente vuole assegnare un nido a tutto, può scegliere
   // qui (oppure null = "Non so"). Per ora teniamo il nido come unico
   // per tutte le righe per semplicità — l'utente raramente sa di nido per
@@ -142,12 +157,18 @@ export function BatchUovaForm({ galline, nidi }: Props) {
       });
 
       if (res.ok) {
+        const nc = res.nonCommestibili ?? 0;
         if (res.primeUova && res.primeUova.length > 0) {
+          if (nc > 0) show(`🚫 ${nc} uova registrate come non commestibili`);
           setPrimeUova(res.primeUova);
           hideLoadingOverlay();
           return;
         }
-        show(`✓ ${res.creati} uova registrate 🥚`);
+        show(
+          nc > 0
+            ? `✓ ${res.creati} uova registrate · 🚫 ${nc} non commestibili`
+            : `✓ ${res.creati} uova registrate 🥚`,
+        );
         router.push("/uova");
         router.refresh();
       } else {
@@ -187,6 +208,19 @@ export function BatchUovaForm({ galline, nidi }: Props) {
           </Card>
         ) : (
           <>
+            {sospensioniDelGiorno.length > 0 && (
+              <div
+                className="mt-1 mb-1 rounded-(--radius) px-3 py-2.5 text-[13px] leading-relaxed"
+                style={{ background: "#FFD6E055", border: "1px solid #c0435a33" }}
+              >
+                🚫 Sospensione in corso per{" "}
+                <strong>
+                  {sospensioniDelGiorno.map((s) => nomiGalline(s, nomi)).join(", ")}
+                </strong>
+                : le loro uova (e quelle &laquo;Non so&raquo;) verranno segnate come{" "}
+                <strong>non commestibili</strong>.
+              </div>
+            )}
             <SectionTitle>Da chi le uova</SectionTitle>
             <div className="flex flex-col gap-2">
               {galline.map((g) => (
@@ -196,6 +230,7 @@ export function BatchUovaForm({ galline, nidi }: Props) {
                   fotoUrl={g.fotoUrl}
                   bg={avatarBgFor(g.id)}
                   count={totalePer(g.id)}
+                  sospesa={!!sospensionePerUovo(sospensioniDelGiorno, g.id, giorno)}
                   onPlus={() => incr(g.id, nidoSelezionato)}
                   onMinus={() => decr(g.id, nidoSelezionato)}
                 />
@@ -206,6 +241,7 @@ export function BatchUovaForm({ galline, nidi }: Props) {
                 bg="#F0EDE8"
                 emoji="❓"
                 count={totalePer(NON_SO_ID)}
+                sospesa={sospensioniDelGiorno.length > 0}
                 onPlus={() => incr(NON_SO_ID, nidoSelezionato)}
                 onMinus={() => decr(NON_SO_ID, nidoSelezionato)}
               />
@@ -303,6 +339,7 @@ function RigaGallina({
   bg,
   emoji,
   count,
+  sospesa,
   onPlus,
   onMinus,
 }: {
@@ -311,6 +348,7 @@ function RigaGallina({
   bg: string;
   emoji?: string;
   count: number;
+  sospesa?: boolean;
   onPlus: () => void;
   onMinus: () => void;
 }) {
@@ -325,6 +363,11 @@ function RigaGallina({
       />
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-[15px] truncate">{nome}</div>
+        {sospesa && (
+          <div className="text-[11px] font-semibold text-[#c0435a]">
+            🚫 uova non commestibili
+          </div>
+        )}
       </div>
       <div className="flex items-center gap-2">
         <button

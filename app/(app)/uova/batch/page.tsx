@@ -1,4 +1,5 @@
 import { requireAdminPollaio } from "@/lib/supabase/queries";
+import { caricaSospensioni } from "@/lib/queries/sospensioni";
 import { BatchUovaForm } from "./BatchUovaForm";
 
 export const dynamic = "force-dynamic";
@@ -6,7 +7,7 @@ export const dynamic = "force-dynamic";
 export default async function BatchUovaPage() {
   const { supabase, pollaio } = await requireAdminPollaio();
 
-  const [animaliRes, nidiRes] = await Promise.all([
+  const [animaliRes, nidiRes, sospensioni] = await Promise.all([
     supabase
       .from("animali")
       .select("id, nome, tipo, foto_url")
@@ -21,6 +22,7 @@ export default async function BatchUovaPage() {
       .eq("pollaio_id", pollaio.id)
       .order("ordine")
       .order("nome"),
+    caricaSospensioni(supabase, pollaio.id),
   ]);
 
   return (
@@ -31,6 +33,7 @@ export default async function BatchUovaPage() {
         fotoUrl: a.foto_url,
       }))}
       nidi={(nidiRes.data ?? []).map((n) => ({ id: n.id, nome: n.nome }))}
+      sospensioni={sospensioni}
     />
   );
 }

@@ -6,6 +6,7 @@ export type CategoriaNotificaId =
   | "promemoria"
   | "scorte"
   | "trattamenti"
+  | "sospensione_uova"
   | "fine_produzione"
   | "muta_lunga"
   | "richiesta_uova";
@@ -66,6 +67,13 @@ export const CATEGORIE_NOTIFICHE: CategoriaNotifica[] = [
     label: "Trattamenti",
     desc: "Prossime sverminazioni e antiparassitari",
     icona: "💊",
+    defaultOn: true,
+  },
+  {
+    id: "sospensione_uova",
+    label: "Sospensione uova",
+    desc: "Quando le uova tornano commestibili dopo un farmaco",
+    icona: "🚫",
     defaultOn: true,
   },
   {

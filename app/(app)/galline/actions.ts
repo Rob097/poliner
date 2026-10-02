@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdminPollaio } from "@/lib/supabase/queries";
-import { todayIso } from "@/lib/utils/date";
+import { dateIsoInTimeZone, todayIso } from "@/lib/utils/date";
+import {
+  dataFineDaDurata,
+  rigaSospensione,
+  validaSospensione,
+  type SospensioneInput,
+} from "@/lib/utils/sospensioni";
 
 export interface NuovaGallinaInput {
   id: string;                // generato client per coerenza foto path
@@ -312,27 +318,67 @@ export interface NuovoTrattamentoInput {
   dose: string | null;
   note: string | null;
   prossimaData: string | null;
+  /** Tempo di sospensione uova in giorni a partire da oggi (null = nessuno). */
+  sospensioneGiorni?: number | null;
 }
 
-export async function aggiungiTrattamento(input: NuovoTrattamentoInput): Promise<ActionResult> {
+export async function aggiungiTrattamento(
+  input: NuovoTrattamentoInput,
+): Promise<ActionResult & { avviso?: string }> {
   const { supabase, pollaio } = await requireAdminPollaio();
 
-  const { error } = await supabase.from("trattamenti").insert({
-    pollaio_id: pollaio.id,
-    animale_id: input.applicaATutti ? null : input.animaleId,
-    applica_a_tutti: input.applicaATutti,
-    data: input.data,
-    tipo: input.tipo.trim(),
-    prodotto: input.prodotto?.trim() || null,
-    dose: input.dose?.trim() || null,
-    note: input.note?.trim() || null,
-    prossima_data: input.prossimaData,
-  });
+  const { data: trattamento, error } = await supabase
+    .from("trattamenti")
+    .insert({
+      pollaio_id: pollaio.id,
+      animale_id: input.applicaATutti ? null : input.animaleId,
+      applica_a_tutti: input.applicaATutti,
+      data: input.data,
+      tipo: input.tipo.trim(),
+      prodotto: input.prodotto?.trim() || null,
+      dose: input.dose?.trim() || null,
+      note: input.note?.trim() || null,
+      prossima_data: input.prossimaData,
+    })
+    .select("id")
+    .single();
 
-  if (error) return { ok: false, error: "Non sono riuscita a registrare il trattamento." };
+  if (error || !trattamento) {
+    return { ok: false, error: "Non sono riuscita a registrare il trattamento." };
+  }
+
+  // Sospensione uova collegata. Il trattamento è già salvato: se questa parte
+  // fallisce lo diciamo all'utente invece di far ripetere tutto (duplicati).
+  let avviso: string | undefined;
+  if (input.sospensioneGiorni) {
+    const oggi = dateIsoInTimeZone();
+    const sospensione: SospensioneInput = {
+      dataInizio: oggi,
+      dataFine: dataFineDaDurata(oggi, Math.floor(input.sospensioneGiorni)),
+      tutte: input.applicaATutti,
+      animaleIds: !input.applicaATutti && input.animaleId ? [input.animaleId] : [],
+      motivo: input.tipo,
+      prodotto: input.prodotto,
+      trattamentoId: trattamento.id,
+    };
+    const errore = validaSospensione(sospensione);
+    const { error: sospErr } = errore
+      ? { error: { message: errore } }
+      : await supabase
+          .from("sospensioni_uova")
+          .insert(rigaSospensione(pollaio.id, sospensione));
+    if (sospErr) {
+      console.error("[trattamenti] sospensione uova:", sospErr.message);
+      avviso = "Trattamento salvato, sospensione uova no: aggiungila da Uova";
+    }
+    revalidatePath("/");
+    revalidatePath("/uova");
+    revalidatePath("/uova/sospensioni");
+  }
+
   if (input.animaleId) revalidatePath(`/galline/${input.animaleId}`);
   revalidatePath("/galline");
-  return { ok: true };
+  return { ok: true, avviso };
 }
 
 export async function eliminaTrattamento(id: string, animaleId: string | null): Promise<ActionResult> {

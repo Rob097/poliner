@@ -1168,6 +1168,69 @@ export type Database = {
           },
         ]
       }
+      sospensioni_uova: {
+        Row: {
+          animale_ids: string[]
+          created_at: string
+          created_by: string | null
+          data_fine: string
+          data_inizio: string
+          id: string
+          motivo: string
+          note: string | null
+          pollaio_id: string
+          prodotto: string | null
+          trattamento_id: string | null
+          tutte: boolean
+          updated_at: string
+        }
+        Insert: {
+          animale_ids?: string[]
+          created_at?: string
+          created_by?: string | null
+          data_fine: string
+          data_inizio: string
+          id?: string
+          motivo: string
+          note?: string | null
+          pollaio_id: string
+          prodotto?: string | null
+          trattamento_id?: string | null
+          tutte?: boolean
+          updated_at?: string
+        }
+        Update: {
+          animale_ids?: string[]
+          created_at?: string
+          created_by?: string | null
+          data_fine?: string
+          data_inizio?: string
+          id?: string
+          motivo?: string
+          note?: string | null
+          pollaio_id?: string
+          prodotto?: string | null
+          trattamento_id?: string | null
+          tutte?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sospensioni_uova_pollaio_id_fkey"
+            columns: ["pollaio_id"]
+            isOneToOne: false
+            referencedRelation: "pollai"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sospensioni_uova_trattamento_id_fkey"
+            columns: ["trattamento_id"]
+            isOneToOne: false
+            referencedRelation: "trattamenti"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spese: {
         Row: {
           categoria: string | null
@@ -1282,6 +1345,7 @@ export type Database = {
           note: string | null
           pollaio_id: string
           regalo_id: string | null
+          sospensione_id: string | null
           stato: string
           updated_at: string
         }
@@ -1297,6 +1361,7 @@ export type Database = {
           note?: string | null
           pollaio_id: string
           regalo_id?: string | null
+          sospensione_id?: string | null
           stato?: string
           updated_at?: string
         }
@@ -1312,6 +1377,7 @@ export type Database = {
           note?: string | null
           pollaio_id?: string
           regalo_id?: string | null
+          sospensione_id?: string | null
           stato?: string
           updated_at?: string
         }
@@ -1342,6 +1408,13 @@ export type Database = {
             columns: ["regalo_id"]
             isOneToOne: false
             referencedRelation: "regali"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "uova_sospensione_id_fkey"
+            columns: ["sospensione_id"]
+            isOneToOne: false
+            referencedRelation: "sospensioni_uova"
             referencedColumns: ["id"]
           },
         ]

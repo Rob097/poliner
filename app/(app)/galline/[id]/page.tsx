@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { requirePollaio } from "@/lib/supabase/queries";
+import { caricaSospensioni } from "@/lib/queries/sospensioni";
 import { ChickenDetail, type ChickenData } from "./ChickenDetail";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,15 @@ export default async function GallinaPage({
   // "pure" (attivo=false ma non defunte) invece redirect alla lista.
   if (!animale.attivo && !animale.defunta_il) redirect("/galline");
 
-  const [uovaRes, trattamentiRes, muteRes, eventiRes, inserimentoRes] = await Promise.all([
+  const [
+    uovaRes,
+    trattamentiRes,
+    muteRes,
+    eventiRes,
+    inserimentoRes,
+    sospensioni,
+    gallineRes,
+  ] = await Promise.all([
     supabase
       .from("uova")
       .select("id, data_deposizione, stato, nido_id, note")
@@ -52,6 +61,16 @@ export default async function GallinaPage({
       .select("id, tipo, data, note, foto_url")
       .eq("animale_id", animale.id)
       .order("data", { ascending: false }),
+    caricaSospensioni(supabase, pollaio.id, { animaleId: animale.id }),
+    // Opzioni del form "sospensione uova" (che può coinvolgere più galline)
+    supabase
+      .from("animali")
+      .select("id, nome, foto_url")
+      .eq("pollaio_id", pollaio.id)
+      .eq("tipo", "gallina")
+      .eq("attivo", true)
+      .is("defunta_il", null)
+      .order("nome"),
   ]);
 
   const { count: uovaCount7 } = await supabase
@@ -92,6 +111,12 @@ export default async function GallinaPage({
       totali: uovaTotali ?? 0,
       regalate: uovaRegalate ?? 0,
     },
+    sospensioni,
+    gallineOpzioni: (gallineRes.data ?? []).map((g) => ({
+      id: g.id,
+      nome: g.nome,
+      fotoUrl: g.foto_url,
+    })),
   };
 
   return <ChickenDetail data={data} ruolo={ruolo} />;

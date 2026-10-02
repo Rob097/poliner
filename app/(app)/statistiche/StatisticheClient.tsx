@@ -29,9 +29,10 @@ import {
   type PeriodoStats,
 } from "@/lib/utils/stats";
 import { avatarBgFor, defaultEmojiFor } from "@/lib/utils/avatar";
+import type { StatoUovo } from "@/lib/types";
 
 export interface StatsData {
-  uova: { data: string; stato: "disponibile" | "consumato" | "regalato"; animaleId: string | null }[];
+  uova: { data: string; stato: StatoUovo; animaleId: string | null }[];
   animali: { id: string; nome: string; fotoUrl: string | null; tipo: "gallina" | "gallo"; defunta: boolean }[];
   spese: { data: string; importo: number; categoria: string | null }[];
   meteo: { data: string; tempMin: number | null; tempMax: number | null }[];
@@ -45,6 +46,7 @@ const COLORS = {
   lavender: "#E8DAFF",
   butter: "#FFE07A",
   sky: "#A8D1FF",
+  rose: "#F4A7B9",
 };
 
 export function StatisticheClient({ data }: { data: StatsData }) {
@@ -94,7 +96,7 @@ export function StatisticheClient({ data }: { data: StatsData }) {
       cur.prodotte += 1;
       if (u.stato === "regalato") cur.regalate += 1;
       else if (u.stato === "consumato") cur.consumate += 1;
-      else cur.disponibili += 1;
+      else if (u.stato === "disponibile") cur.disponibili += 1;
       m.set(b.key, cur);
     }
     return Array.from(m.values()).sort(
@@ -107,10 +109,15 @@ export function StatisticheClient({ data }: { data: StatsData }) {
     const disp = uovaInPeriodo.filter((u) => u.stato === "disponibile").length;
     const cons = uovaInPeriodo.filter((u) => u.stato === "consumato").length;
     const reg = uovaInPeriodo.filter((u) => u.stato === "regalato").length;
+    // Uova deposte durante una sospensione (farmaci), buttate o da buttare.
+    const sosp = uovaInPeriodo.filter(
+      (u) => u.stato === "non_commestibile" || u.stato === "scartato",
+    ).length;
     return [
       { name: "Disponibili", value: disp, color: COLORS.sage },
       { name: "Consumate", value: cons, color: COLORS.peach },
       { name: "Regalate", value: reg, color: COLORS.lavender },
+      { name: "Non commestibili", value: sosp, color: COLORS.rose },
     ].filter((s) => s.value > 0);
   }, [uovaInPeriodo]);
 

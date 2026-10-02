@@ -1,6 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { trovaRazza } from "@/lib/data/razze";
+import { caricaSospensioni } from "@/lib/queries/sospensioni";
+import {
+  commestibiliDal,
+  faseSospensione,
+  nomiGalline,
+  oggiSospensioni,
+} from "@/lib/utils/sospensioni";
 
 export interface PollaioOverview {
   galline_attive: number;
@@ -19,6 +26,17 @@ export interface PollaioOverview {
   // Raggruppamento delle galline attive per razza (utile all'AI per
   // priorizzare i match dalle foto sulle razze effettivamente presenti).
   galline_per_razza: Array<{ razza: string; nomi: string[] }>;
+  /** Uova in scorta raccolte durante una sospensione per farmaci. */
+  uova_non_commestibili: number;
+  /** Sospensioni uova in corso o programmate (date ISO YYYY-MM-DD). */
+  sospensioni_uova: Array<{
+    galline: string;
+    motivo: string;
+    dal: string;
+    ultimo_giorno: string;
+    commestibili_dal: string;
+    in_corso: boolean;
+  }>;
 }
 
 function razzaLabel(
@@ -41,6 +59,7 @@ export async function buildOverview(
   pollaioId: string,
 ): Promise<PollaioOverview> {
   const dal7 = dataIsoGiorniFa(7);
+  const oggiIso = oggiSospensioni();
   const [
     galline,
     ultimoUovo,
@@ -50,10 +69,12 @@ export async function buildOverview(
     esec,
     note,
     spesa,
+    nonCommestibili,
+    sospensioni,
   ] = await Promise.all([
     supabase
       .from("animali")
-      .select("attivo, nome, razza_id, razza_custom")
+      .select("id, attivo, nome, razza_id, razza_custom")
       .eq("pollaio_id", pollaioId)
       .eq("tipo", "gallina"),
     supabase
@@ -92,6 +113,12 @@ export async function buildOverview(
       .select("id", { count: "exact", head: true })
       .eq("pollaio_id", pollaioId)
       .eq("comprato", false),
+    supabase
+      .from("uova")
+      .select("id", { count: "exact", head: true })
+      .eq("pollaio_id", pollaioId)
+      .eq("stato", "non_commestibile"),
+    caricaSospensioni(supabase, pollaioId, { daFine: oggiIso }),
   ]);
 
   const gallineRows = galline.data ?? [];
@@ -143,6 +170,18 @@ export async function buildOverview(
     if (giorni >= v.frequenza_giorni) inRitardo += 1;
   }
 
+  const nomiPerId = new Map(gallineRows.map((g) => [g.id, g.nome]));
+  const sospensioniUova = sospensioni
+    .sort((a, b) => a.dataInizio.localeCompare(b.dataInizio))
+    .map((s) => ({
+      galline: nomiGalline(s, nomiPerId),
+      motivo: s.prodotto ? `${s.motivo} (${s.prodotto})` : s.motivo,
+      dal: s.dataInizio,
+      ultimo_giorno: s.dataFine,
+      commestibili_dal: commestibiliDal(s),
+      in_corso: faseSospensione(s, oggiIso) === "in_corso",
+    }));
+
   return {
     galline_attive: attive,
     galline_defunte: defunte,
@@ -153,5 +192,7 @@ export async function buildOverview(
     note_attive: note.count ?? 0,
     lista_spesa_da_comprare: spesa.count ?? 0,
     galline_per_razza: gallinePerRazza,
+    uova_non_commestibili: nonCommestibili.count ?? 0,
+    sospensioni_uova: sospensioniUova,
   };
 }

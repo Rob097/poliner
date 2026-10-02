@@ -29,6 +29,8 @@ export interface GallinaDisplay {
   problemaAttivo: string | null;
   inHomeHospital: boolean;
   inInserimento: boolean;
+  /** Sospensione uova in corso (farmaci): uova non commestibili. */
+  uovaSospese: boolean;
   uovaUltimaSettimana: number;
 }
 
@@ -224,6 +226,11 @@ function GallinaRow({ g }: { g: GallinaDisplay }) {
             {g.inMutaDal && (
               <Badge small bg="#E8DAFF" color="#7b5ea7">
                 🪶 In muta
+              </Badge>
+            )}
+            {g.uovaSospese && (
+              <Badge small bg="#FFD6E0" color="#c0435a">
+                🚫 Uova sospese
               </Badge>
             )}
           </div>

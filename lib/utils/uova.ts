@@ -46,12 +46,15 @@ export function calcolaScadenza(
 
 export function statoUovoLabel(s: StatoUovo): string {
   if (s === "disponibile") return "Disponibile";
+  if (s === "non_commestibile") return "Non commestibile";
+  if (s === "scartato") return "Scartato";
   if (s === "consumato") return "Consumato";
   return "Regalato";
 }
 
 export function statoUovoColors(s: StatoUovo): { bg: string; color: string } {
   if (s === "disponibile") return { bg: "#B5D4B533", color: "#3d6b3d" };
-  if (s === "consumato") return { bg: "#F0EDE8", color: "#9E968C" };
+  if (s === "non_commestibile") return { bg: "#FFD6E0", color: "#c0435a" };
+  if (s === "scartato" || s === "consumato") return { bg: "#F0EDE8", color: "#9E968C" };
   return { bg: "#FFE4D044", color: "#b87333" };
 }

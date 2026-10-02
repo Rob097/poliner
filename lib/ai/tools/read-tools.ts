@@ -411,6 +411,17 @@ export async function get_impostazioni_app(
         ],
       },
       {
+        nome: "Sospensione uova (farmaci)",
+        come_arrivarci:
+          "Uova > 'Sospensione uova (farmaci)', oppure scheda gallina > Salute > Sospensione uova, oppure spuntando l'opzione mentre registri un trattamento.",
+        cosa_si_fa: [
+          "Indicare per quali galline (o tutto il pollaio), da che giorno e per quanti giorni (o fino a che giorno) le uova non sono commestibili dopo un farmaco: il cosiddetto tempo di sospensione.",
+          "Le uova deposte nel periodo vengono segnate in automatico come non commestibili e escluse da scorte, regali e richieste.",
+          "Le uova non commestibili si possono segnare come scartate, una alla volta o tutte insieme.",
+          "Quando le uova tornano commestibili arriva un avviso in home e una notifica (categoria 'Sospensione uova' nelle impostazioni notifiche).",
+        ],
+      },
+      {
         nome: "Manutenzioni",
         come_arrivarci: "Sezione Manutenzione.",
         cosa_si_fa: [

@@ -61,6 +61,16 @@ export function buildSystemPrompt({
           )
           .join(", ");
 
+  const sospensioniUova =
+    overview.sospensioni_uova.length === 0
+      ? "nessuna"
+      : overview.sospensioni_uova
+          .map(
+            (s) =>
+              `${s.galline} — ${s.motivo}, ${s.in_corso ? "in corso" : "programmata"} dal ${formatItaDate(s.dal)} al ${formatItaDate(s.ultimo_giorno)} (uova di nuovo commestibili da ${formatItaDate(s.commestibili_dal)})`,
+          )
+          .join("; ");
+
   const razzeConosciute = RAZZE.filter((r) => r.id !== "mista")
     .map((r) => r.nome)
     .join(", ");
@@ -115,6 +125,8 @@ Hai accesso a strumenti per leggere i dati del pollaio: \`get_animali\`, \`get_a
 Galline attive nel pollaio: ${overview.galline_attive}.
 Ultimo uovo registrato: ${ultimaUovo}.
 Uova negli ultimi 7 giorni: ${overview.uova_ultimi_7_giorni}.
+Sospensioni uova (farmaci): ${sospensioniUova}.
+Uova non commestibili in scorta (raccolte durante una sospensione): ${overview.uova_non_commestibili}.
 Scorte: ${scorteBasse}.
 Manutenzioni in ritardo: ${overview.manutenzioni_in_ritardo}.
 Note attive: ${overview.note_attive}.
