@@ -28,9 +28,11 @@ import {
   isSubscribed,
 } from "@/lib/push/client";
 import { suggestSlug, SLUG_REGEX } from "@/lib/utils/slug";
+import { validaPorta, type PortaAutomatica } from "@/lib/utils/porta";
 import {
   aggiornaDescrizionePubblica,
   aggiornaPollaio,
+  aggiornaPortaAutomatica,
   aggiornaPreferenzeNotifiche,
   aggiornaProfilo,
   attivaPaginaPubblica,
@@ -55,6 +57,7 @@ interface Pollaio {
   pubblicoAttivo: boolean;
   pubblicoSlug: string | null;
   descrizionePubblica: string | null;
+  porta: PortaAutomatica;
 }
 
 interface Preferenze {
@@ -73,6 +76,8 @@ interface Props {
   hasPushSubscription: boolean;
   vapidPublicKey: string;
   ruolo: "admin" | "guest";
+  /** Apre subito la modale della porta automatica (link da altre pagine). */
+  apriPorta?: boolean;
 }
 
 export function ImpostazioniClient({
@@ -82,12 +87,14 @@ export function ImpostazioniClient({
   hasPushSubscription,
   vapidPublicKey,
   ruolo,
+  apriPorta = false,
 }: Props) {
   const router = useRouter();
   const { show } = useToast();
   const [editProfilo, setEditProfilo] = useState(false);
   const [editPollaio, setEditPollaio] = useState(false);
   const [editConservazione, setEditConservazione] = useState(false);
+  const [editPorta, setEditPorta] = useState(apriPorta && ruolo === "admin");
 
   async function onLogout() {
     await signOutAction();
@@ -128,6 +135,36 @@ export function ImpostazioniClient({
           value={pollaio.posizioneNome ?? "Non impostata"}
           onEdit={ruolo === "admin" ? () => setEditPollaio(true) : undefined}
         />
+      </Card>
+
+      {/* Porta automatica */}
+      <SectionTitle>Porta automatica</SectionTitle>
+      <Card>
+        {pollaio.porta.attiva ? (
+          <>
+            <KeyValueRow
+              label="Apertura"
+              value={pollaio.porta.apertura ? `Alle ${pollaio.porta.apertura}` : "A mano"}
+              onEdit={ruolo === "admin" ? () => setEditPorta(true) : undefined}
+            />
+            <KeyValueRow
+              label="Chiusura"
+              value={pollaio.porta.chiusura ? `Alle ${pollaio.porta.chiusura}` : "A mano"}
+              onEdit={ruolo === "admin" ? () => setEditPorta(true) : undefined}
+            />
+          </>
+        ) : (
+          <KeyValueRow
+            label="Apertura e chiusura"
+            value="A mano"
+            onEdit={ruolo === "admin" ? () => setEditPorta(true) : undefined}
+          />
+        )}
+        <p className="text-xs text-(--text-secondary) mt-2 mb-0 leading-relaxed">
+          {pollaio.porta.attiva
+            ? "A quell'ora apertura e chiusura si registrano da sole, se non l'hai già fatto tu."
+            : "Hai una porta automatica? Imposta gli orari e apertura e chiusura si registrano da sole."}
+        </p>
       </Card>
 
       {/* Membri */}
@@ -217,6 +254,16 @@ export function ImpostazioniClient({
           onClose={() => setEditPollaio(false)}
           onSaved={() => {
             show("✓ Pollaio aggiornato");
+            router.refresh();
+          }}
+        />
+      )}
+      {editPorta && (
+        <ModalPortaAutomatica
+          porta={pollaio.porta}
+          onClose={() => setEditPorta(false)}
+          onSaved={() => {
+            show("✓ Porta automatica aggiornata");
             router.refresh();
           }}
         />
@@ -1025,6 +1072,110 @@ function ModalPollaio({
           Scegli una località dai suggerimenti o usa il GPS per aggiornare meteo e tramonto.
         </p>
         <Button type="submit" fullWidth size="lg" disabled={!nome.trim() || pending}>
+          {pending ? "Salvataggio..." : "Salva"}
+        </Button>
+      </form>
+    </Modal>
+  );
+}
+
+function ModalPortaAutomatica({
+  porta,
+  onClose,
+  onSaved,
+}: {
+  porta: PortaAutomatica;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [attiva, setAttiva] = useState(porta.attiva);
+  const [apertura, setApertura] = useState(porta.apertura ?? "");
+  const [chiusura, setChiusura] = useState(porta.chiusura ?? "");
+  const [errore, setErrore] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const config: PortaAutomatica = {
+      attiva,
+      apertura: apertura || null,
+      chiusura: chiusura || null,
+    };
+    const problema = validaPorta(config);
+    if (problema) {
+      setErrore(problema);
+      return;
+    }
+    setErrore(null);
+    startTransition(() => {
+      void (async () => {
+        const res = await aggiornaPortaAutomatica(config);
+        if (res.ok) {
+          onSaved();
+          onClose();
+        } else setErrore(res.error ?? "Ops, riprova!");
+      })();
+    });
+  }
+
+  return (
+    <Modal title="Porta automatica" onClose={onClose}>
+      <form onSubmit={onSubmit}>
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <div className="font-semibold text-[15px]">Ho una porta automatica</div>
+            <div className="text-xs text-(--text-secondary) mt-0.5">
+              Apertura e chiusura si registrano da sole all&apos;orario indicato
+            </div>
+          </div>
+          <Switch checked={attiva} onChange={setAttiva} />
+        </div>
+
+        {attiva && (
+          <>
+            <FormField label="Si apre alle">
+              <Input
+                type="time"
+                value={apertura}
+                onChange={(e) => setApertura(e.target.value)}
+              />
+              {apertura && (
+                <button
+                  type="button"
+                  onClick={() => setApertura("")}
+                  className="mt-1.5 text-xs text-(--primary) font-semibold"
+                >
+                  La apro a mano (togli orario)
+                </button>
+              )}
+            </FormField>
+            <FormField label="Si chiude alle">
+              <Input
+                type="time"
+                value={chiusura}
+                onChange={(e) => setChiusura(e.target.value)}
+              />
+              {chiusura && (
+                <button
+                  type="button"
+                  onClick={() => setChiusura("")}
+                  className="mt-1.5 text-xs text-(--primary) font-semibold"
+                >
+                  La chiudo a mano (togli orario)
+                </button>
+              )}
+            </FormField>
+            <p className="text-xs text-(--text-secondary) leading-relaxed mb-4 -mt-1">
+              💡 Se un giorno apri o chiudi prima dall&apos;app, vale la tua registrazione e
+              la porta non la tocca. Gli orari valgono dal prossimo in arrivo: se oggi la
+              porta si è già aperta, segnalo tu con &laquo;Apri ora&raquo;.
+            </p>
+          </>
+        )}
+
+        {errore && <p className="text-sm text-[#c0435a] text-center mb-3">{errore}</p>}
+
+        <Button type="submit" fullWidth size="lg" disabled={pending}>
           {pending ? "Salvataggio..." : "Salva"}
         </Button>
       </form>

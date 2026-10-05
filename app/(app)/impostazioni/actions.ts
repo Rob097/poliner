@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requirePollaio, requireUser } from "@/lib/supabase/queries";
+import { requireAdminPollaio, requirePollaio, requireUser } from "@/lib/supabase/queries";
+import { validaPorta, type PortaAutomatica } from "@/lib/utils/porta";
 import { SLUG_REGEX } from "@/lib/utils/slug";
 import type { ActionResult } from "@/lib/types";
 
@@ -98,6 +99,42 @@ export async function aggiornaPollaio(input: {
   revalidatePath("/impostazioni");
   revalidatePath("/");
   revalidatePath("/meteo");
+  return { ok: true };
+}
+
+// ── PORTA AUTOMATICA ───────────────────────────────────────
+
+/**
+ * Salva gli orari della porta automatica del pollaio attivo. Le registrazioni
+ * le fa il DB ogni minuto (pg_cron) e valgono dal primo orario che arriva
+ * dopo il salvataggio: nessuna registrazione retroattiva.
+ */
+export async function aggiornaPortaAutomatica(input: PortaAutomatica): Promise<ActionResult> {
+  const porta: PortaAutomatica = {
+    attiva: input.attiva,
+    apertura: input.apertura || null,
+    chiusura: input.chiusura || null,
+  };
+  const errore = validaPorta(porta);
+  if (errore) return { ok: false, error: errore };
+
+  const { supabase, pollaio } = await requireAdminPollaio();
+  const { error } = await supabase
+    .from("pollai")
+    .update({
+      porta_auto_attiva: porta.attiva,
+      porta_auto_apertura: porta.apertura,
+      porta_auto_chiusura: porta.chiusura,
+    })
+    .eq("id", pollaio.id);
+  if (error) {
+    console.error("[impostazioni] porta automatica:", error.message);
+    return { ok: false, error: "Non sono riuscita a salvare gli orari." };
+  }
+
+  revalidatePath("/impostazioni");
+  revalidatePath("/");
+  revalidatePath("/uscite");
   return { ok: true };
 }
 

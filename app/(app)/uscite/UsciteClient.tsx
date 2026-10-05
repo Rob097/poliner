@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   CartesianGrid,
@@ -25,6 +26,7 @@ import {
   eliminaUscita,
 } from "@/lib/actions/uscite";
 import { dateIsoInTimeZone, etichettaGiornoRelativo, formatData } from "@/lib/utils/date";
+import { riepilogoPorta, type PortaAutomatica } from "@/lib/utils/porta";
 import { usePagination } from "@/lib/hooks/usePagination";
 import { LoadMoreButton } from "@/components/ui/LoadMoreButton";
 
@@ -33,11 +35,15 @@ export interface UscitaRow {
   data: string; // YYYY-MM-DD
   oraUscita: string | null; // "HH:MM"
   oraRientro: string | null;
+  /** Orario registrato dalla porta automatica. */
+  uscitaAuto: boolean;
+  rientroAuto: boolean;
   note: string | null;
 }
 
 interface Props {
   log: UscitaRow[];
+  porta: PortaAutomatica;
   isAdmin: boolean;
 }
 
@@ -55,7 +61,7 @@ function minutesToTime(minutes: number): string {
 
 const GIORNI_BREVI = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
 
-export function UsciteClient({ log, isAdmin }: Props) {
+export function UsciteClient({ log, porta, isAdmin }: Props) {
   const [editing, setEditing] = useState<UscitaRow | null>(null);
   const [showNuovo, setShowNuovo] = useState(false);
 
@@ -113,6 +119,33 @@ export function UsciteClient({ log, isAdmin }: Props) {
 
   return (
     <>
+      {porta.attiva ? (
+        <Card className="flex items-center gap-3 mt-2">
+          <span className="text-2xl" aria-hidden>🚪</span>
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-sm">Porta automatica</div>
+            <div className="text-xs text-(--text-secondary)">{riepilogoPorta(porta)}</div>
+          </div>
+          {isAdmin && (
+            <Link
+              href="/impostazioni?porta=1"
+              className="text-sm text-(--primary) font-semibold"
+            >
+              Modifica
+            </Link>
+          )}
+        </Card>
+      ) : (
+        isAdmin && (
+          <Link
+            href="/impostazioni?porta=1"
+            className="block mt-2 text-sm text-(--primary) font-semibold"
+          >
+            🚪 Hai una porta automatica? Imposta gli orari →
+          </Link>
+        )
+      )}
+
       {isAdmin && (
         <div className="mt-2">
           <Button variant="secondary" fullWidth onClick={() => setShowNuovo(true)}>
@@ -209,8 +242,12 @@ export function UsciteClient({ log, isAdmin }: Props) {
                     {etichettaGiornoRelativo(r.data)} · {formatData(r.data)}
                   </div>
                   <div className="text-xs text-(--text-secondary)">
-                    {r.oraUscita ? `Aperto ${r.oraUscita}` : "Apertura —"}
-                    {r.oraRientro ? ` · Chiuso ${r.oraRientro}` : " · Chiusura —"}
+                    {r.oraUscita
+                      ? `Aperto ${r.oraUscita}${r.uscitaAuto ? " (auto)" : ""}`
+                      : "Apertura —"}
+                    {r.oraRientro
+                      ? ` · Chiuso ${r.oraRientro}${r.rientroAuto ? " (auto)" : ""}`
+                      : " · Chiusura —"}
                   </div>
                   {r.note && (
                     <div className="text-xs text-(--text-secondary) italic mt-0.5">

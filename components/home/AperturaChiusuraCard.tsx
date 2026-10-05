@@ -11,6 +11,12 @@ import { registraApertura, registraChiusura } from "@/lib/actions/uscite";
 interface Props {
   oraUscita: string | null; // "HH:MM:SS" o null
   oraRientro: string | null;
+  /** L'orario di oggi è stato registrato dalla porta automatica. */
+  uscitaAuto?: boolean;
+  rientroAuto?: boolean;
+  /** Orario ("HH:MM") a cui la porta automatica aprirà/chiuderà oggi, se ancora atteso. */
+  autoApertura?: string | null;
+  autoChiusura?: string | null;
   alba: string | null; // "HH:MM"
   tramonto: string | null; // "HH:MM"
   isAdmin: boolean;
@@ -24,6 +30,10 @@ function formatHHMM(time: string | null): string | null {
 export function AperturaChiusuraCard({
   oraUscita,
   oraRientro,
+  uscitaAuto = false,
+  rientroAuto = false,
+  autoApertura = null,
+  autoChiusura = null,
   alba,
   tramonto,
   isAdmin,
@@ -75,6 +85,11 @@ export function AperturaChiusuraCard({
                 Alba alle {alba}
               </div>
             )}
+            {autoApertura && (
+              <div className="text-[12px] text-(--text-secondary)">
+                🚪 Si apre da solo alle {autoApertura}
+              </div>
+            )}
           </div>
           {isAdmin ? (
             <Button onClick={handleApri} disabled={isPending} className="px-4 py-2 text-sm">
@@ -95,10 +110,22 @@ export function AperturaChiusuraCard({
         <div className="flex items-center gap-3">
           <span className="text-3xl">☀️</span>
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-[15px]">Aperto alle {uscitaLabel}</div>
+            <div className="font-semibold text-[15px]">
+              Aperto alle {uscitaLabel}
+              {uscitaAuto && (
+                <span className="font-normal text-[12px] text-(--text-secondary)">
+                  {" "}· porta automatica
+                </span>
+              )}
+            </div>
             {tramonto && (
               <div className="text-[12px] text-(--text-secondary)">
                 Tramonto alle {tramonto}
+              </div>
+            )}
+            {autoChiusura && (
+              <div className="text-[12px] text-(--text-secondary)">
+                🚪 Si chiude da solo alle {autoChiusura}
               </div>
             )}
           </div>
@@ -149,6 +176,7 @@ export function AperturaChiusuraCard({
           </div>
           <div className="text-[12px] text-(--text-secondary)">
             Giornata completata
+            {(uscitaAuto || rientroAuto) && " · 🚪 porta automatica"}
           </div>
         </div>
         <Link href="/uscite" className="text-sm text-(--primary) font-semibold">

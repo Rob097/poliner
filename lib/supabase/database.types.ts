@@ -425,6 +425,8 @@ export type Database = {
           ora_rientro: string | null
           ora_uscita: string | null
           pollaio_id: string
+          rientro_auto: boolean
+          uscita_auto: boolean
         }
         Insert: {
           created_at?: string
@@ -434,6 +436,8 @@ export type Database = {
           ora_rientro?: string | null
           ora_uscita?: string | null
           pollaio_id: string
+          rientro_auto?: boolean
+          uscita_auto?: boolean
         }
         Update: {
           created_at?: string
@@ -443,6 +447,8 @@ export type Database = {
           ora_rientro?: string | null
           ora_uscita?: string | null
           pollaio_id?: string
+          rientro_auto?: boolean
+          uscita_auto?: boolean
         }
         Relationships: [
           {
@@ -765,6 +771,12 @@ export type Database = {
           foto_url: string | null
           id: string
           nome: string
+          porta_auto_aggiornata_il: string | null
+          porta_auto_apertura: string | null
+          porta_auto_apertura_fatta_il: string | null
+          porta_auto_attiva: boolean
+          porta_auto_chiusura: string | null
+          porta_auto_chiusura_fatta_il: string | null
           posizione_lat: number | null
           posizione_lng: number | null
           posizione_nome: string | null
@@ -781,6 +793,12 @@ export type Database = {
           foto_url?: string | null
           id?: string
           nome: string
+          porta_auto_aggiornata_il?: string | null
+          porta_auto_apertura?: string | null
+          porta_auto_apertura_fatta_il?: string | null
+          porta_auto_attiva?: boolean
+          porta_auto_chiusura?: string | null
+          porta_auto_chiusura_fatta_il?: string | null
           posizione_lat?: number | null
           posizione_lng?: number | null
           posizione_nome?: string | null
@@ -797,6 +815,12 @@ export type Database = {
           foto_url?: string | null
           id?: string
           nome?: string
+          porta_auto_aggiornata_il?: string | null
+          porta_auto_apertura?: string | null
+          porta_auto_apertura_fatta_il?: string | null
+          porta_auto_attiva?: boolean
+          porta_auto_chiusura?: string | null
+          porta_auto_chiusura_fatta_il?: string | null
           posizione_lat?: number | null
           posizione_lng?: number | null
           posizione_nome?: string | null

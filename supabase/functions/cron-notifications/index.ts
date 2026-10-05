@@ -454,7 +454,7 @@ Deno.serve(async (req: Request) => {
   const { data: pollai } = await supabase
     .from("pollai")
     .select(
-      "id, nome, posizione_lat, posizione_lng, conservazione_ambiente_giorni, conservazione_frigo_giorni",
+      "id, nome, posizione_lat, posizione_lng, conservazione_ambiente_giorni, conservazione_frigo_giorni, porta_auto_attiva, porta_auto_chiusura",
     );
   if (!pollai) {
     return new Response(JSON.stringify({ ok: true, processed: 0 }), {
@@ -502,7 +502,11 @@ Deno.serve(async (req: Request) => {
           ub.categorie.meteo !== false,
       );
 
+    // Con la chiusura automatica il pollaio si chiude (e si registra) da
+    // solo: il promemoria del tramonto sarebbe solo rumore.
+    const chiusuraAutomatica = Boolean(p.porta_auto_attiva && p.porta_auto_chiusura);
     const shouldCheckSunsetReminder =
+      !chiusuraAutomatica &&
       p.posizione_lat !== null &&
       p.posizione_lng !== null &&
       adminBases.some(

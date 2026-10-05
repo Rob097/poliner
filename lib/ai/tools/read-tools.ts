@@ -411,6 +411,16 @@ export async function get_impostazioni_app(
         ],
       },
       {
+        nome: "Porta automatica",
+        come_arrivarci:
+          "Impostazioni > Porta automatica, oppure pagina 'Aperture & chiusure' > 'Imposta gli orari'.",
+        cosa_si_fa: [
+          "Impostare l'orario di apertura e/o di chiusura della porta automatica (modificabili quando si vuole): a quell'ora l'apertura o la chiusura del pollaio viene registrata da sola.",
+          "Non è rigido: se un giorno si apre o si chiude prima a mano dall'app, vale la registrazione manuale e la porta non la sovrascrive.",
+          "Gli orari valgono dal primo in arrivo dopo il salvataggio. Con la chiusura automatica il promemoria del tramonto non viene inviato.",
+        ],
+      },
+      {
         nome: "Sospensione uova (farmaci)",
         come_arrivarci:
           "Uova > 'Sospensione uova (farmaci)', oppure scheda gallina > Salute > Sospensione uova, oppure spuntando l'opzione mentre registri un trattamento.",

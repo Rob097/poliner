@@ -26,6 +26,9 @@ export interface UscitaOggi {
   id: string;
   ora_uscita: string | null;
   ora_rientro: string | null;
+  /** true = orario registrato dalla porta automatica. */
+  uscita_auto: boolean;
+  rientro_auto: boolean;
 }
 
 export interface HHGallina {
@@ -167,7 +170,7 @@ export async function loadHomeData(
       .limit(3),
     supabase
       .from("log_uscite")
-      .select("id, ora_uscita, ora_rientro")
+      .select("id, ora_uscita, ora_rientro, uscita_auto, rientro_auto")
       .eq("pollaio_id", pollaioId)
       .eq("data", oggiIso)
       .maybeSingle(),
@@ -350,12 +353,7 @@ export async function loadHomeData(
       : 0,
   }));
 
-  type UscitaRow = {
-    id: string;
-    ora_uscita: string | null;
-    ora_rientro: string | null;
-  };
-  const uscitaOggi = (uscitaOggiRes.data ?? null) as UscitaRow | null;
+  const uscitaOggi: UscitaOggi | null = uscitaOggiRes.data ?? null;
 
   return {
     counters: {

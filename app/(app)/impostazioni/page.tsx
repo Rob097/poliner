@@ -1,11 +1,17 @@
 import { requirePollaio } from "@/lib/supabase/queries";
 import { Header } from "@/components/ui/Header";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
+import { portaDaPollaio } from "@/lib/utils/porta";
 import { ImpostazioniClient } from "./ImpostazioniClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function ImpostazioniPage() {
+export default async function ImpostazioniPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ porta?: string }>;
+}) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const { supabase, user, pollaio, ruolo } = await requirePollaio();
 
   const [profileRes, prefRes, subsRes] = await Promise.all([
@@ -48,6 +54,7 @@ export default async function ImpostazioniPage() {
           pubblicoAttivo: pollaio.pubblico_attivo,
           pubblicoSlug: pollaio.pubblico_slug,
           descrizionePubblica: pollaio.descrizione_pubblica,
+          porta: portaDaPollaio(pollaio),
         }}
         preferenze={{
           pushAttivo: prefRes.data?.push_attivo ?? true,
@@ -60,6 +67,7 @@ export default async function ImpostazioniPage() {
         hasPushSubscription={(subsRes.data?.length ?? 0) > 0}
         vapidPublicKey={vapidPublicKey}
         ruolo={ruolo}
+        apriPorta={resolvedSearchParams?.porta === "1"}
       />
     </ScreenContainer>
   );

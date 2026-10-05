@@ -8,7 +8,8 @@ import { AlertCard } from "@/components/ui/AlertCard";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { fetchMeteo, getAlbaTramonto, hasCoords, type MeteoData } from "@/lib/utils/meteo";
 import { consiglioStagionale } from "@/lib/utils/stagione";
-import { formatDataCompleta } from "@/lib/utils/date";
+import { formatDataCompleta, timeIsoInTimeZone } from "@/lib/utils/date";
+import { automatismiInArrivo, portaDaPollaio } from "@/lib/utils/porta";
 import { AperturaChiusuraCard } from "@/components/home/AperturaChiusuraCard";
 import { loadHomeData } from "@/lib/queries/home";
 import {
@@ -183,6 +184,15 @@ export default async function HomePage() {
   const consiglio = consiglioStagionale();
   const dateStr = formatDataCompleta(new Date());
   const { counters, uscitaOggi, hhList } = data;
+  // Orari che la porta automatica registrerà oggi se nessuno interviene.
+  const portaInArrivo = automatismiInArrivo(
+    portaDaPollaio(pollaio),
+    timeIsoInTimeZone().slice(0, 5),
+    {
+      oraUscita: uscitaOggi?.ora_uscita ?? null,
+      oraRientro: uscitaOggi?.ora_rientro ?? null,
+    },
+  );
   const sospensioniInCorso = [...sospensioniAttive].sort((a, b) =>
     a.dataFine.localeCompare(b.dataFine),
   );
@@ -230,6 +240,10 @@ export default async function HomePage() {
           <AperturaChiusuraCard
             oraUscita={uscitaOggi?.ora_uscita ?? null}
             oraRientro={uscitaOggi?.ora_rientro ?? null}
+            uscitaAuto={uscitaOggi?.uscita_auto ?? false}
+            rientroAuto={uscitaOggi?.rientro_auto ?? false}
+            autoApertura={portaInArrivo.apertura}
+            autoChiusura={portaInArrivo.chiusura}
             alba={alba}
             tramonto={tramonto}
             isAdmin={ruolo === "admin"}

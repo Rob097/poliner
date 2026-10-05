@@ -690,17 +690,29 @@ export async function registra_uscita(
   },
   ctx: ToolContext,
 ) {
-  const data = args.data?.trim() || oggiISO();
+  // "Oggi" è il giorno italiano, come nel resto del registro aperture.
+  const data = args.data?.trim() || dateIsoInTimeZone();
   if (!args.ora_uscita && !args.ora_rientro) {
     return { ok: false, errore: "Servono almeno ora uscita o ora rientro." };
   }
-  const { error } = await ctx.supabase.from("log_uscite").insert({
-    pollaio_id: ctx.pollaioId,
-    data,
-    ora_uscita: args.ora_uscita?.trim() || null,
-    ora_rientro: args.ora_rientro?.trim() || null,
-    note: args.note?.trim() || null,
-  });
+  // Una riga per giorno: se la giornata esiste già (es. apertura registrata
+  // dalla porta automatica) si aggiornano solo i campi indicati.
+  const campi: { ora_uscita?: string; ora_rientro?: string; note?: string } = {};
+  if (args.ora_uscita?.trim()) campi.ora_uscita = args.ora_uscita.trim();
+  if (args.ora_rientro?.trim()) campi.ora_rientro = args.ora_rientro.trim();
+  if (args.note?.trim()) campi.note = args.note.trim();
+
+  const { data: esistente } = await ctx.supabase
+    .from("log_uscite")
+    .select("id")
+    .eq("pollaio_id", ctx.pollaioId)
+    .eq("data", data)
+    .maybeSingle();
+  const { error } = esistente
+    ? await ctx.supabase.from("log_uscite").update(campi).eq("id", esistente.id)
+    : await ctx.supabase
+        .from("log_uscite")
+        .insert({ pollaio_id: ctx.pollaioId, data, ...campi });
   if (error) {
     console.error("[write] registra_uscita", error);
     return { ok: false, errore: "Non sono riuscita a registrare l'uscita." };
